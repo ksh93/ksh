@@ -210,9 +210,10 @@ p :test-2:
 # consume the job state change notification that is being tested. The shell
 # only reports a job state change when it prints a prompt, so finish with a
 # null command to force the prompt that displays the notification.
-w until [[ $(jobs) =~ (Stopped|Suspended) ]]; do kill -TSTP $!; sleep 0.1; done; :
+w until (jobs) >jobs$$ && [[ $(<jobs$$) =~ (Stopped|Suspend) ]]; do kill -TSTP $!; sleep 0.1; done
+w :
 u (Stopped|Suspended)
-p :test-3:
+p :test-4:
 w kill -KILL $!
 w wait
 s 100
@@ -235,10 +236,10 @@ w sleep 60 &
 u [[:digit:]]\r?\n$
 p :test-2:
 # See the comment in the POSIX sh 026(C) test above.
-w until [[ $(ulimit -c 0; jobs) =~ (Stopped|Suspended) ]]; do kill -TTIN $!; sleep 0.1; done; :
-#            ^^^^^^^^^^^ FIXME: need to fork subshell to avoid consuming notification
+w until (jobs) >jobs$$ && [[ $(<jobs$$) =~ (Stopped|Suspend) ]]; do kill -TTIN $!; sleep 0.1; done
+w :
 u (Stopped|Suspended) \(SIGTTIN\)
-p :test-3:
+p :test-4:
 w kill -KILL $!
 w wait
 s 100
@@ -261,10 +262,10 @@ w sleep 60 &
 u [[:digit:]]\r?\n$
 p :test-2:
 # See the comment in the POSIX sh 026(C) test above.
-w until [[ $(ulimit -c 0; jobs) =~ (Stopped|Suspended) ]]; do kill -TTOU $!; sleep 0.1; done; :
-#            ^^^^^^^^^^^ FIXME: need to fork subshell to avoid consuming notification
+w until (jobs) >jobs$$ && [[ $(<jobs$$) =~ (Stopped|Suspend) ]]; do kill -TTOU $!; sleep 0.1; done
+w :
 u (Stopped|Suspended) \(SIGTTOU\)
-p :test-3:
+p :test-4:
 w kill -KILL $!
 w wait
 s 100

@@ -574,15 +574,130 @@ typedef struct Master_s
 	char*		nxt;		/* next line				*/
 	char*		end;		/* end of lines				*/
 	char*		max;		/* end of buf				*/
-	char*		bufunderflow;	/* FIXME: kludge to cope with underflow	*/
 	char*		buf;		/* current buffer			*/
 	char*		prompt;		/* peek prompt				*/
-	ptrdiff_t	cursor;		/* cursor in buf, 0 if fresh line	*/
+	char*		partial;	/* text of an unfinished line		*/
+	size_t		partiallen;	/* length of the text in partial		*/
+	size_t		partialmax;	/* allocated size of partial		*/
 	int		line;		/* prompt line number			*/
 	char		save;		/* previous line's saved char		*/
 	char		saving;		/* set if saved char is to be restored	*/
 } Master_t;
-#define BUFUNDERFLOW	128		/* bytes of buffer underflow to allow	*/
+
+/*
+ * Make room for size bytes in the buffer that holds the text of an unfinished
+ * line (see below).
+ */
+
+static void
+reservepartial(Master_t* bp, size_t size)
+{
+	if (size > bp->partialmax)
+	{
+		bp->partialmax = roundof(size, SFIO_BUFSIZE);
+		if (bp->partial)
+			bp->partial = vmresize(bp->vm, bp->partial, bp->partialmax);
+		else
+			bp->partial = vmnewof(bp->vm, NULL, char, bp->partialmax, 0);
+	}
+}
+
+/*
+ * Remember a line that was left unfinished, so that the next output from the
+ * master can be joined to it (a redraw can be split over several reads).
+ */
+
+static void
+savepartial(Master_t* bp, char* r)
+{
+	size_t	len = strlen(r);
+
+	if (r != bp->partial)
+	{
+		reservepartial(bp, len + 1);
+		memcpy(bp->partial, r, len + 1);
+	}
+	bp->partiallen = len;
+}
+
+/*
+ * Return a line that continues one returned earlier: the unfinished line's
+ * text is in bp->partial, and the new line is appended to it, so that the
+ * caller sees the line as a terminal would. The unfinished line cannot simply
+ * be pointed at in the buffer: it was returned at a read timeout, which resets
+ * the buffer, so in the buffer the new line does not follow it, and pointing
+ * before the buffer underflowed it.
+ */
+
+static char*
+continueline(Master_t* bp, char* r)
+{
+	size_t	len = strlen(r);
+
+	reservepartial(bp, bp->partiallen + len + 1);
+	memcpy(bp->partial + bp->partiallen, r, len + 1);
+	return bp->partial;
+}
+
+/*
+ * Collapse the redraw sequences in a line of master output to the text that a
+ * terminal would display: a carriage return moves the cursor to the start of
+ * the line, a backspace moves it back one character, a bell has no visible
+ * effect, and every other character overwrites what was at the cursor. So the
+ * line 'abc\rde' displays as 'de', and what a redraw does not overwrite is
+ * dropped once the line is complete: the shell rewrites the whole line when it
+ * redraws. Returns nonzero if the line is complete, i.e. ended by a newline,
+ * and zero if the remaining output continues it. The redrawsback flag is set
+ * if the line ends in the middle of a redraw, i.e. the cursor moved back over
+ * text that a later redraw is going to overwrite.
+ */
+
+static int
+collapse(char* r, int* redrawsback)
+{
+	char*	s = r;		/* scan the raw output			*/
+	char*	c = r;		/* cursor in the collapsed line		*/
+	char*	w = r;		/* end of the collapsed line		*/
+	int	ch;
+	int	back = 0;	/* a redraw moved the cursor back	*/
+
+	while ((ch = (unsigned char)*s++))
+	{
+		if (ch == '\n')
+		{
+			w = c;
+			*w++ = '\n';
+			*w = 0;
+			return 1;
+		}
+		if (ch == '\r' && *s != '\n')
+		{
+			c = r;
+			back = 1;
+		}
+		else if (ch == '\b')
+		{
+			if (c > r)
+			{
+				c--;
+				back = 1;
+			}
+		}
+		else if (ch == '\a')
+			/*skip*/;
+		else
+		{
+			if (c < w)
+				*c = (char)ch;
+			else
+				*w++ = (char)ch;
+			c++;
+		}
+	}
+	*w = 0;
+	*redrawsback = back;
+	return 0;
+}
 
 /*
  * read one line from the master
@@ -611,9 +726,9 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, char* want, int must, int timeo
 {
 	char*		r;
 	char*		s;
-	char*		t;
 	ssize_t		n;
 	size_t		promptlen = 0;
+	int		redraw;
 
 	if (prompt)
 		promptlen = strlen(prompt);
@@ -783,8 +898,7 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, char* want, int must, int timeo
 		size_t	new_buf_size;
 		r = bp->buf;
 		new_buf_size = (size_t)roundof(bp->max - bp->buf + 1 + n, SFIO_BUFSIZE);
-		bp->bufunderflow = vmresize(bp->vm, bp->bufunderflow, new_buf_size + BUFUNDERFLOW);
-		bp->buf = bp->bufunderflow + BUFUNDERFLOW;
+		bp->buf = vmresize(bp->vm, bp->buf, new_buf_size);
 		bp->max = bp->buf + new_buf_size - 1;
 		if (bp->buf != r)
 		{
@@ -823,59 +937,21 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, char* want, int must, int timeo
  done:
 	error(-3, "Q \"%s\"", fmtesq(r, "\""));
 	s = r;
-	if (bp->cursor)
-	{
-		r -= bp->cursor; /* FIXME: r may now be before bp->buf */
-		if (r < bp->bufunderflow)
-			error(ERROR_PANIC, "pty.c:%d: internal error: r is %td bytes before bp->bufunderflow", __LINE__, bp->bufunderflow - r);
-		bp->cursor = 0;
-	}
-	for (t = NULL, n = 0; *s; s++)
-		if (*s == '\n')
-		{
-			if (t)
-			{
-				*t++ = '\n';
-				*t = 0;
-				t = NULL;
-				n = 0;
-			}
-		}
-		else if (*s == '\r' && *(s + 1) != '\n')
-		{
-			if (t = strchr(s + 1, '\r'))
-				n += t - s;
-			else
-				n += strlen(s);
-			t = r;
-		}
-		else if (*s == '\a')
-		{
-			if (!t)
-				t = s;
-			*t = ' ';
-			n++;
-		}
-		else if (*s == '\b')
-		{
-			if (!t)
-				t = s;
-			if (t > r)
-				t--;
-			else
-				n++;
-		}
-		else if (t)
-			*t++ = *s;
-	if (t)
-		error(-3, "R \"%s\"", fmtesq(r, "\""));
-	if (n)
-		*(r + strlen(r) - n) = 0;
+	/*
+	 * If the last line returned was left unfinished by a redraw, then this
+	 * one continues it: put the two together so that the caller sees the
+	 * whole line. A complete line is finished here, and one that is still
+	 * unfinished is remembered for the next output to continue.
+	 */
+	if (bp->partiallen)
+		r = continueline(bp, r);
+	if (collapse(r, &redraw) == 0 && redraw)
+		savepartial(bp, r);
+	else
+		bp->partiallen = 0;
 	error(-1, "r \"%s\"", fmtesq(r, "\""));
 	if (lp)
 		sfputr(lp, fmtesq(r, "\""), '\n');
-	if (t)
-		bp->cursor = t - r;
 	if (bp->ignore && match(bp->ignore, r, 0))
 		goto again;
 	return r;
@@ -927,8 +1003,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 	cond = vmnewof(vm, NULL, Cond_t, 1, 0);
 	master = vmnewof(vm, NULL, Master_t, 1, 0);
 	master->vm = vm;
-	master->bufunderflow = vmnewof(vm, NULL, char, 2 * SFIO_BUFSIZE, BUFUNDERFLOW);
-	master->buf = master->bufunderflow + BUFUNDERFLOW;
+	master->buf = vmnewof(vm, NULL, char, 2 * SFIO_BUFSIZE, 0);
 	master->cur = master->end = master->buf;
 	master->max = master->buf + 2 * SFIO_BUFSIZE - 1;
 	master->saving = 0;
