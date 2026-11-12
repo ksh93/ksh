@@ -82,6 +82,9 @@ extern int 	sh_iomovefd(int,int);
 extern int	sh_iorenumber(int,int);
 extern void 	sh_pclose(int[]);
 extern void 	sh_iorestore(int,int);
+#if SHOPT_SPAWN
+extern void 	sh_iorestore_stderr(int);
+#endif
 extern Sfio_t 	*sh_iostream(int,int);
 extern int	sh_redirect(struct ionod*,int);
 extern void	sh_pat_handoff(void);
