@@ -1572,10 +1572,16 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 						sh.pipepid = parent;
 					else
 					{
+#if SHOPT_SPAWN
+						/* Ensure job_wait's messages are unaffected by direct stderr redirection */
+						if(sh.topfd > topfd)
+							sh_iorestore_stderr(topfd);
+#endif /* SHOPT_SPAWN */
 						job_wait(parent);
 						if(parent==sh.spid)
 							sh.spid = 0;
 					}
+					/* To avoid breaking >;FILE with SHOPT_SPAWN, sh_iorestore must be called after job_wait */
 					if(sh.topfd > topfd)
 						sh_iorestore(topfd,0);
 					if(!sh_isstate(SH_MONITOR))

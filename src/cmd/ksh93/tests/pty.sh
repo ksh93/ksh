@@ -1986,6 +1986,30 @@ pty "$SHELL" -c 'exit 7' </dev/null
 e=$?
 ((e == 7)) || err_exit "pty: shell exit 7: expected exit status 7, got $e"
 
+tst $LINENO <<"!"
+L shell signal message not redirected by a command's own stderr redirect
+
+# In an interactive shell, the shell's message for a child killed by a signal
+# is printed by job_wait() using standard error's Sfio stream. A standard error
+# redirection associated directly with the command must neither capture that
+# message nor swallow it.
+p :test-1:
+w "$SHELL" -c 'kill -s KILL $$' 2>sig.out
+r 2>sig.out\r?\n$
+s 100
+r ^Killed\r?\n$
+p :test-2:
+w "$SHELL" -c 'kill -s KILL $$' 2>&1
+r 2>&1\r?\n$
+s 100
+r ^Killed\r?\n$
+p :test-3:
+w "$SHELL" -c 'kill -s KILL $$' 2>;sig2.out
+r 2>;sig2.out\r?\n$
+s 100
+r ^Killed\r?\n$
+!
+
 # ^^^^^^ ADD NEW TESTS ABOVE THIS LINE ^^^^^^
 
 # Check results of parallel tests

@@ -1322,4 +1322,28 @@ exp=$'10000\nend\nmore'
 	"(expected $(printf %q "$exp"), got $(printf %q "${got:0:80}")$( ((${#got} > 80)) && print -n '...' ))"
 
 # ======
+# A standard error redirection associated directly with a command must not redirect the shell's status message for a
+# child process terminated by a signal, whereas a standard error redirection on an enclosing compound command must do.
+{ got=$( "$SHELL" -c 'kill -s KILL "$$"' 2>&1 ); } 2>/dev/null
+[[ -z $got ]] || err_exit 'signal message erroneously captured by command substitution' \
+	"(got $(printf %q "$got"))"
+got=$( { "$SHELL" -c 'kill -s KILL "$$"'; } 2>&1 )
+[[ -n $got ]] || err_exit 'signal message not captured by redirected compound command'
+{ "$SHELL" -c 'kill -s KILL "$$"' 2>signalled1.out; } 2>enclosed1.out
+[[ -s signalled1.out ]] && err_exit 'signal message erroneously redirected by 2>file' \
+	"(got $(printf %q "$(<signalled1.out)"))"
+[[ -s enclosed1.out ]] || err_exit 'signal message not redirected by compound command (1)'
+{ "$SHELL" -c 'kill -s KILL "$$"' 2>;signalled2.out; } 2>enclosed2.out
+[[ -e signalled2.out ]] && err_exit 'signal message erroneously redirected by 2>;file' \
+	"(got $(printf %q "$(<signalled2.out)"))"
+[[ -s enclosed2.out ]] || err_exit 'signal message not redirected by compound command (2)'
+# A successful <>; redirection to a target that is not a regular file uses the
+# Empty placeholder as the temporary file name. Its final truncate must not be
+# applied to the shell's own standard error, which may be a regular file.
+print 'PRISTINE' >err.trunc
+"$SHELL" -c 'exec 2<>err.trunc; command -x cat </dev/null 2<>;/dev/null'
+[[ $(<err.trunc) == PRISTINE ]] || err_exit 'successful <>; redirection truncated standard error file' \
+	"(got $(printf %q "$(<err.trunc)"))"
+
+# ======
 exit $((Errors<125?Errors:125))

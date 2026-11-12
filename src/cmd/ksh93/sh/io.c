@@ -318,6 +318,9 @@ struct fdsave
 	int	orig_fd;	/* original file descriptor */
 	int	save_fd;	/* saved file descriptor */
 	int	subshell;	/* saved for subshell */
+#if SHOPT_SPAWN
+	char	restored;	/* set if the file descriptor was already restored */
+#endif  /* SHOPT_SPAWN */
 	char	*tname;		/* name used with >; */
 };
 
@@ -2150,6 +2153,9 @@ void sh_iosave(int origfd, int oldtop, char *name)
 	filemap[sh.topfd].tname = name;
 	filemap[sh.topfd].subshell = (flag&IOSUBSHELL);
 	filemap[sh.topfd].orig_fd = origfd;
+#if SHOPT_SPAWN
+	filemap[sh.topfd].restored = 0;
+#endif  /* SHOPT_SPAWN */
 	filemap[sh.topfd++].save_fd = savefd;
 	if(savefd >=0)
 	{
@@ -2204,6 +2210,10 @@ void	sh_iorestore(int last, int jmpval)
 	last &= ~IOSUBSHELL;
 	for (fd = sh.topfd - 1; fd >= last; fd--)
 	{
+#if SHOPT_SPAWN
+		if(filemap[fd].restored)
+			continue;	/* standard error was restored by sh_iorestore_stderr() */
+#endif /* SHOPT_SPAWN */
 		if(!flag && filemap[fd].subshell)
 			continue;
 		if(jmpval==SH_JMPSCRIPT)
@@ -2237,10 +2247,9 @@ void	sh_iorestore(int last, int jmpval)
 			sh_fcntl(savefd, F_DUPFD, origfd);
 			if(savefd==job.fd)
 				job.fd=origfd;
-			sh.fdstatus[origfd] = sh.fdstatus[savefd];
-			/* turn off close-on-exec if flag if necessary */
-			if(sh.fdstatus[origfd]&IOCLEX)
-				fcntl(origfd,F_SETFD,FD_CLOEXEC);
+			/* F_DUPFD unsets close-on-exec; restore it */
+			if(sh.fdstatus[savefd]&IOCLEX)
+				sh_fcntl(origfd,F_SETFD,FD_CLOEXEC);
 			if(origfd<=2)
 			{
 				sfswap(sh.sftable[savefd],sh.sftable[origfd]);
@@ -2267,6 +2276,54 @@ void	sh_iorestore(int last, int jmpval)
 	if(last < sh.topfd)
 		sh.topfd = last;
 }
+
+#if SHOPT_SPAWN
+/*
+ * Restore standard error to the state it had before the command's own
+ * redirections were applied since <last>, so that job_wait()'s messages,
+ * such as those reporting that the command was terminated by a signal, are
+ * not subject to them while job_wait() is running. Like sh_iorestore(),
+ * this restores the standard error stream and its attributes, not just the
+ * file descriptor. It marks the entry so that sh_iorestore() skips it.
+ */
+void	sh_iorestore_stderr(int last)
+{
+	int	fd, savefd;
+	for (fd = sh.topfd - 1; fd >= last; fd--)
+	{
+		if (filemap[fd].orig_fd != 2)
+			continue;
+		if ((savefd = filemap[fd].save_fd) < 0)
+			return;
+		sfsync(sfstderr);
+		if (filemap[fd].tname && filemap[fd].tname != Empty)
+		{
+			/*
+			 * A '>;' temporary file can only be finalised once the command's
+			 * exit status is known, so leave this entry for sh_iorestore().
+			 * Accept the inevitable cost of restoring the FD a second time.
+			 */
+			ast_close(2);			/* avoid sh_close() here; the Sfio stream must survive for now */
+			fcntl(savefd, F_DUPFD, 2);	/* sh_fcntl() redundant here; sh_iorestore() will update FD bookkeeping */
+			return;
+		}
+		/* do a full restore of FD 2 */
+		sh_close(2);
+		if (sh_fcntl(savefd, F_DUPFD, 2) < 0)
+			return;
+		if (savefd == job.fd)
+			job.fd = 2;
+		if (sh.fdstatus[savefd] & IOCLEX)
+			sh_fcntl(2, F_SETFD, FD_CLOEXEC);
+		sfswap(sh.sftable[savefd], sh.sftable[2]);
+		sh.sftable[savefd] = NULL;
+		sh_close(savefd);
+		/* mark as restored so the next sh_iorestore() call will skip this FD */
+		filemap[fd].restored = 1;
+		return;
+	}
+}
+#endif /* SHOPT_SPAWN */
 
 /*
  * returns access information on open file <fd>
