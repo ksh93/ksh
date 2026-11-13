@@ -18,7 +18,7 @@
 ***********************************************************************/
 
 static const char usage[] =
-"[-?\n@(#)pty (ksh 93u+m) 2026-11-11\n]"
+"[-?\n@(#)pty (ksh 93u+m) 2026-11-13\n]"
 "[-author?Glenn Fowler <gsf@research.att.com>]"
 "[-author?David Korn <dgk@research.att.com>]"
 "[-author?Martijn Dekker <martijn@inlv.org>]"
@@ -448,6 +448,47 @@ noecho(int fd)
 }
 
 /*
+ * Copy a chunk of the command's output to the standard output, dropping the
+ * carriage returns of CR LF line endings if requested. A carriage return at
+ * the very end of the chunk is held back instead of being written, as its
+ * newline may be in the next chunk; *crpending_p flags this up.
+ */
+
+static int
+output(char* s, ssize_t n, int stripcr, int* crpending_p)
+{
+	char*	e = s + n;
+	char*	p;
+	char*	q;
+
+	if (*crpending_p)
+	{
+		*crpending_p = 0;
+		if (*s != '\n' && sfputc(sfstdout, '\r') != '\r')
+			return -1;
+	}
+	if (!stripcr)
+		return sfwrite(sfstdout, s, (size_t)n) == n ? 0 : -1;
+	if (e > s && e[-1] == '\r')
+	{
+		e--;
+		*crpending_p = 1;
+	}
+	for (p = q = s; p < e; p++)
+	{
+		if (*p == '\r' && p[1] == '\n')
+		{
+			if (p > q && sfwrite(sfstdout, q, (size_t)(p - q)) != p - q)
+				return -1;
+			q = ++p;
+		}
+	}
+	if (e > q && sfwrite(sfstdout, q, (size_t)(e - q)) != e - q)
+		return -1;
+	return 0;
+}
+
+/*
  * Pass input on to the command's terminal and return 1, or return 0 when the
  * input has ended.
  *
@@ -492,8 +533,9 @@ process(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 {
 	int		i;
 	int		n;
-	int		raw = 0;	/* pty's own terminal is in raw mode */
-	int		ready = 0;	/* input is a regular file: always ready to read */
+	int		raw = 0;	/* set if pty's own terminal is in raw mode */
+	int		crpending = 0;	/* set if a carriage return is held back for the next chunk */
+	int		ready = 0;	/* set if input is a regular file (always ready to read) */
 	ssize_t		r;
 	char*		s;
 	char		buf[SFIO_BUFSIZE];
@@ -512,8 +554,7 @@ process(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 	{
 		/*
 		 * Avoid both parent terminal and pseudoterminal echoing typed input;
-		 * set pseudoterminal to raw mode. Note that b_pty() has already turned
-		 * off the echo on the real terminal, if any, via noecho().
+		 * set the parent terminal (if any) to raw mode.
 		 */
 		raw = rawon(ip);
 		/*
@@ -562,7 +603,7 @@ process(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 					sfclose(mp);
 					mp = NULL;
 				}
-				else if ((r = sfvalue(mp)) > 0 && (sfwrite(sfstdout, s, (size_t)r) != r || sfsync(sfstdout)))
+				else if ((r = sfvalue(mp)) > 0 && (output(s, r, !raw, &crpending) < 0 || sfsync(sfstdout)))
 				{
 					error(ERROR_SYSTEM|2, "output write failed");
 					goto done;
@@ -578,6 +619,8 @@ process(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 			break;	/* the command has terminated; nothing can consume input */
 	}
  done:
+	if (crpending)
+		sfputc(sfstdout, '\r');
 	rawoff();
 	if (mp)
 		sfclose(mp);

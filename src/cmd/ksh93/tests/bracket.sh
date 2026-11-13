@@ -358,6 +358,57 @@ x=10
 ([[ x -eq 10 ]]) 2> /dev/null || err_exit 'x -eq 10 fails in [[...]] with x=10'
 
 # ======
+# Tests for 'test -t'
+# Use our own pty(1) to get a pseudo-tty in case the system doesn't have a tty configured
+export lineno=$LINENO
+cat >test_t.sh <<"EOF"
+LINENO=lineno+3
+. "${SHTESTS_COMMON:-${0%/*}/_common}"
+integer n
+redirect {n}< /dev/tty
+[[ -t $n ]] || err_exit "[[ -t n ]] fails when n > 9"
+redirect {n}<&-
+unset n
+# _____ Verify that [ -t 1 ] behaves sensibly inside a command substitution.
+#	This is the simple case that doesn't do any redirection of stdout within
+#	the command substitution. Thus the [ -t 1 ] test should be false.
+exp=$'begin\nend'
+got=$(echo begin; [ -t 1 ] || test -t 1 || [[ -t 1 ]] && echo -t 1 is true; echo end)
+[[ $got == "$exp" ]] || err_exit 'test -t 1 in comsub fails' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(echo begin; [ -n X -a -t 1 ] || test -n X -a -t 1 || [[ -n X && -t 1 ]] && echo -t 1 is true; echo end)
+[[ $got == "$exp" ]] || err_exit 'test -t 1 in comsub fails (compound expression)' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+# Same for the ancient compatibility hack for 'test -t' with no arguments.
+got=$(echo begin; [ -t ] || test -t && echo -t is true; echo end)
+[[ $got == "$exp" ]] || err_exit 'test -t in comsub fails' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(echo begin; [ -n X -a -t ] || test -n X -a -t && echo -t is true; echo end)
+[[ $got == "$exp" ]] || err_exit 'test -t in comsub fails (compound expression)' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+#	This is the more complex case that does redirect stdout within the command
+#	substitution to the actual tty. Thus the [ -t 1 ] test should be true.
+got=$(echo begin; exec >/dev/tty; [ -t 1 ] && test -t 1 && [[ -t 1 ]]) \
+	|| err_exit 'test -t 1 in comsub with exec >/dev/tty fails'
+got=$(echo begin; exec >/dev/tty; [ -n X -a -t 1 ] && test -n X -a -t 1 && [[ -n X && -t 1 ]]) \
+	|| err_exit 'test -t 1 in comsub with exec >/dev/tty fails (compound expression)'
+# Same for the ancient compatibility hack for 'test -t' with no arguments.
+got=$(echo begin; exec >/dev/tty; [ -t ] && test -t) \
+	|| err_exit 'test -t in comsub with exec >/dev/tty fails'
+got=$(echo begin; exec >/dev/tty; [ -n X -a -t ] && test -n X -a -t) \
+	|| err_exit 'test -t in comsub with exec >/dev/tty fails (compound expression)'
+# The broken ksh2020 fix for [ -t 1 ] (https://github.com/att/ast/pull/1083) caused
+# [ -t 1 ] to fail in non-comsub virtual subshells.
+( test -t 1 ) || err_exit 'test -t 1 in virtual subshell fails'
+( test -t ) || err_exit 'test -t in virtual subshell fails'
+got=$(test -t 1 >/dev/tty && echo ok) && [[ $got == ok ]] || err_exit 'test -t 1 in comsub fails'
+exit $((Errors<125?Errors:125))
+EOF
+pty "$SHELL" $([[ -o xtrace ]] && print -- '-x') test_t.sh
+Errors+=$?   # since Errors is declared as an integer type in _common, this adds and doesn't append
+unset lineno
+
+# ======
 # POSIX specifies that on error, test builtin should always return status > 1
 expect=$': test: 123x: arithmetic syntax error\nExit status: 2'
 actual=$(test 123 -eq 123x 2>&1; echo "Exit status: $?")

@@ -23,20 +23,20 @@ jobs:
         export TZ=UTC
         ulimit -n 1024
         : default regression tests &&
-        arch/linux.i386-64/bin/pty bin/package test &&
+        bin/package test &&
         : regression tests with OS-provided multibyte locales &&
-        LANG=en_US.utf8 arch/linux.i386-64/bin/pty bin/shtests --locale --nocompile &&
+        LANG=en_US.utf8 bin/shtests --locale --nocompile &&
         : disable most SHOPTs, rebuild ksh &&
         sed --regexp-extended --in-place=.orig \
           '/^SHOPT (AUDIT|BGX|BRACEPAT|ESH|FIXEDARRAY|HISTEXPAND|MULTIBYTE|NAMESPACE|OPTIMIZE|SPAWN|STATS|VSH)=/ s/=1?/=0/' \
           src/cmd/ksh93/SHOPT.sh &&
         bin/package make -j5 &&
         : default regression tests with SHOPTs disabled &&
-        arch/linux.i386-64/bin/pty bin/shtests &&
+        bin/shtests &&
         : enable SHOPT_SCRIPTONLY, rebuild ksh &&
         sed --regexp-extended --in-place=.orig \
           '/^SHOPT SCRIPTONLY=/ s/=0?/=1/' \
           src/cmd/ksh93/SHOPT.sh &&
         bin/package make -j5 &&
         : default regression tests with SHOPT_SCRIPTONLY enabled &&
-        arch/linux.i386-64/bin/pty bin/shtests
+        bin/shtests
