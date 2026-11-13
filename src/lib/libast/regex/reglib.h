@@ -392,9 +392,8 @@ typedef struct Exec_s
 
 typedef struct Nest_s
 {
-	int		primary;
-	unsigned short	none;		/* for Nest_t.type[-1] */
-	unsigned short	type[1];
+	int		primary;	/* primary delimiter, -1 if taken from input */
+	unsigned short*	type;		/* UCHAR_MAX+2 type flags after Rex_t */
 } Nest_t;
 
 /*
