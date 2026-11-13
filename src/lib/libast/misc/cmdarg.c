@@ -131,7 +131,7 @@ cmdopen_20120411(char** argv, int argmax, ssize_t size, const char* argpat, Cmdd
 		size = x - m;
 	n = size - n;
 	m = ((disc->flags & CMD_INSERT) && argpat) ? ((ssize_t)strlen(argpat) + 1) : 0;
-	if (!(cmd = newof(0, Cmdarg_t, 1, (size_t)(n + m))))
+	if (!(cmd = newof(0, Cmdarg_t, 1, (size_t)(n + m + 1))))
 	{
 		if (disc->errorf)
 			(*disc->errorf)(NULL, sh, ERROR_SYSTEM|2, "out of memory");

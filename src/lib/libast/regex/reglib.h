@@ -53,7 +53,7 @@ typedef struct regsubop_s
 	char*		re_cur;		/* re_buf cursor		*/ \
 	char*		re_end;		/* re_buf end			*/ \
 	regsubop_t*	re_ops;		/* rhs ops			*/ \
-	char		re_rhs[1];	/* substitution rhs		*/
+	char		re_rhs[];	/* substitution rhs		*/
 
 #include <ast_release.h>
 #if _AST_release

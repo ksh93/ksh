@@ -95,7 +95,7 @@ getdents(int fd, void* buf, size_t siz)
 					u = up->d_name;
 					while ((*u = *sp++) && u < up->d_name + MAXNAMLEN) u++;
 					*u = 0;
-					up->d_reclen = sizeof(struct dirent) - sizeof(up->d_name) + (up->d_namlen = u - up->d_name) + 1;
+					up->d_reclen = offsetof(struct dirent, d_name) + (up->d_namlen = u - up->d_name) + 1;
 					up->d_reclen = roundof(up->d_reclen, 8);
 					up = (struct dirent*)((char*)up + up->d_reclen);
 				}
@@ -109,7 +109,7 @@ getdents(int fd, void* buf, size_t siz)
 #else
 	{
 
-#define MAXREC	roundof(sizeof(*up)-sizeof(up->d_name)+sizeof(sp->d_name)+1,8)
+#define MAXREC	roundof(offsetof(struct dirent, d_name)+sizeof(sp->d_name)+1,8)
 
 		struct direct*	sp;	/* system */
 		struct dirent*	up;	/* user */
@@ -141,7 +141,7 @@ getdents(int fd, void* buf, size_t siz)
 						*u++ = *s++;
 					*u = 0;
 					strcpy(up->d_name, tmp);
-					up->d_reclen = sizeof(struct dirent) - sizeof(up->d_name) + (up->d_namlen = u - tmp) + 1;
+					up->d_reclen = offsetof(struct dirent, d_name) + (up->d_namlen = u - tmp) + 1;
 					up->d_reclen = roundof(up->d_reclen, 8);
 					up = (struct dirent*)((char*)up + up->d_reclen);
 				}

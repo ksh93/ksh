@@ -47,7 +47,7 @@
 	char*		nextstr;	/* next string ends before here	*/ \
 	char*		laststr;	/* last string ends before here	*/ \
 	char*		insert;		/* replace with current arg	*/ \
-	char		buf[1];		/* argv and arg buffer		*/
+	char		buf[];		/* argv and arg buffer		*/
 
 #include <cmdarg.h>
 
