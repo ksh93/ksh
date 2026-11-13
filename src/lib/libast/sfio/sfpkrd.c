@@ -42,6 +42,9 @@
 #define STREAM_PEEK	001
 #define SOCKET_PEEK	002
 
+/* tell sfrd() that a read hit end-of-file, even if data was returned too */
+#define PKRDEOF()	do { if(_Sfpkrd) _Sfpkrd->bits |= SFIO_PKRDEOF; } while(0)
+
 ssize_t sfpkrd(int	fd,	/* file descriptor */
 	       void*	argbuf,	/* buffer to read data */
 	       size_t	n,	/* buffer size */
@@ -58,7 +61,11 @@ ssize_t sfpkrd(int	fd,	/* file descriptor */
 	char		*buf = (char*)argbuf, *endbuf;
 
 	if(rc < 0 && tm < 0 && action <= 0)
-		return read(fd,buf,n);
+	{	r = read(fd,buf,n);
+		if(r == 0)
+			PKRDEOF();
+		return r;
+	}
 
 	t = (action > 0 || rc >= 0) ? (STREAM_PEEK|SOCKET_PEEK) : 0;
 #if !_stream_peek
@@ -91,7 +98,10 @@ ssize_t sfpkrd(int	fd,	/* file descriptor */
 			{	t &= ~SOCKET_PEEK;
 				if(r > 0 && (r = pbuf.databuf.len) <= 0)
 				{	if(action <= 0)	/* read past eof */
-						r = read(fd,buf,1);
+					{	r = read(fd,buf,1);
+						if(r == 0)
+							PKRDEOF();
+					}
 					return r;
 				}
 				if(r == 0)
@@ -173,7 +183,10 @@ ssize_t sfpkrd(int	fd,	/* file descriptor */
 					break;
 				else	/* read past eof */
 				{	if(action <= 0)
-						r = read(fd,buf,1);
+					{	r = read(fd,buf,1);
+						if(r == 0)
+							PKRDEOF();
+					}
 					return r;
 				}
 			}
@@ -197,6 +210,8 @@ ssize_t sfpkrd(int	fd,	/* file descriptor */
 				if(action == 0 || ((int)n-(int)r) < action)
 					break;
 			}
+			if(q == 0)
+				PKRDEOF();
 			return r == 0 ? q : r;
 		}
 	}
@@ -215,7 +230,10 @@ ssize_t sfpkrd(int	fd,	/* file descriptor */
 
 	/* advance */
 	if(action <= 0)
-		r = read(fd,buf,(size_t)r);
+	{	r = read(fd,buf,(size_t)r);
+		if(r == 0)
+			PKRDEOF();
+	}
 
 	return r;
 }

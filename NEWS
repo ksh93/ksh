@@ -7,6 +7,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed a crash that occurred on NetBSD when passing a command line option
   with a non-ASCII character to ksh or any built-in command.
 
+- Fixed a bug on NetBSD where 'read' hangs indefinitely after reading data
+  that does not end in a newline from a FIFO (named pipe).
+
 2026-11-12:
 
 - Fixed a bug where the shell's signal messages (like 'Abort' or 'Killed')

@@ -94,7 +94,7 @@ ssize_t sfrd(Sfio_t* f, void* buf, size_t n, Sfdisc_t* disc)
 		if(!(f->flags&SFIO_STRING) && f->file < 0)
 			return 0;
 
-		f->flags &= ~(SFIO_EOF|SFIO_ERROR);
+		f->flags &= ~SFIO_ERROR;
 
 		dc = disc;
 		if(f->flags&SFIO_STRING)
@@ -104,6 +104,17 @@ ssize_t sfrd(Sfio_t* f, void* buf, size_t n, Sfdisc_t* disc)
 				goto do_except;
 			return (ssize_t)r;
 		}
+
+		/*
+		 * Do not attempt another read once end-of-file has been encountered on an
+		 * unseekable stream. On NetBSD, a read(2) from a FIFO after end-of-file
+		 * blocks forever instead of returning 0. The flag is cleared by sfclrerr(),
+		 * sfseek(), sfwrite(), etc., so a later read can still pick up new data.
+		 */
+		if(f->extent < 0 && (f->flags&SFIO_EOF))
+			return 0;
+
+		f->flags &= ~SFIO_EOF;
 
 		/* warn that a read is about to happen */
 		SFDISC(f,dc,readf);
@@ -248,9 +259,14 @@ ssize_t sfrd(Sfio_t* f, void* buf, size_t n, Sfdisc_t* disc)
 			r = 0;
 		else if(f->extent < 0 && (f->flags&SFIO_SHARE) && rcrv)
 		{	/* try peek read */
+			f->bits &= ~SFIO_PKRDEOF;
+			_Sfpkrd = f;
 			r = sfpkrd(f->file, (char*)buf, n,
 				    (rcrv&SFIO_RC) ? (int)f->getr : -1,
 				    -1L, (rcrv&SFIO_RV) ? 1 : 0);
+			_Sfpkrd = NULL;
+			if(f->bits&SFIO_PKRDEOF)
+				f->flags |= SFIO_EOF;
 			if(r > 0)
 			{	if(rcrv&SFIO_RV)
 					f->mode |= SFIO_PKRD;

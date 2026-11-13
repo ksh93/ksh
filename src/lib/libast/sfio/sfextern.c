@@ -40,6 +40,7 @@ Sfextern_t _Sfextern =
 	NULL,						/* _Sfcleanup	*/
 	0,						/* _Sfexiting	*/
 	0,						/* _Sfdone	*/
+	NULL,						/* _Sfpkrd	*/
 };
 
 ssize_t	_Sfi = -1;		/* value for a few fast macro functions	*/
