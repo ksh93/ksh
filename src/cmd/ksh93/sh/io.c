@@ -3123,7 +3123,6 @@ int sh_dup(int old)
 	return fd;
 }
 
-#undef dup2
 int sh_dup2(int old, int new)
 {
 	int fd = ast_dup2(old,new);
@@ -3139,7 +3138,6 @@ int sh_dup2(int old, int new)
 }
 
 #if _lib_dup3
-#undef dup3
 int sh_dup3(int old, int new, int flags)
 {
 	int fd = ast_dup3(old,new,flags);
