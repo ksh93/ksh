@@ -204,8 +204,9 @@ b_comm(int argc, char *argv[], Shbltin_t* context)
 	else if(f1==sfstdin || f2==sfstdin)
 		sfseek(sfstdin,0,SEEK_END);
 	if(f1!=sfstdin)
-		sfclose(f1);
+		sfclose_batch(f1, AST_QUEUE);
 	if(f2!=sfstdin)
-		sfclose(f2);
+		sfclose_batch(f2, AST_QUEUE);
+	ast_close_batch(-1, AST_ENACT);
 	return error_info.errors;
 }

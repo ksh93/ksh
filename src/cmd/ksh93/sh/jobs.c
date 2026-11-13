@@ -383,9 +383,10 @@ int job_reap(int sig)
 			if(pid==sh.cpid)
 			{
 				if(sh.coutpipe > -1)
-					sh_close(sh.coutpipe);
+					sh_close_batch(sh.coutpipe,AST_QUEUE);
 				if(sh.cpipe[1] > -1)
-					sh_close(sh.cpipe[1]);
+					sh_close_batch(sh.cpipe[1],AST_QUEUE);
+				ast_close_batch(-1,AST_ENACT);
 				sh.coutpipe = sh.cpipe[1] = -1;
 			}
 			else if(sh.subshell)
@@ -555,7 +556,7 @@ void job_init_tty(void)
 		if((fd = open(ttynam,O_RDWR)) <0)
 			return;
 		if(fd!=JOBTTY)
-			sh_iorenumber(fd,JOBTTY);
+			sh_iorenumber(fd,JOBTTY,0,AST_NOW);
 		tcsetpgrp(JOBTTY,sh.pid);
 		job.mypgid = sh.pid;
 	}
@@ -1388,8 +1389,8 @@ int	job_wait(pid_t pid)
 	errno = 0;
 	if(sh.coutpipe>=0 && lastpid && sh.cpid==lastpid)
 	{
-		sh_close(sh.coutpipe);
-		sh_close(sh.cpipe[1]);
+		sh_close_batch(sh.coutpipe,AST_QUEUE);
+		sh_close_batch(sh.cpipe[1],AST_ENACT);
 		sh.cpipe[1] = sh.coutpipe = -1;
 	}
 	while(1)

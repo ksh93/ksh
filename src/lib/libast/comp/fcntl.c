@@ -54,7 +54,7 @@ _ast_fcntl(int fd, int op, ...)
 #if F_DUPFD >= _ast_F_LOCAL
 	case F_DUPFD:
 		n = va_arg(ap, int);
-		op = dup2(fd, n);
+		op = ast_dup2(fd, n);
 		break;
 #endif
 #if F_GETFL >= _ast_F_LOCAL

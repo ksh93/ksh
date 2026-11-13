@@ -28,7 +28,7 @@ lib	getconf,getdents,getdirentries,getdtablesize
 lib	gethostname,getpagesize,getrlimit,getuniverse
 lib	glob,iswblank,iswctype,killpg,link,localeconv,madvise
 lib	mbtowc,mbrtowc,memalign,memdup
-lib	opendir,openat,pathconf,pipe2,posix_close
+lib	close_range,dup3,opendir,openat,pathconf,pipe2,posix_close
 lib	rewinddir,setlocale
 lib	setpgrp,setpgrp2,setreuid,setuid
 lib	socketpair

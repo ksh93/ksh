@@ -678,8 +678,12 @@ static void io_preserve(Sfio_t *sp, int f2)
  * If <f2> is needed move it, otherwise it is closed first.
  * The original stream <f1> is closed.
  * The new file descriptor <f2> is returned.
+ * If the IOCLEX bit is set for <clexec>, <f2> will be given
+ * the close-on-exec bit.
+ * <queue_mode> is passed along to sh_close for <f1>,
+ * which is called if <f1> != <f2>.
  */
-int sh_iorenumber(int f1,int f2)
+int sh_iorenumber(int f1,int f2,uint8_t clexec,close_mode_t queue_mode)
 {
 	Sfio_t *sp = sh.sftable[f2];
 	if(f1!=f2)
@@ -693,19 +697,34 @@ int sh_iorenumber(int f1,int f2)
 		}
 		else if(f2==0)
 			sh.st.ioset = 1;
-		sh_close(f2);
 		if(f2<=2 && sp)
 		{
-			Sfio_t *spnew = sh_iostream(f1,0);
+			Sfio_t *spnew;
+			sh_close(f2);
+			spnew = sh_iostream(f1,0);
 			sh.fdstatus[f2] = (sh.fdstatus[f1]&~IOCLEX);
-			sfsetfd(spnew,f2);
+			if(clexec & IOCLEX)
+			{
+				sfsetfd_cloexec(spnew,f2);
+				sh.fdstatus[f2] |= IOCLEX;
+			}
+			else
+				sfsetfd(spnew,f2);
 			sfswap(spnew,sp);
 			sfset(sp,SFIO_SHARE|SFIO_PUBLIC,1);
 		}
 		else
 		{
+			sh_close_batch(f2,AST_AUXILIARY);
 			sh.fdstatus[f2] = (sh.fdstatus[f1]&~IOCLEX);
-			if((f2 = sh_fcntl(f1,F_DUPFD, f2)) < 0)
+#if _lib_dup3 && O_cloexec
+			f2 = sh_dup3(f1, f2, (clexec & IOCLEX) ? O_cloexec : 0);
+#else
+			f2 = sh_dup2(f1, f2);
+			if(f2 >= 0 && (clexec & IOCLEX))
+				sh_fcntl(f2, F_SETFD, FD_CLOEXEC);
+#endif
+			if(f2 < 0)
 			{
 				errormsg(SH_DICT,ERROR_system(1),e_file+4);
 				UNREACHABLE();
@@ -716,14 +735,22 @@ int sh_iorenumber(int f1,int f2)
 		if(sp)
 			sh.sftable[f1] = NULL;
 		if(sh.fdstatus[f1]!=IOCLOSE)
-			sh_close(f1);
+			sh_close_batch(f1,queue_mode);
 	}
 	else if(sp)
 	{
-		sfsetfd(sp,f2);
+		if(clexec & IOCLEX)
+		{
+			sfsetfd_cloexec(sp,f2);
+			sh.fdstatus[f2] |= IOCLEX;
+		}
+		else
+			sfsetfd(sp,f2);
 		if(f2<=2)
 			sfset(sp,SFIO_SHARE|SFIO_PUBLIC,1);
 	}
+	else if(clexec & IOCLEX)
+		sh_fcntl(f2,F_SETFD,FD_CLOEXEC);
 	if(f2>=sh.lim.open_max)
 		sh_iovalidfd(f2);
 	return f2;
@@ -732,7 +759,7 @@ int sh_iorenumber(int f1,int f2)
 /*
  * close a file descriptor and update stream table and attributes
  */
-int sh_close(int fd)
+int sh_close_batch(int fd, close_mode_t mode)
 {
 	Sfio_t *sp;
 	int r = 0;
@@ -743,12 +770,10 @@ int sh_close(int fd)
 	}
 	if(fd >= sh.lim.open_max)
 		sh_iovalidfd(fd);
-	if(!(sp=sh.sftable[fd]) || sfclose(sp) < 0)
-	{
-		if(fdnotify)
-			(*fdnotify)(fd,SH_FDCLOSE);
-		r = ast_close(fd);
-	}
+	if(fdnotify)
+		(*fdnotify)(fd,SH_FDCLOSE);
+	if(!(sp=sh.sftable[fd]) || sfclose_batch(sp,mode) < 0)
+		r = ast_close_batch(fd,mode);
 	if(fd>2)
 		sh.sftable[fd] = NULL;
 	sh.fdstatus[fd] = IOCLOSE;
@@ -758,6 +783,11 @@ int sh_close(int fd)
 	if(fd < 10)
 		sh.inuse_bits &= ~(1<<fd);
 	return r;
+}
+
+int sh_close(int fd)
+{
+	return sh_close_batch(fd,AST_NOW);
 }
 
 #ifdef O_SERVICE
@@ -1149,8 +1179,8 @@ static void pat_handoff(Sfio_t *sp)
 	sh.fdstatus[pv[1]] = IOWRITE|IONOSEEK;
 	if((pid = fork()) < 0)
 	{
-		sh_close(pv[0]);
-		sh_close(pv[1]);
+		sh_close_batch(pv[0],AST_QUEUE);
+		sh_close_batch(pv[1],AST_ENACT);
 		goto err;
 	}
 	if(pid==0)
@@ -1166,7 +1196,8 @@ static void pat_handoff(Sfio_t *sp)
 		signal(SIGPIPE, SIG_DFL);  /* the helper should terminate reliably when parent closes the pipe */
 		for(i = 0; i < sh.lim.open_max; i++)
 			if(i!=fd && i!=pv[1] && sh.fdstatus[i]!=IOCLOSE)
-				ast_close(i);
+				ast_close_batch(i,AST_QUEUE);
+		ast_close_batch(-1,AST_ENACT);
 		/* The start of the matching record may have been read before the stream. */
 		if((!pat_redir || pat_redir->patheadlen==0
 			|| pat_write(pv[1], pat_redir->pathead, pat_redir->patheadlen)==0)
@@ -1200,19 +1231,25 @@ static void pat_handoff(Sfio_t *sp)
 		_exit(0);
 	}
 	/* Make the new pipe the input. */
-	sh_close(pv[1]);
+	sh_close_batch(pv[1],AST_QUEUE);
 	if(pv[0]!=fd)
 	{
-		dup2(pv[0], fd);
+#if _lib_dup3 && O_cloexec
+		ast_dup3(pv[0], fd, (sh.fdstatus[fd] & IOCLEX) ? O_cloexec : 0);
+#else
+		ast_dup2(pv[0], fd);
 		if(sh.fdstatus[fd] & IOCLEX)
 		{
 			/* dup2 clears the close-on-exec flag; restore it */
 			fcntl(fd,F_SETFD,FD_CLOEXEC);
-			sh.fdstatus[pv[0]] |= IOCLEX;
 		}
+#endif
+		if(sh.fdstatus[fd] & IOCLEX)
+			sh.fdstatus[pv[0]] |= IOCLEX;
 		sh.fdstatus[fd] = sh.fdstatus[pv[0]];
-		sh_close(pv[0]);
+		sh_close_batch(pv[0],AST_QUEUE);
 	}
+	ast_close_batch(-1,AST_ENACT);
 	if(buf)
 		free(buf);
 	/* The input is unseekable again, so discard the sfdcseekable discipline. */
@@ -1465,13 +1502,19 @@ static Sfoff_t	file_offset(int fn, char *fname)
 /*
  * close a pipe
  */
-void sh_pclose(int pv[])
+void sh_pclose_batch(int pv[], close_mode_t mode)
 {
 	if(pv[0]>=2)
-		sh_close(pv[0]);
+		sh_close_batch(pv[0],mode);
 	if(pv[1]>=2)
-		sh_close(pv[1]);
+		sh_close_batch(pv[1],mode);
 	pv[0] = pv[1] = -1;
+}
+
+void sh_pclose(int pv[])
+{
+	sh_pclose_batch(pv,AST_QUEUE);
+	ast_close_batch(-1,AST_ENACT);
 }
 
 static char *io_usename(char *name, int *perm, int fno, int mode)
@@ -1486,9 +1529,7 @@ static char *io_usename(char *name, int *perm, int fno, int mode)
 		{
 			r = fstat(fd,&statb);
 			sh_close(fd);
-			if(r)
-				return NULL;
-			if(!S_ISREG(statb.st_mode))
+			if(r || !S_ISREG(statb.st_mode))
 				return NULL;
 			*perm = statb.st_mode&(RW_ALL|(S_IXUSR|S_IXGRP|S_IXOTH));
 		}
@@ -1986,7 +2027,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 				}
 				else
 				{
-					fd = sh_iorenumber(sh_iomovefd(fd,3),fn);
+					fd = sh_iorenumber(sh_iomovefd(fd,3),fn,(fn>2&&clexec)?IOCLEX:0,AST_NOW);
 					if(fn>2 && fn<10)
 						sh.inuse_bits |= (1<<fn);
 				}
@@ -2194,9 +2235,10 @@ void	sh_iounsave(void)
 		else
 		{
 			sh.sftable[savefd] = NULL;
-			sh_close(savefd);
+			sh_close_batch(savefd,AST_QUEUE);
 		}
 	}
+	ast_close_batch(-1,AST_ENACT);
 	sh.topfd = newfd;
 }
 
@@ -2221,7 +2263,7 @@ void	sh_iorestore(int last, int jmpval)
 			if ((savefd = filemap[fd].save_fd) >= 0)
 			{
 				sh.sftable[savefd] = NULL;
-				sh_close(savefd);
+				sh_close_batch(savefd,AST_QUEUE);
 			}
 			continue;
 		}
@@ -2231,7 +2273,7 @@ void	sh_iorestore(int last, int jmpval)
 			/* this should never happen */
 			savefd = filemap[fd].save_fd;
 			sh.sftable[savefd] = NULL;
-			sh_close(savefd);
+			sh_close_batch(savefd,AST_ENACT);
 			return;
 		}
 		if(filemap[fd].tname == Empty && sh.exitval==0)
@@ -2241,15 +2283,18 @@ void	sh_iorestore(int last, int jmpval)
 		}
 		else if(filemap[fd].tname)
 			io_usename(filemap[fd].tname,NULL,origfd,sh.exitval?2:1);
-		sh_close(origfd);
+		sh_close_batch(origfd,AST_AUXILIARY);
 		if ((savefd = filemap[fd].save_fd) >= 0)
 		{
-			sh_fcntl(savefd, F_DUPFD, origfd);
+#if _lib_dup3 && O_cloexec
+			sh_dup3(savefd,origfd,(sh.fdstatus[savefd]&IOCLEX)?O_cloexec:0);
+#else
+			sh_dup2(savefd,origfd);
+			if(sh.fdstatus[savefd]&IOCLEX)
+				sh_fcntl(origfd,F_SETFD,FD_CLOEXEC);  /* preserve close-on-exec */
+#endif
 			if(savefd==job.fd)
 				job.fd=origfd;
-			/* F_DUPFD unsets close-on-exec; restore it */
-			if(sh.fdstatus[savefd]&IOCLEX)
-				sh_fcntl(origfd,F_SETFD,FD_CLOEXEC);
 			if(origfd<=2)
 			{
 				sfswap(sh.sftable[savefd],sh.sftable[origfd]);
@@ -2259,11 +2304,12 @@ void	sh_iorestore(int last, int jmpval)
 			else
 				sh.sftable[origfd] = sh.sftable[savefd];
 			sh.sftable[savefd] = NULL;
-			sh_close(savefd);
+			sh_close_batch(savefd,AST_QUEUE);
 		}
 		else
-			sh.fdstatus[origfd] = IOCLOSE;
+			ast_close_batch(origfd,AST_QUEUE);
 	}
+	ast_close_batch(-1,AST_ENACT);
 	if(!flag)
 	{
 		/* keep file descriptors for subshell restore */
@@ -2303,13 +2349,12 @@ void	sh_iorestore_stderr(int last)
 			 * exit status is known, so leave this entry for sh_iorestore().
 			 * Accept the inevitable cost of restoring the FD a second time.
 			 */
-			ast_close(2);			/* avoid sh_close() here; the Sfio stream must survive for now */
-			fcntl(savefd, F_DUPFD, 2);	/* sh_fcntl() redundant here; sh_iorestore() will update FD bookkeeping */
+			ast_dup2(savefd, 2);		/* avoid sh_dup2 and sh_close here; the Sfio stream must survive for now */
 			return;
 		}
 		/* do a full restore of FD 2 */
-		sh_close(2);
-		if (sh_fcntl(savefd, F_DUPFD, 2) < 0)
+		sh_close_batch(2, AST_AUXILIARY);	/* skip the underlying close(2) to let dup2 do the close itself */
+		if (sh_dup2(savefd, 2) < 0)
 			return;
 		if (savefd == job.fd)
 			job.fd = 2;
@@ -3078,13 +3123,46 @@ int sh_dup(int old)
 	return fd;
 }
 
+int sh_dup2(int old, int new)
+{
+	int fd = ast_dup2(old,new);
+	if(fd==new)
+	{
+		if(sh.fdstatus[new] == IOCLOSE)
+			sh.fdstatus[new] = 0;
+		sh.fdstatus[fd] = (sh.fdstatus[old]&~IOCLEX);
+		if(fdnotify)
+			(*fdnotify)(new,fd);
+	}
+	return fd;
+}
+
+#if _lib_dup3
+int sh_dup3(int old, int new, int flags)
+{
+	int fd = ast_dup3(old,new,flags);
+	if(fd==new)
+	{
+		if(sh.fdstatus[new] == IOCLOSE)
+			sh.fdstatus[new] = 0;
+		if(flags&O_cloexec)
+			sh.fdstatus[fd] = (sh.fdstatus[old]|IOCLEX);
+		else
+			sh.fdstatus[fd] = (sh.fdstatus[old]&~IOCLEX);
+		if(fdnotify)
+			(*fdnotify)(new,fd);
+	}
+	return fd;
+}
+#endif
+
 #undef fcntl
 int sh_fcntl(int fd, int op, ...)
 {
 	int newfd, arg;
 	va_list		ap;
 	va_start(ap, op);
-	arg =  va_arg(ap, int) ;
+	arg =  va_arg(ap, int);
 	va_end(ap);
 	newfd = fcntl(fd,op,arg);
 	if(newfd>=0) switch(op)

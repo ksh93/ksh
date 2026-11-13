@@ -625,8 +625,9 @@ b_fmt(int argc, char** argv, Shbltin_t* context)
 		}
 		dofmt(&fmt);
 		if (fmt.in != sfstdin)
-			sfclose(fmt.in);
+			sfclose_batch(fmt.in, AST_QUEUE);
 	} while (cp = *argv++);
+	ast_close_batch(-1, AST_ENACT);
 	outline(&fmt);
 	if (sfsync(sfstdout))
 		error(ERROR_system(0), "write error");

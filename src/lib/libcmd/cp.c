@@ -631,15 +631,15 @@ visit(State_t* state, FTSENT* ent)
 				if (!(ip = sfnew(NULL, NULL, (size_t)SFIO_UNBOUND, rfd, SFIO_READ)))
 				{
 					error(ERROR_SYSTEM|2, "%s: %s read stream error", ent->fts_path, state->path);
-					ast_close(rfd);
-					ast_close(wfd);
+					ast_close_batch(rfd, AST_QUEUE);
+					ast_close_batch(wfd, AST_ENACT);
 					return 0;
 				}
 				if (!(op = sfnew(NULL, NULL, (size_t)SFIO_UNBOUND, wfd, SFIO_WRITE)))
 				{
 					error(ERROR_SYSTEM|2, "%s: %s write stream error", ent->fts_path, state->path);
-					ast_close(wfd);
-					sfclose(ip);
+					ast_close_batch(wfd, AST_QUEUE);
+					sfclose_batch(ip, AST_ENACT);
 					return 0;
 				}
 				n = 0;

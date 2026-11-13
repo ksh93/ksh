@@ -1322,6 +1322,45 @@ exp=$'10000\nend\nmore'
 	"(expected $(printf %q "$exp"), got $(printf %q "${got:0:80}")$( ((${#got} > 80)) && print -n '...' ))"
 
 # ======
+# https://github.com/ksh93/ksh/pull/1071
+# Filescan loops shouldn't leak file descriptors
+if ((SHOPT_FILESCAN)); then
+	unset i
+	exp=0
+	file=$tmp/filescan.txt
+	script=$tmp/filescan_script.ksh
+	cat > "$script" <<-!
+	echo $'foo\nbar\nbaz' > "$file"
+	for ((i=0; i<20; i++))
+	do	while < "$file"
+		do	:
+		done
+	done
+	ulimit -n 15 || exit 0
+	(cd /; cd "$tmp")  # Trigger bug
+	exit \$?
+	!
+	gotout=$(set +x; "$SHELL" "$script" 2>&1)
+	got=$?
+	((got==exp)) || err_exit "SHOPT_FILESCAN leaks file descriptors when using regular files" \
+		"(got \$?==$got, $(printf %q "$gotout"))"
+
+	gotout=$(
+		set +x
+		redirect 2>&1
+		ulimit -n 15 || exit 0
+		for ((i=0; i<20; i++))
+		do	while < <(echo 'good')
+			do	:
+			done
+		done
+	)
+	got=$?
+	((got==exp)) || err_exit "SHOPT_FILESCAN leaks file descriptors when using process substitutions" \
+		"(got \$?==$got, $(printf %q "$gotout"))"
+fi
+
+# ======
 # A standard error redirection associated directly with a command must not redirect the shell's status message for a
 # child process terminated by a signal, whereas a standard error redirection on an enclosing compound command must do.
 { got=$( "$SHELL" -c 'kill -s KILL "$$"' 2>&1 ); } 2>/dev/null

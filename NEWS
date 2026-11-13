@@ -48,6 +48,8 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   commands from the terminal. Terminal input is now read and processed one
   line at a time and matching on terminal input now works correctly.
 
+- Fixed a bug that caused filescan loops to leak file descriptors.
+
 2026-10-30:
 
 - Pipes connecting the commands of a pipeline are now always created using

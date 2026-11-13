@@ -24,7 +24,7 @@
 **	Written by Kiem-Phong Vo
 */
 
-int sfclose(Sfio_t* f)
+int sfclose_batch(Sfio_t* f, close_mode_t cmode)
 {
 	int		local, ex, rv;
 	void*		data = NULL;
@@ -47,7 +47,7 @@ int sfclose(Sfio_t* f)
 		if(!(pop = (*_Sfstack)(f,NULL)) )
 			return -1;
 
-		if(sfclose(pop) < 0)
+		if(sfclose_batch(pop,cmode) < 0)
 		{	(*_Sfstack)(f,pop);
 			return -1;
 		}
@@ -111,11 +111,7 @@ int sfclose(Sfio_t* f)
 	if(_Sfnotify)
 		(*_Sfnotify)(f, SFIO_CLOSING, (void*)((long)f->file));
 	if(f->file >= 0 && !(f->flags&SFIO_STRING))
-	{	errno = 0;
-		ast_close(f->file);
-		if(errno)
-			rv = -1;
-	}
+		rv = ast_close_batch(f->file,cmode);
 	f->file = -1;
 
 	SFKILL(f);
@@ -153,4 +149,9 @@ done:
 	if(data)
 		free(data);
 	return rv;
+}
+
+int sfclose(Sfio_t *f)
+{
+	return sfclose_batch(f,AST_NOW);
 }

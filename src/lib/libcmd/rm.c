@@ -280,7 +280,7 @@ rm(State_t* state, FTSENT* ent)
 					c -= (ssize_t)sizeof(state->buf);
 				}
 				fsync(n);
-				ast_close(n);
+				ast_close_batch(n, AST_QUEUE);
 			}
 		}
 		if (remove(path))
@@ -374,5 +374,6 @@ b_rm(int argc, char** argv, Shbltin_t* context)
 	}
 	else if (!state.force)
 		error(ERROR_SYSTEM|2, "%s: cannot remove", argv[0]);
+	ast_close_batch(-1, AST_ENACT);
 	return error_info.errors != 0;
 }
