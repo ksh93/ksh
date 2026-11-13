@@ -1651,16 +1651,16 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 						}
 						sh_done(0);
 					}
-					sh_iorenumber(fn,fd,0,QUEUE);
-					sh_close_batch(fn,ENACT);
+					sh_iorenumber(fn,fd,0,AST_QUEUE);
+					sh_close_batch(fn,AST_ENACT);
 					type &= ~(FPIN|FPOU);
 				}
 				if(type&FPIN)
 				{
-					sh_iorenumber(sh.inpipe[0],0,0,QUEUE);
+					sh_iorenumber(sh.inpipe[0],0,0,AST_QUEUE);
 					if(!(type&FPOU) || (type&FCOOP))
-						sh_close_batch(sh.inpipe[1],QUEUE);
-					ast_close_batch(-1,ENACT);
+						sh_close_batch(sh.inpipe[1],AST_QUEUE);
+					ast_close_batch(-1,AST_ENACT);
 				}
 				if(type&FPOU)
 				{
@@ -1683,7 +1683,7 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 								fcntl(fd,F_SETFL,flags|O_APPEND);
 						}
 					}
-					sh_iorenumber(sh.outpipe[1],1,0,QUEUE);
+					sh_iorenumber(sh.outpipe[1],1,0,AST_QUEUE);
 					sh_pclose(sh.outpipe);
 				}
 				if((type&COMMSK)!=TCOM)
@@ -1781,7 +1781,7 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 				 */
 				sh_iosave(0,sh.topfd,NULL);
 				sh.pipepid = simple;
-				sh_iorenumber(sh.inpipe[0],0,0,NOW);
+				sh_iorenumber(sh.inpipe[0],0,0,AST_NOW);
 				/*
 				 * if read end of pipe is a simple command
 				 * treat as non-shareable to improve performance
@@ -3468,7 +3468,7 @@ static pid_t sh_ntfork(const Shnode_t *t,char *argv[],int *jobid,int topfd,int c
 			comsubrfd = comsubpv[0];
 			comsubindx = sh_comsubpipestdout(comsubpv[1],1);
 			sh_iosave(1,comsubindx,NULL);
-			sh_iorenumber(comsubpv[1],1,0,NOW);
+			sh_iorenumber(comsubpv[1],1,0,AST_NOW);
 		}
 		error_info.id = *argv;
 		if(t->com.comset)

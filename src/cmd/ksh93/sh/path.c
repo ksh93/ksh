@@ -316,7 +316,7 @@ static char *dotpaths_lib(Pathcomp_t *pp, char *path)
 		if(last)
 			pcomp.len = (size_t)(last-path);
 		memcpy(save, stkptr(sh.stk,PATH_OFFSET+pcomp.len),sizeof(save));
-		if(checkdotpaths(NULL,NULL,&pcomp,PATH_OFFSET,NOW))
+		if(checkdotpaths(NULL,NULL,&pcomp,PATH_OFFSET,AST_NOW))
 			return stkfreeze(sh.stk,1);
 		memcpy(stkptr(sh.stk,PATH_OFFSET+pcomp.len),save,sizeof(save));
 	}
@@ -357,7 +357,7 @@ static void checkdup(Pathcomp_t *pp)
 	{
 		ptrdiff_t offset = stktell(sh.stk);
 		sfputr(sh.stk,name,0);
-		checkdotpaths(first,NULL,pp,offset,NOW);
+		checkdotpaths(first,NULL,pp,offset,AST_NOW);
 		stkseek(sh.stk,offset);
 	}
 }
@@ -483,13 +483,13 @@ static int	opentype(const char *name, Pathcomp_t *pp, int fun)
 			if(fstat(fd,&statb)<0 || S_ISDIR(statb.st_mode))
 			{
 				errno = EISDIR;
-				sh_close_batch(fd,QUEUE);
+				sh_close_batch(fd,AST_QUEUE);
 				fd = -1;
 			}
 		}
 	}
 	while(fd<0 && nextpp);
-	ast_close_batch(-1,ENACT);
+	ast_close_batch(-1,AST_ENACT);
 	if(fd>=0 && (fd = sh_iomovefd(fd,10)) > 0 && !(sh.fdstatus[fd]&IOCLEX))
 		sh_fcntl(fd,F_SETFD,FD_CLOEXEC);
 	return fd;
@@ -1365,10 +1365,10 @@ static noreturn void exscript(char *path,char *argv[])
 	sh.st.ioset=0;
 	/* clean up any cooperating processes */
 	if(sh.cpipe[0] > -1)
-		sh_pclose_batch(sh.cpipe,QUEUE);
+		sh_pclose_batch(sh.cpipe,AST_QUEUE);
 	if(sh.cpid && sh.outpipe && *sh.outpipe > -1)
 	{
-		sh_close_batch(*sh.outpipe,QUEUE);
+		sh_close_batch(*sh.outpipe,AST_QUEUE);
 		*sh.outpipe = -1;
 	}
 	sh.cpid = 0;
@@ -1376,8 +1376,8 @@ static noreturn void exscript(char *path,char *argv[])
 		while(sfstack(sp,SFIO_POPSTACK));
 	job_clear();
 	if(sh.infd>0 && (sh.fdstatus[sh.infd]&IOCLEX))
-		sh_close_batch(sh.infd,QUEUE);
-	ast_close_batch(-1,ENACT);
+		sh_close_batch(sh.infd,AST_QUEUE);
+	ast_close_batch(-1,AST_ENACT);
 	sh_setstate(sh_state(SH_FORKED));
 	sfsync(sfstderr);
 	if((sh.infd = sh_open(path,O_RDONLY,0)) < 0)
@@ -1470,7 +1470,7 @@ static Pathcomp_t *path_addcomp(Pathcomp_t *first, Pathcomp_t *old,const char *n
 		return first;
 	}
 	if((old||sh.pathinit) &&  ((flag&(PATH_PATH|PATH_SKIP))==PATH_PATH))
-		checkdotpaths(first,old,pp,offset,NOW);
+		checkdotpaths(first,old,pp,offset,AST_NOW);
 	return first;
 }
 
@@ -1677,13 +1677,13 @@ void path_newdir(Pathcomp_t *first)
 			stkseek(sh.stk,offset);
 			next = pp->next;
 			pp->next = NULL;
-			checkdotpaths(first,NULL,pp,offset,QUEUE);
+			checkdotpaths(first,NULL,pp,offset,AST_QUEUE);
 			if(pp->next)
 				pp = pp->next;
 			pp->next = next;
 		}
 	}
-	ast_close_batch(-1,ENACT);
+	ast_close_batch(-1,AST_ENACT);
 }
 
 Pathcomp_t *path_unsetfpath(void)

@@ -110,7 +110,7 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 	}
 	opt_info.disc = NULL;
 #if RLIMIT_NOFILE != RLIMIT_UNKNOWN
-	ast_close_batch(-1,ENACT);  /* Clear the queue in case OPEN_MAX changes */
+	ast_close_batch(-1,AST_ENACT);  /* Clear the queue in case OPEN_MAX changes */
 #endif
 	/* default to -f */
 	limit = argv[opt_info.index];
@@ -260,7 +260,7 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 	}
 #if RLIMIT_NOFILE != RLIMIT_UNKNOWN
 	if(nofile)
-		ast_close_batch((int)astconf_long(CONF_OPEN_MAX),LIMIT);
+		ast_close_batch((int)astconf_long(CONF_OPEN_MAX),AST_LIMIT);
 #endif
 	return ret;
 }

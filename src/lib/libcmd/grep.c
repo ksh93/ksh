@@ -370,7 +370,7 @@ compile(State_t* state)
 		}
 		error_info.file = file;
 		error_info.line = line;
-		sfclose_batch(f, QUEUE);
+		sfclose_batch(f, AST_QUEUE);
 		f = NULL;
 	}
 	if (!state->any)
@@ -410,7 +410,7 @@ compile(State_t* state)
 	error_info.file = file;
 	error_info.line = line;
 	if (f)
-		sfclose_batch(f, QUEUE);
+		sfclose_batch(f, AST_QUEUE);
 	if (state->tmp)
 		sfstrclose(state->tmp);
 	return r;
@@ -905,7 +905,7 @@ grep(char* id, regflags_t options, int argc, char** argv, Shbltin_t* context)
 			if (f = sfopen(NULL, ent->fts_accpath, "r"))
 			{
 				r = execute(&state, f, ent->fts_path, context);
-				sfclose_batch(f, QUEUE);
+				sfclose_batch(f, AST_QUEUE);
 				if (r)
 					goto done;
 				if (state.query && state.any)
@@ -945,7 +945,7 @@ grep(char* id, regflags_t options, int argc, char** argv, Shbltin_t* context)
 	}
 	r = (state.notfound && !state.query) ? 2 : !state.any;
  done:
-	ast_close_batch(-1, ENACT);
+	ast_close_batch(-1, AST_ENACT);
 	if (fts)
 		fts_close(fts);
 	vmclose(state.vm);

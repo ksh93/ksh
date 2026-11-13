@@ -563,16 +563,16 @@ If \f3f\fP is a \f3sfpopen\fP-stream,
 and returns its exit status.
 \f3sfclose()\fP returns \f3-1\fP for failure and \f30\fP for success.
 .Ss "  int sfclose_batch(Sfio_t* f, close_mode_t mode)"
-If \f3mode\fP is \f3QUEUE\fP, the file descriptor associated with the
+If \f3mode\fP is \f3AST_QUEUE\fP, the file descriptor associated with the
 stream will be added to a queue for
 \f3ast_close_batch()\fP, which can use \f3close_range(2)\fP on supported
 systems to close multiple file descriptors at once for better
 performance.
-The queue can be closed by passing \f3ENACT\fP as the second
+The queue can be closed by passing \f3AST_ENACT\fP as the second
 argument to \f3ast_close_batch()\fP.
-If \f3mode\fP is \f3AUXILIARY\fP, the file descriptor associated
+If \f3mode\fP is \f3AST_AUXILIARY\fP, the file descriptor associated
 with the stream will not be closed.
-If \f3mode\fP is \f3NOW\fP, this function becomes functionally
+If \f3mode\fP is \f3AST_NOW\fP, this function becomes functionally
 equivalent to regular \f3sfclose()\fP.
 
 \f3SFIO_READ|SFIO_SHARE\fP and \f3SFIO_WRITE\fP streams

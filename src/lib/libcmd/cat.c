@@ -454,11 +454,11 @@ b_cat(int argc, char** argv, Shbltin_t* context)
 				error(ERROR_system(0), "read error");
 		}
 		if (fp != sfstdin)
-			sfclose_batch(fp, QUEUE);
+			sfclose_batch(fp, AST_QUEUE);
 		if (sferror(sfstdout))
 			break;
 	} while (cp = *argv++);
-	ast_close_batch(-1, ENACT);
+	ast_close_batch(-1, AST_ENACT);
 	if (sfsync(sfstdout))
 		error(ERROR_system(0), "write error");
 	if (flags&d_FLAG)

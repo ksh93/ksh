@@ -272,8 +272,8 @@ getfmt(Sfio_t* sp, void* vp, Sffmt_t* dp)
 							*f.next = (char)d;
 						for (h = 0; h < (ssize_t)elementsof(fmt.tmp); h++)
 							if (fmt.tmp[h])
-								sfclose_batch(fmt.tmp[h],QUEUE);
-						ast_close_batch(-1,ENACT);
+								sfclose_batch(fmt.tmp[h],AST_QUEUE);
+						ast_close_batch(-1,AST_ENACT);
 						h = 1;
 						break;
 					}
@@ -350,7 +350,7 @@ sfkeyprintf(Sfio_t* sp, void* handle, const char* format, Sf_key_lookup_t lookup
 	r = sfprintf(sp, "%!", &fmt) - fmt.invisible;
 	for (i = 0; i < elementsof(fmt.tmp); i++)
 		if (fmt.tmp[i])
-			sfclose_batch(fmt.tmp[i],QUEUE);
-	ast_close_batch(-1,ENACT);
+			sfclose_batch(fmt.tmp[i],AST_QUEUE);
+	ast_close_batch(-1,AST_ENACT);
 	return r;
 }

@@ -258,8 +258,8 @@ pipetail(Sfio_t* infile, Sfio_t* outfile, Sfoff_t number, int delim)
 	else
 		fno = !fno;
 	sfmove(tmp[fno], outfile, offset[fno], -1);
-	sfclose_batch(tmp[0], QUEUE);
-	sfclose_batch(tmp[1], ENACT);
+	sfclose_batch(tmp[0], AST_QUEUE);
+	sfclose_batch(tmp[1], AST_ENACT);
 }
 
 /*

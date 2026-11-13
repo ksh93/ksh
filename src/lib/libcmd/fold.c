@@ -240,9 +240,9 @@ b_fold(int argc, char** argv, Shbltin_t* context)
 		}
 		fold(fp,sfstdout,width,cont,contsize,cols);
 		if(fp!=sfstdin)
-			sfclose_batch(fp, QUEUE);
+			sfclose_batch(fp, AST_QUEUE);
 	}
 	while(cp= *argv++);
-	ast_close_batch(-1, ENACT);
+	ast_close_batch(-1, AST_ENACT);
 	return error_info.errors;
 }

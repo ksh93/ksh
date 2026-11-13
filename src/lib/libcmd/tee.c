@@ -99,8 +99,8 @@ tee_cleanup(Tee_t* tp)
 		if (tp->line >= 0)
 			sfset(sfstdout, SFIO_LINE, tp->line);
 		for (hp = tp->fd; (n = *hp) >= 0; hp++)
-			ast_close_batch(n, QUEUE);
-		ast_close_batch(-1, ENACT);
+			ast_close_batch(n, AST_QUEUE);
+		ast_close_batch(-1, AST_ENACT);
 	}
 }
 

@@ -153,5 +153,5 @@ done:
 
 int sfclose(Sfio_t *f)
 {
-	return sfclose_batch(f, NOW);
+	return sfclose_batch(f,AST_NOW);
 }

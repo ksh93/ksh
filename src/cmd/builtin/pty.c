@@ -295,8 +295,8 @@ mkpty(int* master, int* minion)
 		struct termios	tst;
 		if (tcgetattr(*minion, &tst) < 0 && (ioctl(*minion, I_PUSH, "ptem") < 0 || ioctl(*minion, I_PUSH, "ldterm") < 0))
 		{
-			ast_close_batch(*minion,QUEUE);
-			ast_close_batch(*master,ENACT);
+			ast_close_batch(*minion,AST_QUEUE);
+			ast_close_batch(*master,AST_ENACT);
 			return -1;
 		}
 	}

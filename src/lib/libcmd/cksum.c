@@ -392,7 +392,7 @@ verify(State_t* state, char* s, char* check, Sfio_t* rp)
 					}
 				}
 			}
-			closefile(sp, NOW);
+			closefile(sp, AST_NOW);
 		}
 	}
 	else if (strneq(s, "method=", 7))
@@ -423,9 +423,9 @@ list(State_t* state, Sfio_t* lp)
 		if (sp = openfile(file, state->check ? "rt" : "rb"))
 		{
 			pr(state, sfstdout, sp, file, state->permissions, NULL, state->check);
-			closefile(sp, QUEUE);
+			closefile(sp, AST_QUEUE);
 		}
-	ast_close_batch(-1, ENACT);
+	ast_close_batch(-1, AST_ENACT);
 }
 
 /*
@@ -594,14 +594,14 @@ b_cksum(int argc, char** argv, Shbltin_t* context)
 				if (sp = openfile(file, "rt"))
 				{
 					list(&state, sp);
-					closefile(sp, QUEUE);
+					closefile(sp, AST_QUEUE);
 				}
-			ast_close_batch(-1, ENACT);
+			ast_close_batch(-1, AST_ENACT);
 		}
 		else if (sp = openfile(NULL, "rt"))
 		{
 			list(&state, sp);
-			closefile(sp, NOW);
+			closefile(sp, AST_NOW);
 		}
 	}
 	else if (!*argv && !state.recursive)
@@ -624,7 +624,7 @@ b_cksum(int argc, char** argv, Shbltin_t* context)
 				if (sp = openfile(ent->fts_accpath, "rb"))
 				{
 					pr(&state, sfstdout, sp, ent->fts_path, state.permissions, ent->fts_statp, state.check);
-					closefile(sp, QUEUE);
+					closefile(sp, AST_QUEUE);
 				}
 				break;
 			case FTS_DC:
@@ -640,7 +640,7 @@ b_cksum(int argc, char** argv, Shbltin_t* context)
 				error(ERROR_system(0), "%s: not found", ent->fts_path);
 				break;
 			}
-		ast_close_batch(-1, ENACT);
+		ast_close_batch(-1, AST_ENACT);
 		fts_close(fts);
 	}
 	if (state.total)

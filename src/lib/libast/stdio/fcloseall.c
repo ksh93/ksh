@@ -41,10 +41,10 @@ fcloseall(void)
 					break;
 			for(n = 0; n < ((p == &_Sfpool) ? p->n_sf : 1); ++n)
 			{	count += 1;
-				if(sfclose_batch(p->sf[n],QUEUE) >= 0)
+				if(sfclose_batch(p->sf[n],AST_QUEUE) >= 0)
 					nclose += 1;
 			}
-			ast_close_batch(-1,ENACT);
+			ast_close_batch(-1,AST_ENACT);
 		}
 		if(nclose == count)
 			break;

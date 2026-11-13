@@ -567,7 +567,7 @@ cutfields(Cut_t* cut, Sfio_t* fdin, Sfio_t* fdout)
 	}
  failed:
 	if(fdtmp)
-		sfclose_batch(fdtmp,QUEUE);
+		sfclose_batch(fdtmp,AST_QUEUE);
 }
 
 int
@@ -699,9 +699,9 @@ b_cut(int argc, char** argv, Shbltin_t* context)
 		else
 			cutcols(cut,fp,sfstdout);
 		if(fp!=sfstdin)
-			sfclose_batch(fp,QUEUE);
+			sfclose_batch(fp,AST_QUEUE);
 	} while(cp = *argv++);
-	ast_close_batch(-1, ENACT);
+	ast_close_batch(-1,AST_ENACT);
 	if (sfsync(sfstdout))
 		error(ERROR_system(0), "write error");
 	return error_info.errors != 0;

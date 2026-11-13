@@ -274,7 +274,7 @@ b_paste(int argc, char** argv, Shbltin_t* context)
 			if(spaste(fp,sfstdout,delim,dlen,mp) < 0)
 				error(ERROR_system(0),"write failed");
 			if(fp!=sfstdin)
-				sfclose_batch(fp, QUEUE);
+				sfclose_batch(fp, AST_QUEUE);
 		}
 		else if(!sflag)
 			streams[n++] = fp;
@@ -285,9 +285,9 @@ b_paste(int argc, char** argv, Shbltin_t* context)
 			error(ERROR_system(0),"write failed");
 		while(--n>=0)
 			if((fp=streams[n]) && fp!=sfstdin)
-				sfclose_batch(fp, QUEUE);
+				sfclose_batch(fp, AST_QUEUE);
 	}
-	ast_close_batch(-1, ENACT);
+	ast_close_batch(-1, AST_ENACT);
 	if (mp)
 		free(mp);
 	free(delim);

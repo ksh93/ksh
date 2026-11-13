@@ -265,11 +265,11 @@ extern _Ast_info_t	_ast_info;
 /* valid modes for ast_close_batch() and sfclose_batch() */
 typedef enum
 {
-	AUXILIARY,
-	ENACT,
-	NOW,
-	QUEUE,
-	LIMIT,
+	AST_AUXILIARY,
+	AST_ENACT,
+	AST_NOW,
+	AST_QUEUE,
+	AST_LIMIT,
 } close_mode_t;
 
 /* direct macro access for bsd crossover */

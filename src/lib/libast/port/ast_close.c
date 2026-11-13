@@ -213,21 +213,21 @@ static int add_to_queue(int fd)
 
 int ast_close_batch(int fd, close_mode_t mode)
 {
-	if(mode != ENACT && fd < 0)
+	if(mode != AST_ENACT && fd < 0)
 		return bad_fd(EBADF);
 	switch(mode)
 	{
-	    case NOW:
+	    case AST_NOW:
 		return close_single(fd);
-	    case AUXILIARY:
+	    case AST_AUXILIARY:
 		return 0;  /* no-op */
-	    case QUEUE:
+	    case AST_QUEUE:
 		return add_to_queue(fd);
-	    case ENACT:
+	    case AST_ENACT:
 		if(fd > -1)
 			add_to_queue(fd);
 		return clear_queue();
-	    case LIMIT:
+	    case AST_LIMIT:
 		open_max_margin = fd - 7;
 		return 0;
 	}
@@ -238,9 +238,9 @@ int ast_close_batch(int fd, close_mode_t mode)
 
 int ast_close_batch(int fd, close_mode_t mode)
 {
-	if(mode != ENACT && fd < 0)
+	if(mode != AST_ENACT && fd < 0)
 		return bad_fd(EBADF);
-	if(mode == AUXILIARY || mode == LIMIT || (mode == ENACT && fd < 0))
+	if(mode == AST_AUXILIARY || mode == AST_LIMIT || (mode == AST_ENACT && fd < 0))
 		return 0;
 	return close_single(fd);
 }
