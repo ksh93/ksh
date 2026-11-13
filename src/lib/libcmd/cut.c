@@ -94,7 +94,7 @@ typedef struct Cut_s
 	Delim_t		ldelim;
 	unsigned char	space[UCHAR_MAX+1];
 	unsigned char	eob;
-	ptrdiff_t	list[2];	/* NOTE: must be last member */
+	ptrdiff_t	list[];		/* NOTE: must be last member */
 } Cut_t;
 
 #define HUGE		INT_MAX
@@ -134,7 +134,7 @@ cutinit(int mode, char* str, Delim_t* wdelim, Delim_t* ldelim, size_t reclen)
 	char*		cp = str;
 	Cut_t*		cut;
 
-	if (!(cut = stkalloc(stkstd, sizeof(Cut_t) + strlen(cp) * sizeof(int))))
+	if (!(cut = stkalloc(stkstd, sizeof(Cut_t) + 2 * sizeof(ptrdiff_t) + strlen(cp) * sizeof(int))))
 	{
 		error(ERROR_SYSTEM|ERROR_PANIC, "out of memory");
 		UNREACHABLE();

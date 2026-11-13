@@ -40,7 +40,7 @@ typedef struct _union_s
 	int		c;	/* current stream	*/
 	int		n;	/* number of streams	*/
 	Sfoff_t		here;	/* current location	*/
-	File_t		f[1];	/* array of streams	*/
+	File_t		f[];	/* array of streams	*/
 } Union_t;
 
 static ssize_t unwrite(Sfio_t*		f,	/* stream involved */
@@ -149,7 +149,7 @@ int sfdcunion(Sfio_t* f, Sfio_t** array, int n)
 	if(n <= 0)
 		return -1;
 
-	if(!(un = (Union_t*)malloc(sizeof(Union_t)+((size_t)n-1)*sizeof(File_t))) )
+	if(!(un = (Union_t*)malloc(sizeof(Union_t)+(size_t)n*sizeof(File_t))) )
 		return -1;
 	memset(un, 0, sizeof(*un));
 

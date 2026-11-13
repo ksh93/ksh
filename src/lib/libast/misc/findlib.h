@@ -65,7 +65,7 @@ typedef struct
 	char		bigram2[(1<<(CHAR_BIT-1))];
 	char		path[PATH_MAX];
 	char		temp[PATH_MAX];
-	char		pattern[1];
+	char		pattern[];
 } Decode_t;
 
 typedef struct
@@ -95,7 +95,7 @@ typedef struct
 	Dtlink_t	byname;
 	Dtlink_t	byindex;
 	unsigned long	index;
-	char		name[1];
+	char		name[];
 } Type_t;
 
 #define _FIND_PRIVATE_			\

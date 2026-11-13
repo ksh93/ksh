@@ -27,7 +27,7 @@ typedef struct
 {
 	Sfdisc_t	sfdisc;		/* sfio discipline		*/
 	Sfio_t*		f;		/* original wide stream		*/
-	char		fmt[1];		/* mb fmt			*/
+	char		fmt[];		/* mb fmt			*/
 } Wide_t;
 
 wint_t
@@ -296,7 +296,7 @@ vfwscanf(Sfio_t* f, const wchar_t* fmt, va_list args)
 
 	FWIDE(f, EOF);
 	n = wcstombs(NULL, fmt, 0);
-	if (w = newof(0, Wide_t, 1, n))
+	if (w = newof(0, Wide_t, 1, n + 1))
 	{
 		d = dup(0);
 		if (t = sfnew(NULL, buf, sizeof(buf), d, SFIO_READ))

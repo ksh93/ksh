@@ -105,7 +105,7 @@ struct Enum
 	Namfun_t	hdr;
 	ssize_t		nelem;
 	char		iflag;
-	const char	*values[1];
+	const char	*values[];
 };
 
 /*
@@ -155,8 +155,8 @@ static Namfun_t *clone_enum(Namval_t* np, Namval_t *mp, nvflag_t flags, Namfun_t
 	NOT_USED(np);
 	NOT_USED(mp);
 	NOT_USED(flags);
-	ep = sh_newof(0,struct Enum,1,(size_t)pp->nelem*sizeof(char*));
-	memcpy(ep,pp,sizeof(struct Enum)+(size_t)pp->nelem*sizeof(char*));
+	ep = sh_newof(0,struct Enum,1,(size_t)(pp->nelem + 1)*sizeof(char*));
+	memcpy(ep,pp,sizeof(struct Enum)+(size_t)(pp->nelem + 1)*sizeof(char*));
 	return &ep->hdr;
 }
 
@@ -273,7 +273,7 @@ int b_enum(int argc, char** argv, Shbltin_t *context)
 			sz += strlen(nv_getval(np));
 		}
 		while(nv_nextsub(np));
-		sz += n*sizeof(char*);
+		sz += (n + 1) * sizeof(char*);
 		ep = sh_newof(0,struct Enum,1,sz);
 		ep->iflag = iflag;
 		ep->nelem = (ssize_t)n;

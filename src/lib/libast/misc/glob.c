@@ -789,7 +789,7 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 			break;
 		}
 	}
-	top = ap = stkalloc(globstk,(optlen ? 2 : 1) * strlen(pattern) + sizeof(globlist_t) + suflen + gp->gl_extra);
+	top = ap = stkalloc(globstk,(optlen ? 2 : 1) * strlen(pattern) + sizeof(globlist_t) + suflen + gp->gl_extra + 1);
 	ap->gl_next = NULL;
 	ap->gl_flags = 0;
 	ap->gl_begin = ap->gl_path + gp->gl_extra;

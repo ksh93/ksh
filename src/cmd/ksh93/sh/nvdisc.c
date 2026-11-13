@@ -746,8 +746,8 @@ int nv_adddisc(Namval_t *np, const char **names, Namval_t **funs)
 		while(*av++)
 			n++;
 	}
-	vp = sh_newof(NULL,Nambfun_t,1,(size_t)n*sizeof(Namval_t*));
-	vp->fun.dsize = sizeof(Nambfun_t)+(size_t)n*sizeof(Namval_t*);
+	vp = sh_newof(NULL,Nambfun_t,1,(size_t)(n + 1)*sizeof(Namval_t*));
+	vp->fun.dsize = sizeof(Nambfun_t)+(size_t)(n + 1)*sizeof(Namval_t*);
 	vp->fun.namflags |= NAMFUN_IGN;
 	vp->num = n;
 	if(funs)

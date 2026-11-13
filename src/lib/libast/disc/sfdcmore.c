@@ -43,7 +43,7 @@ typedef struct
 	int		row;		/* current row			*/
 	int		col;		/* current col			*/
 	char		pattern[128];	/* match pattern		*/
-	char		prompt[1];	/* prompt string		*/
+	char		prompt[];	/* prompt string		*/
 } More_t;
 
 /*
@@ -127,7 +127,7 @@ static int ttyquery(Sfio_t* rp, Sfio_t* wp, const char* label, Sfdisc_t* dp)
 
 static ssize_t morewrite(Sfio_t* f, const void* buf, size_t n, Sfdisc_t* dp)
 {
-	More_t*	more = (More_t*)dp;
+	More_t*		more = (More_t*)dp;
 	char*		b;
 	char*		s;
 	char*		e;
@@ -268,8 +268,8 @@ static int moreexcept(Sfio_t* f, int type, void* data, Sfdisc_t* dp)
 
 int sfdcmore(Sfio_t* f, const char* prompt, int rows, int cols)
 {
-	More_t*	more;
-	size_t			n;
+	More_t*		more;
+	size_t		n;
 
 	/*
 	 * this is a writeonly discipline for interactive io

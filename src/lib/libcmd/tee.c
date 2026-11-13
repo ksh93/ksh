@@ -57,7 +57,7 @@ typedef struct Tee_s
 {
 	Sfdisc_t	disc;
 	int		line;
-	int		fd[1];
+	int		fd[];
 } Tee_t;
 
 /*
@@ -158,7 +158,7 @@ b_tee(int argc, char** argv, Shbltin_t* context)
 	argc -= opt_info.index;
 	if (argc > 0)
 	{
-		if (tp = stkalloc(stkstd, sizeof(Tee_t) + (size_t)argc * sizeof(int)))
+		if (tp = stkalloc(stkstd, sizeof(Tee_t) + (size_t)(argc + 1) * sizeof(int)))
 		{
 			tp->disc.writef = tee_write;
 			if (context)

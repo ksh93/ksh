@@ -152,7 +152,7 @@ typedef struct Item_s			/* list item			*/
 	struct Item_s*	next;		/* next in list			*/
 	uintmax_t	hits;		/* labeled pattern matches	*/
 	uintmax_t	total;		/* total hits			*/
-	char		string[1];	/* string value			*/
+	char		string[];	/* string value			*/
 } Item_t;
 
 typedef struct List_s			/* generic list			*/
@@ -246,7 +246,7 @@ addre(State_t* state, char* s)
 		}
 		c = (size_t)(s - b);
 		s++;
-		if (!(x = vmnewof(state->vm, NULL, Item_t, 1, c)))
+		if (!(x = vmnewof(state->vm, NULL, Item_t, 1, c + 1)))
 		{
 			error(ERROR_SYSTEM|2, "out of memory (pattern `%s')", b);
 			goto done;
@@ -292,7 +292,7 @@ addstring(State_t* state, List_t* p, char* s)
 {
 	Item_t*	x;
 
-	if (!(x = vmnewof(state->vm, NULL, Item_t, 1, strlen(s))))
+	if (!(x = vmnewof(state->vm, NULL, Item_t, 1, strlen(s) + 1)))
 	{
 		error(ERROR_SYSTEM|2, "out of memory (string `%s')", s);
 		return -1;

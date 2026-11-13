@@ -45,7 +45,7 @@ typedef struct Id_s
 {
 	Dtlink_t	link;
 	int		id;
-	char		name[1];
+	char		name[];
 } Id_t;
 
 /*
@@ -103,7 +103,7 @@ strgid(const char* name)
 			id = -1;
 #endif
 	}
-	if (dict && (ip = newof(0, Id_t, 1, strlen(name))))
+	if (dict && (ip = newof(0, Id_t, 1, strlen(name) + 1)))
 	{
 		strcpy(ip->name, name);
 		ip->id = id >= 0 ? id : -2;

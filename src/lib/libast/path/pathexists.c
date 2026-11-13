@@ -39,7 +39,7 @@ typedef struct Tree_s
 	struct Tree_s*	next;
 	struct Tree_s*	tree;
 	int		mode;
-	char		name[1];
+	char		name[];
 } Tree_t;
 
 int
@@ -70,7 +70,7 @@ pathexists(char* path, int mode)
 		for (t = p->tree; t && (*cmp)(s, t->name); t = t->next);
 		if (!t)
 		{
-			if (!(t = newof(0, Tree_t, 1, strlen(s))))
+			if (!(t = newof(0, Tree_t, 1, strlen(s) + 1)))
 			{
 				*e = c;
 				return 0;
@@ -94,7 +94,7 @@ pathexists(char* path, int mode)
 				c = cc;
 				if (!x || errno == ENOENT)
 					t->mode = PATH_READ|PATH_EXECUTE;
-				if (!(p = newof(0, Tree_t, 1, strlen(s))))
+				if (!(p = newof(0, Tree_t, 1, strlen(s) + 1)))
 				{
 					*e = c;
 					return 0;

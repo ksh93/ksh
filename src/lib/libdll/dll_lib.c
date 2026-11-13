@@ -29,7 +29,7 @@ typedef struct Dll_lib_s
 	struct Dll_lib_s*	next;
 	Dll_lib_f		libf;
 	char*			path;
-	char			base[1];
+	char			base[];
 } Dll_lib_t;
 
 /*
@@ -160,7 +160,7 @@ dll_lib(Dllnames_t* names, unsigned long version, Dllerror_f dllerrorf, void* di
 	 * add to the loaded list
 	 */
 
-	if (lib = newof(0, Dll_lib_t, 1, (len = strlen(names->base)) + strlen(names->path) + 1))
+	if (lib = newof(0, Dll_lib_t, 1, (len = strlen(names->base)) + strlen(names->path) + 2))
 	{
 		lib->libf = libf;
 		strcpy(lib->base, names->base);

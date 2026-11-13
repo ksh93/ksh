@@ -115,7 +115,7 @@ vecclose(Vector_t* v)
 typedef struct
 {
 	Stk_pos_t	pos;
-	char		data[1];
+	char		data[];
 } Stk_frame_t;
 
 #define stknew(s,p)	((p)->offset=stktell(s),(p)->base=stkfreeze(s,0))
@@ -132,8 +132,7 @@ stkpush(Stk_t* sp, size_t size)
 	Stk_pos_t	p;
 
 	stknew(sp, &p);
-	size = sizeof(Stk_frame_t) + sizeof(size_t) + size - 1;
-	if (!(f = stkalloc(sp, sizeof(Stk_frame_t) + sizeof(Stk_frame_t*) + size - 1)))
+	if (!(f = stkalloc(sp, offsetof(Stk_frame_t, data) + size + sizeof(Stk_frame_t*))))
 		return NULL;
 	f->pos = p;
 	stkframe(sp) = f;
@@ -154,7 +153,7 @@ typedef struct
 {
 	size_t			size;
 	regmatch_t*		match;
-	regmatch_t		save[1];
+	regmatch_t		save[];
 } Match_frame_t;
 
 #define matchpush(e,x)	((x)->re.group.number?_matchpush(e,x):0)
@@ -178,7 +177,7 @@ _matchpush(Env_t* env, Rex_t* rex)
 
 	if (rex->re.group.number <= 0 || (num = rex->re.group.last - rex->re.group.number + 1) <= 0)
 		num = 0;
-	if (!(f = stkpush(env->mst, sizeof(Match_frame_t) + (size_t)(num > 0 ? num - 1 : 0) * sizeof(regmatch_t))))
+	if (!(f = stkpush(env->mst, sizeof(Match_frame_t) + (size_t)(num > 0 ? num : 0) * sizeof(regmatch_t))))
 	{
 		env->error = REG_ESPACE;
 		return 1;

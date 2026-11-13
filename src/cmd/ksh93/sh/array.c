@@ -51,7 +51,7 @@ struct index_array
 	ssize_t		cur;    	/* index of current element */
 	ssize_t		maxi;   	/* maximum index for array */
 	unsigned char	*bits;		/* bit array for child subscripts */
-	void		*val[1];	/* array of value holders */
+	void		*val[];		/* array of value holders */
 };
 
 struct assoc_array
@@ -813,7 +813,7 @@ static struct index_array *array_grow(Namval_t *np, struct index_array *arp,ssiz
 		errormsg(SH_DICT,ERROR_exit(1),e_subscript,fmtint((intmax_t)maxi,1));
 		UNREACHABLE();
 	}
-	i = (newsize - 1) * (ssize_t)sizeof(void*) + newsize;
+	i = newsize * (ssize_t)sizeof(void*) + newsize;
 	ap = sh_malloc(sizeof(struct index_array) + (size_t)i);
 	memset(ap,0,sizeof(*ap)+(size_t)i);
 	ap->maxi = newsize;
