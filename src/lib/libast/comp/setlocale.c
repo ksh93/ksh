@@ -2186,20 +2186,28 @@ single(int category, Lc_t* lc, unsigned int flags)
 		}
 		else if (lc->flags & LC_local)
 		{
-			const char *name;
 			/*
-			 * For the local AST UTF-8 locales (C.UTF-8 and C_EU.UTF-8), the
-			 * operating system's iswprint(3) and iswgraph(3) functions may break,
-			 * because the native setlocale(3) call may not recognise these. But as
-			 * far as LC_CTYPE is concerned, all UTF-8 locales are equivalent.
-			 * Therefore, if available, use a native system locale for these, as
-			 * found by src/lib/libast/features/locale.
+			 * Try the system locale first; the system may support this category even if
+			 * it was flagged as local due to another category, such as LC_COLLATE, not
+			 * being supported for the locale (as is the case on NetBSD for ja_JP.SJIS).
 			 */
-			if (_locale_utf8_native_ctype && (lc->flags & LC_utf8) && category == AST_LC_CTYPE)
-				name = _locale_utf8_native_ctype;
-			else
-				name = lcmake(NULL)->name;
-			sys = setlocale(lc_categories[category].external, name);
+			if (!(sys = setlocale(lc_categories[category].external, lc->name)))
+			{
+				const char *name;
+				/*
+				 * For the local AST UTF-8 locales (C.UTF-8 and C_EU.UTF-8), the
+				 * operating system's iswprint(3) and iswgraph(3) functions may break,
+				 * because the native setlocale(3) call may not recognise these. But as
+				 * far as LC_CTYPE is concerned, all UTF-8 locales are equivalent.
+				 * Therefore, if available, use a native system locale for these, as
+				 * found by src/lib/libast/features/locale.
+				 */
+				if (_locale_utf8_native_ctype && (lc->flags & LC_utf8) && category == AST_LC_CTYPE)
+					name = _locale_utf8_native_ctype;
+				else
+					name = lcmake(NULL)->name;
+				sys = setlocale(lc_categories[category].external, name);
+			}
 		}
 		else if (!(sys = setlocale(lc_categories[category].external, lc->name)) &&
 			 (streq(lc->name, lc->code) || !(sys = setlocale(lc_categories[category].external, lc->code))) &&

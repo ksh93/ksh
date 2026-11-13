@@ -1750,6 +1750,9 @@ exp=$'end: <one\ntwo\nthree>'
 got=$(set +x; "$SHELL" -c 'LANG=C.UTF-8; print -あ-い-う- foo' 2>&1)
 (( (e = $?) <= 128 )) || err_exit "crash passing multibyte character option" \
 	"(got exit status $e/SIG$(kill -l "$e"), output $(printf %q "$got"))"
+got=$(set +x; "$SHELL" -c 'LANG=C.UTF-8; print --あいう foo' 2>&1)
+(( (e = $?) <= 128 )) || err_exit "crash passing multibyte character long-form option" \
+	"(got exit status $e/SIG$(kill -l "$e"), output $(printf %q "$got"))"
 
 # ======
 # https://github.com/ksh93/ksh/issues/993
