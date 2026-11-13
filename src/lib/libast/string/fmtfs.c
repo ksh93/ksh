@@ -46,7 +46,7 @@ typedef struct Id_s
 {
 	Dtlink_t	link;
 	dev_t		id;
-	char		name[1];
+	char		name[];
 } Id_t;
 
 char*
@@ -77,7 +77,7 @@ fmtfs(struct stat* st)
 		if (mnt && mnt->type)
 			s = mnt->type;
 	}
-	if (!dict || !(ip = newof(0, Id_t, 1, strlen(s))))
+	if (!dict || !(ip = newof(0, Id_t, 1, strlen(s) + 1)))
 	{
 		if (!mp)
 			return s;

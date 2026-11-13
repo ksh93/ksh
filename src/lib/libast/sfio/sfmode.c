@@ -150,12 +150,12 @@ Sfrsrv_t* _sfrsrv(Sfio_t* f, ssize_t size)
 	/* make buffer if nothing yet */
 	size = ((size + SFIO_GRAIN-1)/SFIO_GRAIN)*SFIO_GRAIN;
 	if(!(rsrv = f->rsrv) || size > rsrv->size)
-	{	if(!(rs = calloc(1, (size_t)size + sizeof(Sfrsrv_t))))
+	{	if(!(rs = calloc(1, (size_t)size + sizeof(Sfrsrv_t) + 1)))
 			size = -1;
 		else
 		{	if(rsrv)
 			{	if(rsrv->slen > 0)
-					memcpy(rs,rsrv,sizeof(Sfrsrv_t)+(size_t)rsrv->slen);
+					memcpy(rs,rsrv,sizeof(Sfrsrv_t)+(size_t)rsrv->slen+1);
 				free(rsrv);
 			}
 			f->rsrv = rsrv = rs;

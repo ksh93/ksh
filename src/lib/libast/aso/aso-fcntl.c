@@ -30,7 +30,7 @@ typedef struct APL_s
 {
 	int		fd;
 	size_t		size;
-	char		path[1];
+	char		path[];
 } APL_t;
 
 static void*
@@ -109,7 +109,7 @@ aso_init_fcntl(void* data, const char* details)
 			return NULL;
 		drop = 1;
 	}
-	if (!(apl = newof(0, APL_t, 1, strlen(path))))
+	if (!(apl = newof(0, APL_t, 1, strlen(path) + 1)))
 		goto bad;
 	if (fd >= 0 || (fd = open(path, O_RDWR|O_cloexec)) < 0 && (fd = open(path, O_CREAT|O_RDWR|O_cloexec, perm)) >= 0)
 	{

@@ -51,7 +51,7 @@ typedef struct _file_s		File_t;
 struct _file_s
 {	File_t*	next;		/* link list		*/
 	Sfio_t*	f;		/* associated stream	*/
-	char	name[1];	/* temp file name	*/
+	char	name[];		/* temp file name	*/
 };
 
 static File_t*	File;		/* list pf temp files	*/
@@ -111,7 +111,7 @@ static int _rmtmp(char* file)
 	if(!File)
 		atexit(_rmfiles);
 
-	if(!(ff = (File_t*)malloc(sizeof(File_t)+strlen(file))) )
+	if(!(ff = (File_t*)malloc(sizeof(File_t)+strlen(file)+1)) )
 		return -1;
 	ff->f = f;
 	strcpy(ff->name,file);

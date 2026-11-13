@@ -150,7 +150,7 @@ typedef struct
 	struct statfs*	last;
 	char		opt[256];
 #if _lib_getfsstat
-	struct statfs	buf[1];
+	struct statfs	buf[];
 #endif
 } Handle_t;
 
@@ -256,14 +256,14 @@ mntopen(const char* path, const char* mode)
 #if _lib_getfsstat
 	if ((n = getfsstat(NULL, 0, MNT_WAIT)) <= 0)
 		return NULL;
-	n = (n - 1) * (int)sizeof(struct statfs);
+	n = n * (int)sizeof(struct statfs);
 #else
 	n = 0;
 #endif
 	if (!(mp = newof(0, Handle_t, 1, (size_t)n)))
 		return NULL;
 #if _lib_getfsstat
-	n = getfsstat(mp->next = mp->buf, n + (int)sizeof(struct statfs), MNT_WAIT);
+	n = getfsstat(mp->next = mp->buf, n, MNT_WAIT);
 #else
 	n = getmntinfo(&mp->next, 0);
 #endif
@@ -333,7 +333,7 @@ typedef struct
 	struct vmount*	next;
 	char		remote[128];
 	char		type[16];
-	struct vmount	info[1];
+	struct vmount	info[];
 } Handle_t;
 
 void*
@@ -342,9 +342,9 @@ mntopen(const char* path, const char* mode)
 	Handle_t*	mp;
 
 	FIXARGS(path, mode, 0);
-	if (!(mp = newof(0, Handle_t, 1, SIZE)))
+	if (!(mp = newof(0, Handle_t, 1, SIZE + sizeof(struct vmount))))
 		return NULL;
-	if ((mp->count = mntctl(MCTL_QUERY, sizeof(Handle_t) + SIZE, &mp->info)) <= 0)
+	if ((mp->count = mntctl(MCTL_QUERY, sizeof(Handle_t) + SIZE + sizeof(struct vmount), &mp->info)) <= 0)
 	{
 		free(mp);
 		return NULL;

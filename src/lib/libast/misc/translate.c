@@ -44,7 +44,7 @@ typedef	struct
 	nl_catd		cat;		/* message catalog handle	*/
 	const char*	locale;		/* message catalog locale	*/
 	const char*	nlspath;	/* message catalog NLSPATH	*/
-	char		name[1];	/* catalog name			*/
+	char		name[];		/* catalog name			*/
 } Catalog_t;
 
 typedef struct
@@ -53,7 +53,7 @@ typedef struct
 	Catalog_t*	cat;		/* current catalog pointer	*/
 	int		set;		/* set number			*/
 	int		seq;		/* sequence number		*/
-	char		text[1];	/* message text			*/
+	char		text[];		/* message text			*/
 } Message_t;
 
 typedef struct
@@ -87,7 +87,7 @@ entry(Dt_t* dict, int set, int seq, const char* msg)
 {
 	Message_t*	mp;
 
-	if (!(mp = newof(0, Message_t, 1, strlen(msg))))
+	if (!(mp = newof(0, Message_t, 1, strlen(msg) + 1)))
 		return 0;
 	strcpy(mp->text, msg);
 	mp->set = set;
@@ -150,7 +150,7 @@ init(char* s)
 	 * insert into the catalog dictionary
 	 */
 
-	if (!(cp = newof(0, Catalog_t, 1, strlen(s))))
+	if (!(cp = newof(0, Catalog_t, 1, strlen(s) + 1)))
 		return NULL;
 	strcpy(cp->name, s);
 	if (!dtinsert(state.catalogs, cp))

@@ -122,7 +122,7 @@ typedef struct Msg_s
 typedef struct Save_s
 {
 	Dtlink_t	link;		/* cdt link			*/
-	char		text[1];	/* saved text text		*/
+	char		text[];		/* saved text text		*/
 } Save_t;
 
 typedef struct Push_s
@@ -812,7 +812,7 @@ save(const char* ap, size_t az, const char* bp, size_t bz, const char* cp, size_
 	*b = 0;
 	if (!(p = (Save_t*)dtmatch(dict, buf)))
 	{
-		if (!(p = newof(0, Save_t, 1, (size_t)(b - buf))))
+		if (!(p = newof(0, Save_t, 1, (size_t)(b - buf) + 1)))
 			return (char*)ap;
 		strcpy(p->text, buf);
 		dtinsert(dict, p);

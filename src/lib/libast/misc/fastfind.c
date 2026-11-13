@@ -349,7 +349,7 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 	}
 	else
 	{
-		i = sizeof(Decode_t) + sizeof(Code_t);
+		i = sizeof(Decode_t) + sizeof(Code_t) + 1;
 		if (!pattern || !*pattern)
 			pattern = "*";
 		i += (j = 2 * ((ssize_t)strlen(pattern) + 1));

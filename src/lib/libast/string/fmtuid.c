@@ -38,7 +38,7 @@ typedef struct Id_s
 {
 	Dtlink_t	link;
 	uid_t		id;
-	char		name[1];
+	char		name[];
 } Id_t;
 
 /*
@@ -79,7 +79,7 @@ fmtuid(uid_t uid)
 		name = fmtbuf(z = sizeof(uid) * 3 + 1);
 		sfsprintf(name, z, "%I*d", sizeof(uid), uid);
 	}
-	if (dict && (ip = newof(0, Id_t, 1, strlen(name))))
+	if (dict && (ip = newof(0, Id_t, 1, strlen(name) + 1)))
 	{
 		ip->id = uid;
 		strcpy(ip->name, name);

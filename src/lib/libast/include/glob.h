@@ -42,7 +42,7 @@ struct _globlist_
 	globlist_t*	gl_next;
 	char*		gl_begin;
 	unsigned char	gl_flags;
-	char		gl_path[1];
+	char		gl_path[];
 };
 
 struct _glob_

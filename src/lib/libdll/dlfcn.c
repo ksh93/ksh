@@ -105,7 +105,7 @@
 	{
 		struct filehdr	f;
 		struct aouthdr	a;
-		struct scnhdr	s[1];
+		struct scnhdr	s[];
 	};
 
 	static struct ld_info*	ld_info;
@@ -306,7 +306,7 @@
 		unsigned long	magic;
 		NSImage		image;
 		NSModule	module;
-		char		path[1];
+		char		path[];
 	} Dll_t;
 
 	#define DL_MAGIC	0x04190c04
@@ -361,7 +361,7 @@
 		}
 		if (!path)
 			dll = &global;
-		else if (!(dll = newof(0, Dll_t, 1, strlen(path))))
+		else if (!(dll = newof(0, Dll_t, 1, strlen(path) + 1)))
 		{
 			dlmessage = e_nomemory;
 			return NULL;

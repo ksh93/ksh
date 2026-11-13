@@ -62,7 +62,7 @@
 typedef struct Uniq_s
 {
 	Dtlink_t	link;
-	char		name[1];
+	char		name[];
 } Uniq_t;
 
 #include <dlldefs.h>
@@ -508,14 +508,14 @@ dllsread(Dllscan_t* scan)
 		}
 		if (dtmatch(scan->dict, b))
 			goto again;
-		if (!(u = vmnewof(scan->vm, NULL, Uniq_t, 1, strlen(b))))
+		if (!(u = vmnewof(scan->vm, NULL, Uniq_t, 1, strlen(b) + 1)))
 			return NULL;
 		strcpy(u->name, b);
 		dtinsert(scan->dict, u);
 	}
 	else if (!(scan->flags & DLL_MATCH_NAME))
 		scan->flags |= DLL_MATCH_DONE;
-	else if (!(scan->uniq = vmnewof(scan->vm, NULL, Uniq_t, 1, strlen(b))))
+	else if (!(scan->uniq = vmnewof(scan->vm, NULL, Uniq_t, 1, strlen(b) + 1)))
 		return NULL;
 	else
 		strcpy(scan->uniq->name, b);

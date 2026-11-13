@@ -275,7 +275,7 @@ typedef struct _sfrsrv_s	Sfrsrv_t;
 struct _sfrsrv_s
 {	ssize_t		slen;		/* last string length		*/
 	ssize_t		size;		/* buffer size			*/
-	uchar		data[1];	/* data buffer			*/
+	uchar		data[];		/* data buffer			*/
 };
 
 /* co-process structure */

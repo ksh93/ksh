@@ -34,7 +34,7 @@ typedef struct
 	size_t		length;		/* prefix length		*/
 	size_t		empty;		/* empty line prefix length	*/
 	int		skip;		/* this line already prefixed	*/
-	char		prefix[1];	/* prefix string		*/
+	char		prefix[];	/* prefix string		*/
 } Prefix_t;
 
 /*
@@ -105,7 +105,7 @@ int sfdcprefix(Sfio_t* f, const char* prefix)
 
 	if (!prefix || !(n = strlen(prefix)) || !(sfset(f, 0, 0) & SFIO_WRITE))
 		return -1;
-	if (!(pfx = (Prefix_t*)malloc(sizeof(Prefix_t) + n)))
+	if (!(pfx = (Prefix_t*)malloc(sizeof(Prefix_t) + n + 1)))
 		return -1;
 	memset(pfx, 0, sizeof(*pfx));
 
