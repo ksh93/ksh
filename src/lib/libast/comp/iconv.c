@@ -153,9 +153,12 @@ _ast_iconv_name(const char* m, char* b, size_t n)
 	const _ast_iconv_list_t*	cp;
 	const _ast_iconv_list_t*	bp;
 	int				c;
+	int				ccode;
 	char*				e;
 	ssize_t				sub[2];
 	char				buf[16];
+	char				canon[32];
+	const char*			charset;
 #if DEBUG_TRACE
 	char*				o;
 #endif
@@ -203,6 +206,7 @@ if (error_info.trace < DEBUG_TRACE) sfprintf(sfstderr, "%s: debug-%d: AHA%d _ast
 	}
 	if (cp = bp)
 	{
+		ccode = cp->ccode;
 		if (cp->canon)
 		{
 			if (cp->index)
@@ -217,15 +221,25 @@ if (error_info.trace < DEBUG_TRACE) sfprintf(sfstderr, "%s: debug-%d: AHA%d _ast
 		}
 		else if (cp->ccode == CC_ASCII)  /* assumes CC_NATIVE == CC_ASCII */
 		{
-			if ((locales[AST_LC_CTYPE]->flags & LC_default) || !locales[AST_LC_CTYPE]->charset || !(m = locales[AST_LC_CTYPE]->charset->code) || streq(m, "iso8859-1"))
-				m = (const char*)"ISO-8859-1";
-			b += sfsprintf(b, (size_t)(e - b), "%s", m);
+			if ((locales[AST_LC_CTYPE]->flags & LC_default) || !locales[AST_LC_CTYPE]->charset || !(charset = locales[AST_LC_CTYPE]->charset->code) || streq(charset, "iso8859-1"))
+				charset = "ISO-8859-1";
+			else if (!streq(charset, m) && (ccode = _ast_iconv_name(charset, canon, sizeof(canon))) != CC_ASCII && ccode != CC_ICONV)
+			{
+				/*
+				 * the locale's code set is a multibyte code set that the internal
+				 * converters know about (e.g., UTF-8), so that is the native one
+				 */
+				charset = canon;
+			}
+			else
+				ccode = CC_ASCII;
+			b += sfsprintf(b, (size_t)(e - b), "%s", charset);
 		}
 		*b = 0;
 #if DEBUG_TRACE
-if (error_info.trace < DEBUG_TRACE) sfprintf(sfstderr, "%s: debug-%d: AHA%d _ast_iconv_name ccode=%d canon=\"%s\"\n", error_info.id, error_info.trace, __LINE__, cp->ccode, o);
+if (error_info.trace < DEBUG_TRACE) sfprintf(sfstderr, "%s: debug-%d: AHA%d _ast_iconv_name ccode=%d canon=\"%s\"\n", error_info.id, error_info.trace, __LINE__, ccode, o);
 #endif
-		return cp->ccode;
+		return ccode;
 	}
 	while (b < e && (c = *m++))
 	{
