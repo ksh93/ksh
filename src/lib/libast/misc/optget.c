@@ -681,9 +681,9 @@ match(char* s, char* t, int version, const char* id, const char* catalog)
 			w = ww = s;
 			while (*x && *w)
 			{
-				if (isupper(*x))
+				if (isupper((unsigned char)*x))
 					xw = x;
-				if (isupper(*w))
+				if (isupper((unsigned char)*w))
 					ww = w;
 				if (*x == '*' && !v++ || *x == '\a')
 				{
@@ -716,7 +716,7 @@ match(char* s, char* t, int version, const char* id, const char* catalog)
 				{
 					if (x != xw)
 					{
-						while (*x && !SEP(*x) && !isupper(*x))
+						while (*x && !SEP(*x) && !isupper((unsigned char)*x))
 							x++;
 						if (!*x)
 							break;
@@ -938,10 +938,10 @@ init(char* s, Optpass_t* p)
 				p->version = 1;
 			else
 			{
-				if (!isdigit(*s))
+				if (!isdigit((unsigned char)*s))
 					p->version = 1;
 				else
-					while (isdigit(*s))
+					while (isdigit((unsigned char)*s))
 						p->version = p->version * 10 + (unsigned char)(*s++ - '0');
 				while (*s && *s != ']')
 				{
@@ -949,16 +949,16 @@ init(char* s, Optpass_t* p)
 					{
 						p->release = s;
 						while (*s && *s != ']')
-							if (isspace(*s++))
+							if (isspace((unsigned char)*s++))
 								p->release = s;
 						break;
 					}
-					else if (!isdigit(*s))
+					else if (!isdigit((unsigned char)*s))
 						n = 1;
 					else
 					{
 						n = 0;
-						while (isdigit(*s))
+						while (isdigit((unsigned char)*s))
 							n = n * 10 + (*s++ - '0');
 					}
 					switch (c)
@@ -998,9 +998,9 @@ init(char* s, Optpass_t* p)
 						}
 						p->section[0] = (char)('0' + (n % 10));
 						n = 1;
-						if (isupper(*s))
+						if (isupper((unsigned char)*s))
 							p->section[n++] = *s++;
-						if (isupper(*s))
+						if (isupper((unsigned char)*s))
 							p->section[n++] = *s++;
 						p->section[n] = 0;
 						break;
@@ -1011,7 +1011,7 @@ init(char* s, Optpass_t* p)
 		while (*s)
 			if (*s++ == ']')
 			{
-				while (isspace(*s))
+				while (isspace((unsigned char)*s))
 					s++;
 				if (*s++ == '[')
 				{
@@ -1433,12 +1433,12 @@ label(Sfio_t* sp, int sep, char* s, int about, int z, int level, int style, int 
 				}
 				if (!f && style == STYLE_html)
 				{
-					for (t = s; t < e && !isspace(*t) && !iscntrl(*t); t++);
+					for (t = s; t < e && !isspace((unsigned char)*t) && !iscntrl((unsigned char)*t); t++);
 					if (*t == c && *++t == '(')
 					{
 						w = t;
-						if (++t < e && isdigit(*t))
-							while (++t < e && isupper(*t));
+						if (++t < e && isdigit((unsigned char)*t))
+							while (++t < e && isupper((unsigned char)*t));
 						if (t < e && *t == ')' && t > w + 1)
 						{
 							sfprintf(sp, "<NOBR><A href=\"../man%-.*s/"
@@ -1499,7 +1499,7 @@ label(Sfio_t* sp, int sep, char* s, int about, int z, int level, int style, int 
 				c = 0;
 				for (t = s; t < e; t++)
 				{
-					if (!isalnum(*t) && *t != '_' && *t != '.' && *t != '-')
+					if (!isalnum((unsigned char)*t) && *t != '_' && *t != '.' && *t != '-')
 					{
 						if (*t == '@')
 						{
@@ -1844,7 +1844,7 @@ textout(Sfio_t* sp, char* s, char* conform, ptrdiff_t conformlen, int style, int
 			}
 			else if (*s != OG)
 			{
-				if (level <= 1 || *s != '[' || *(s + 1) != '-' || style == STYLE_man && *(s + 2) == '?' || isalpha(*(s + 2)))
+				if (level <= 1 || *s != '[' || *(s + 1) != '-' || style == STYLE_man && *(s + 2) == '?' || isalpha((unsigned char)*(s + 2)))
 					break;
 				s = skip(s, 0, 0, 0, 1, level, 0, version);
 			}
@@ -1896,7 +1896,7 @@ textout(Sfio_t* sp, char* s, char* conform, ptrdiff_t conformlen, int style, int
 	if (c == '+' || c == '-' && (bump = 3) || c != ' ' && level > 1)
 	{
 		s = skip(t = s + 1, '?', 0, 0, 1, level, 0, version);
-		if (c == '-' && (*t == '?' || isdigit(*t) || *s == '?' && *(s + 1) == '\n'))
+		if (c == '-' && (*t == '?' || isdigit((unsigned char)*t) || *s == '?' && *(s + 1) == '\n'))
 		{
 			if ((c = *s) != '?')
 				return skip(s, 0, 0, 0, 1, level, 1, version);
@@ -1904,7 +1904,7 @@ textout(Sfio_t* sp, char* s, char* conform, ptrdiff_t conformlen, int style, int
 			par = item(sp, w, about, level, style, ip, version, id, ID, hflags);
 			for (;;)
 			{
-				while (isspace(*(s + 1)))
+				while (isspace((unsigned char)*(s + 1)))
 					s++;
 				w = s;
 				if (w[1] == '@' && w[2] == '(' && w[3] == '#' && w[4] == ')')
@@ -1920,14 +1920,14 @@ textout(Sfio_t* sp, char* s, char* conform, ptrdiff_t conformlen, int style, int
 		}
 		else
 		{
-			if (isdigit(c) && isdigit(*t))
+			if (isdigit((unsigned char)c) && isdigit((unsigned char)*t))
 			{
-				while (isdigit(*t))
+				while (isdigit((unsigned char)*t))
 					t++;
 				if (*t == ':')
 					t++;
 			}
-			else if (isalnum(c) && *t-- == ':')
+			else if (isalnum((unsigned char)c) && *t-- == ':')
 			{
 				if (X(catalog) || *t == *(t + 2))
 					t += 2;
@@ -2108,7 +2108,7 @@ textout(Sfio_t* sp, char* s, char* conform, ptrdiff_t conformlen, int style, int
 						if (*(s = next(s, version)) == GO)
 						{
 							s = textout(sp, s, NULL, 0, style, level + bump + !level, 0, ip, version, id, catalog, hflags);
-							if (*s && *(s = next(s, version)) == '[' && !isalnum(*(s + 1)))
+							if (*s && *(s = next(s, version)) == '[' && !isalnum((unsigned char)*(s + 1)))
 							{
 								s++;
 								message((-21, "textout#%d s=%s", __LINE__, show(s)));
@@ -2164,12 +2164,12 @@ textout(Sfio_t* sp, char* s, char* conform, ptrdiff_t conformlen, int style, int
 				}
 				if (!f && style == STYLE_html)
 				{
-					for (t = s; *t && !isspace(*t) && !iscntrl(*t); t++);
+					for (t = s; *t && !isspace((unsigned char)*t) && !iscntrl((unsigned char)*t); t++);
 					if (*t == c && *++t == '(')
 					{
 						w = t;
-						if (isdigit(*++t))
-							while (isupper(*++t));
+						if (isdigit((unsigned char)*++t))
+							while (isupper((unsigned char)*++t));
 						if (*t == ')' && t > w + 1)
 						{
 							sfprintf(sp, "<NOBR><A href=\"../man%-.*s/"
@@ -2245,7 +2245,7 @@ textout(Sfio_t* sp, char* s, char* conform, ptrdiff_t conformlen, int style, int
 					c = 0;
 					for (t = s; *t; t++)
 					{
-						if (!isalnum(*t) && *t != '_' && *t != '.' && *t != '-')
+						if (!isalnum((unsigned char)*t) && *t != '_' && *t != '.' && *t != '-')
 						{
 							if (*t == '@')
 							{
@@ -3021,7 +3021,7 @@ opthelp(const char* oopts, const char* what)
 					}
 					else if (style == STYLE_match && *what == '-')
 					{
-						if (*(p + 1) == '?' || *(s = skip(p + 1, ':', '?', 0, 1, 0, 0, version)) == '?' && isspace(*(s + 1)))
+						if (*(p + 1) == '?' || *(s = skip(p + 1, ':', '?', 0, 1, 0, 0, version)) == '?' && isspace((unsigned char)*(s + 1)))
 							s = C("version");
 						else
 							s = p + 1;
@@ -3590,8 +3590,8 @@ opthelp(const char* oopts, const char* what)
 		t = ud;
 		while (t < &ud[sizeof(ud)-2] && (c = *s++))
 		{
-			if (islower(c))
-				c = toupper(c);
+			if (islower((unsigned char)c))
+				c = toupper((unsigned char)c);
 			*t++ = (char)c;
 		}
 		*t = 0;
@@ -3796,8 +3796,8 @@ opthelp(const char* oopts, const char* what)
 			t = ud;
 			while (t < &ud[sizeof(ud)-2] && (c = *s++))
 			{
-				if (islower(c))
-					c = toupper(c);
+				if (islower((unsigned char)c))
+					c = toupper((unsigned char)c);
 				*t++ = (char)c;
 			}
 			*t = 0;
@@ -4033,10 +4033,10 @@ opthelp(const char* oopts, const char* what)
 						y = p;
 						if (*y++ == 't' && *y++ == 't' && *y++ == 'p' && (*y == ':' || *y++ == 's' && *y == ':') && *y++ == ':' && *y++ == '/' && *y++ == '/')
 						{
-							while (isalnum(*y) || *y == '_' || *y == '/' || *y == '-' || *y == '.')
+							while (isalnum((unsigned char)*y) || *y == '_' || *y == '/' || *y == '-' || *y == '.')
 								y++;
 							if (*y == '?')
-								while (isalnum(*y) || *y == '_' || *y == '/' || *y == '-' || *y == '.' || *y == '?' || *y == '=' || *y == '%' || *y == '&' || *y == ';' || *y == '#')
+								while (isalnum((unsigned char)*y) || *y == '_' || *y == '/' || *y == '-' || *y == '.' || *y == '?' || *y == '=' || *y == '%' || *y == '&' || *y == ';' || *y == '#')
 									y++;
 							if (*(y - 1) == '.')
 								y--;
@@ -4479,9 +4479,9 @@ optget(char** argv, const char* oopts)
 				else if (*s == '?')
 					n = 1;
 			}
-			else if ((c = *s++) != '-' && (c != '+' || !(pass->flags & OPT_plus) && (!(pass->flags & OPT_numeric) || !isdigit(*s))))
+			else if ((c = *s++) != '-' && (c != '+' || !(pass->flags & OPT_plus) && (!(pass->flags & OPT_numeric) || !isdigit((unsigned char)*s))))
 			{
-				if (!(pass->flags & OPT_old) || !isalpha(c))
+				if (!(pass->flags & OPT_old) || !isalpha((unsigned char)c))
 					return 0;
 				s--;
 				n = 1;
@@ -4565,7 +4565,7 @@ optget(char** argv, const char* oopts)
 					{
 						if (*(s + 1) == '=')
 							s++;
-						if (!isalnum(*(s - 1)) && *(w - 1) == (opt_info.assignment = (unsigned char)*(s - 1)))
+						if (!isalnum((unsigned char)*(s - 1)) && *(w - 1) == (opt_info.assignment = (unsigned char)*(s - 1)))
 							w--;
 						v = ++s;
 						break;
@@ -4918,7 +4918,7 @@ optget(char** argv, const char* oopts)
 											continue;
 										}
 									}
-									else if (w == y || SEP(*(w - 1)) || isupper(*(w - 1)) && islower(*w))
+									else if (w == y || SEP(*(w - 1)) || isupper((unsigned char)*(w - 1)) && islower((unsigned char)*w))
 										break;
 									for (q = s; *q && !SEP(*q) && *q != '|' && *q != '?' && *q != ']'; q++);
 									if (!SEP(*q))
@@ -4975,7 +4975,7 @@ optget(char** argv, const char* oopts)
 												continue;
 											}
 										}
-										else if (w == y || SEP(*(w - 1)) || isupper(*(w - 1)) && islower(*w))
+										else if (w == y || SEP(*(w - 1)) || isupper((unsigned char)*(w - 1)) && islower((unsigned char)*w))
 											break;
 										for (q = s; *q && !SEP(*q) && *q != '|' && *q != '?' && *q != ']'; q++);
 										if (!SEP(*q))
@@ -5098,8 +5098,8 @@ optget(char** argv, const char* oopts)
 						for (;;)
 						{
 							char	eqv;
-							if (isdigit(*f) && isdigit(*(f + 1)))
-								while (isdigit(*(f + 1)))
+							if (isdigit((unsigned char)*f) && isdigit((unsigned char)*(f + 1)))
+								while (isdigit((unsigned char)*(f + 1)))
 									f++;
 							else if (*(f + 1) == '=')
 								break;
@@ -5130,7 +5130,7 @@ optget(char** argv, const char* oopts)
 					m = 0;
 					if (!w)
 					{
-						if (isdigit(*f) && isdigit(*(f + 1)))
+						if (isdigit((unsigned char)*f) && isdigit((unsigned char)*(f + 1)))
 							k = -1;
 						if (c == k)
 							m = 1;
@@ -5287,7 +5287,7 @@ optget(char** argv, const char* oopts)
 				goto help;
 			}
 		}
-		if (w || !isdigit(c) || !numopt || !(pass->flags & OPT_numeric))
+		if (w || !isdigit((unsigned char)c) || !numopt || !(pass->flags & OPT_numeric))
 		{
 			pop(psp);
 			retval = opterror("", 0, version, id, catalog);
@@ -5436,7 +5436,7 @@ optget(char** argv, const char* oopts)
 		}
 		opt_info.offset = 0;
 	optarg:
-		if (*s == ':' && *(s = skip(s, 0, 0, 0, 1, 0, 1, version)) == GO && *(s = next(s + 1, version)) == '[' && isalnum(*(s + 1)))
+		if (*s == ':' && *(s = skip(s, 0, 0, 0, 1, 0, 1, version)) == GO && *(s = next(s + 1, version)) == '[' && isalnum((unsigned char)*(s + 1)))
 		{
 			x = 0;
 			if (opt_info.arg)
@@ -5446,7 +5446,7 @@ optget(char** argv, const char* oopts)
 					w = y = opt_info.arg;
 					f = s = next(s + 1, version);
 					k = *f;
-					if (k == *w && isalpha(k) && !*(w + 1))
+					if (k == *w && isalpha((unsigned char)k) && !*(w + 1))
 					{
 						x = k;
 						break;
@@ -5518,7 +5518,7 @@ optget(char** argv, const char* oopts)
 												continue;
 											}
 										}
-										else if (w == y || SEP(*(w - 1)) || isupper(*(w - 1)) && islower(*w))
+										else if (w == y || SEP(*(w - 1)) || isupper((unsigned char)*(w - 1)) && islower((unsigned char)*w))
 											break;
 										for (q = s; *q && !SEP(*q) && *q != '|' && *q != '?' && *q != ']'; q++);
 										if (!SEP(*q))
@@ -5751,10 +5751,10 @@ optstr(const char* str, const char* opts)
 			sfputc(mp, '-');
 			sfputc(mp, '-');
 		}
-		if (isdigit(*s) && (v = strtoi(s, &e, 10)) > 1 && isspace(*e) && --v <= (ssize_t)strlen(s) && (s[v] == 0 || s[v] == '\n'))
+		if (isdigit((unsigned char)*s) && (v = strtoi(s, &e, 10)) > 1 && isspace((unsigned char)*e) && --v <= (ssize_t)strlen(s) && (s[v] == 0 || s[v] == '\n'))
 		{
 			s += v;
-			while (isspace(*++e));
+			while (isspace((unsigned char)*++e));
 			sfwrite(mp, e, (size_t)(s - e));
 		}
 		else
