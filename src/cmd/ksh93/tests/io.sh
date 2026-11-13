@@ -649,9 +649,9 @@ if	[[ ! -s "$tmp/fdshared.txt" ]]
 then	err_exit "Open file descriptor does not survive shared-state command substitution"
 fi
 redirect 3>&-
-
 # ======
 # On unpatched ksh on macOS, 'read' used to block when reading from a FIFO and there was no final newline.
+# Same symptom on NetBSD, different cause: https://github.com/ksh93/ksh/issues/961
 if	mkfifo "$tmp/fifo_no_lf"
 then	trap 'sleep_pid=0; kill "$ksh_pid"; err_exit "'\''read'\'' hangs on EOF without final linefeed when reading from FIFO"' TERM
 	(sleep 1; kill "$$") &

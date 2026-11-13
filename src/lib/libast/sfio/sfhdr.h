@@ -122,14 +122,15 @@
 /* Private flags in the "bits" field */
 #define SFIO_MMAP	00000001	/* in memory mapping mode		*/
 #define SFIO_BOTH	00000002	/* both read/write			*/
-#define SFIO_HOLE	00000004	/* a hole of zero's was created		*/
+#define SFIO_HOLE	00000004	/* a hole of zeros was created		*/
 #define SFIO_NULL	00000010	/* stream is /dev/null			*/
 #define SFIO_SEQUENTIAL	00000020	/* sequential access			*/
-#define SFIO_JUSTSEEK	00000040	/* just did a sfseek			*/
+#define SFIO_JUSTSEEK	00000040	/* just did an sfseek			*/
 #define SFIO_PRIVATE	00000100	/* private stream to Sfio		*/
 #define SFIO_ENDING	00000200	/* no re-io on interrupts at closing	*/
 #define SFIO_WIDE	00000400	/* in wide mode - stdio only		*/
 #define SFIO_PUTR	00001000	/* in sfputr()				*/
+#define SFIO_PKRDEOF	00002000	/* sfpkrd() encountered EOF on read(2)	*/
 
 /* "bits" flags that must be cleared in sfclrlock */
 #define SFIO_TMPBITS	00170000
@@ -395,6 +396,7 @@ typedef void  (*Sfnotify_f)(Sfio_t*, int, void*);
 #define _Sfcleanup	(_Sfextern.sf_cleanup)
 #define _Sfexiting	(_Sfextern.sf_exiting)
 #define _Sfdone		(_Sfextern.sf_done)
+#define _Sfpkrd		(_Sfextern.sf_pkrd)
 typedef struct _sfextern_s
 {	ssize_t			sf_page;
 	struct _sfpool_s	sf_pool;
@@ -406,6 +408,7 @@ typedef struct _sfextern_s
 	void			(*sf_cleanup)(void);
 	int			sf_exiting;
 	int			sf_done;
+	Sfio_t*			sf_pkrd;
 } Sfextern_t;
 
 /* get the real value of a byte in a coded long or ulong */
@@ -616,8 +619,8 @@ typedef struct _sfextern_s
 #define _Sflpow10	(_Sftable.sf_ldbl_pow10)
 
 typedef struct _sftab_
-{	Sfdouble_t	sf_pos10[SFIO_MAXEXP10];	/* positive powers of 10	*/
-	Sfdouble_t	sf_neg10[SFIO_MAXEXP10];	/* negative powers of 10	*/
+{	Sfdouble_t	sf_pos10[SFIO_MAXEXP10];/* positive powers of 10	*/
+	Sfdouble_t	sf_neg10[SFIO_MAXEXP10];/* negative powers of 10	*/
 	uchar		sf_dec[200];		/* ASCII reps of values < 100	*/
 	char*		sf_digits;		/* digits for general bases	*/
 	int		(*sf_cvinitf)(void);	/* initialization function	*/
@@ -627,9 +630,9 @@ typedef struct _sftab_
 	float*		sf_flt_pow10;		/* float powers of 10		*/
 	double*		sf_dbl_pow10;		/* double powers of 10		*/
 	Sfdouble_t*	sf_ldbl_pow10;		/* Sfdouble_t powers of 10	*/
-	uchar		sf_cv36[SFIO_MAXCHAR+1];	/* conversion for base [2-36]	*/
-	uchar		sf_cv64[SFIO_MAXCHAR+1];	/* conversion for base [37-64]	*/
-	uchar		sf_type[SFIO_MAXCHAR+1];	/* conversion formats&types	*/
+	uchar		sf_cv36[SFIO_MAXCHAR+1];/* conversion for base [2-36]	*/
+	uchar		sf_cv64[SFIO_MAXCHAR+1];/* conversion for base [37-64]	*/
+	uchar		sf_type[SFIO_MAXCHAR+1];/* conversion formats&types	*/
 } Sftab_t;
 
 /* thread-safe macro/function to initialize _Sfcv* conversion tables */
