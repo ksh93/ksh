@@ -717,65 +717,6 @@ r true string\\r?\\n\$
 !
 done
 
-# Tests for 'test -t'. These were moved here from bracket.sh because they require a tty.
-cat >test_t.sh <<"EOF"
-integer n
-redirect {n}< /dev/tty
-[[ -t $n ]] && echo OK0 || echo "[[ -t n ]] fails when n > 9"
-# _____ Verify that [ -t 1 ] behaves sensibly inside a command substitution.
-#	This is the simple case that doesn't do any redirection of stdout within
-#	the command substitution. Thus the [ -t 1 ] test should be false.
-expect=$'begin\nend'
-actual=$(echo begin; [ -t 1 ] || test -t 1 || [[ -t 1 ]] && echo -t 1 is true; echo end)
-[[ $actual == "$expect" ]] && echo OK1 || echo 'test -t 1 in comsub fails' \
-	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
-actual=$(echo begin; [ -n X -a -t 1 ] || test -n X -a -t 1 || [[ -n X && -t 1 ]] && echo -t 1 is true; echo end)
-[[ $actual == "$expect" ]] && echo OK2 || echo 'test -t 1 in comsub fails (compound expression)' \
-	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
-# Same for the ancient compatibility hack for 'test -t' with no arguments.
-actual=$(echo begin; [ -t ] || test -t && echo -t is true; echo end)
-[[ $actual == "$expect" ]] && echo OK3 || echo 'test -t in comsub fails' \
-	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
-actual=$(echo begin; [ -n X -a -t ] || test -n X -a -t && echo -t is true; echo end)
-[[ $actual == "$expect" ]] && echo OK4 || echo 'test -t in comsub fails (compound expression)' \
-	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
-#	This is the more complex case that does redirect stdout within the command
-#	substitution to the actual tty. Thus the [ -t 1 ] test should be true.
-actual=$(echo begin; exec >/dev/tty; [ -t 1 ] && test -t 1 && [[ -t 1 ]]) \
-&& echo OK5 || echo 'test -t 1 in comsub with exec >/dev/tty fails'
-actual=$(echo begin; exec >/dev/tty; [ -n X -a -t 1 ] && test -n X -a -t 1 && [[ -n X && -t 1 ]]) \
-&& echo OK6 || echo 'test -t 1 in comsub with exec >/dev/tty fails (compound expression)'
-# Same for the ancient compatibility hack for 'test -t' with no arguments.
-actual=$(echo begin; exec >/dev/tty; [ -t ] && test -t) \
-&& echo OK7 || echo 'test -t in comsub with exec >/dev/tty fails'
-actual=$(echo begin; exec >/dev/tty; [ -n X -a -t ] && test -n X -a -t) \
-&& echo OK8 || echo 'test -t in comsub with exec >/dev/tty fails (compound expression)'
-# The broken ksh2020 fix for [ -t 1 ] (https://github.com/att/ast/pull/1083) caused
-# [ -t 1 ] to fail in non-comsub virtual subshells.
-( test -t 1 ) && echo OK9 || echo 'test -t 1 in virtual subshell fails'
-( test -t ) && echo OK10 || echo 'test -t in virtual subshell fails'
-got=$(test -t 1 >/dev/tty && echo ok) && [[ $got == ok ]] && echo OK11 || echo 'test -t 1 in comsub fails'
-EOF
-tst $LINENO <<"!"
-L test -t 1 inside command substitution
-p :test-1:
-w . ./test_t.sh
-r \. \./test_t\.sh\r?\n$
-u ^OK0\r?\n$
-r ^OK1\r?\n$
-r ^OK2\r?\n$
-r ^OK3\r?\n$
-r ^OK4\r?\n$
-r ^OK5\r?\n$
-r ^OK6\r?\n$
-r ^OK7\r?\n$
-r ^OK8\r?\n$
-r ^OK9\r?\n$
-r ^OK10\r?\n$
-r ^OK11\r?\n$
-p :test-2:
-!
-
 tst $LINENO <<"!"
 L race condition while launching external commands
 
@@ -1914,6 +1855,7 @@ r print OK\r?\n$
 r ^OK\r?\n$
 !
 
+# ======
 # Test pty as a replacement for previous usage of script(1) wrappers.
 # Its operands are assembled into a command line and executed with the
 # pseudoterminal as its standard input, output and error.
@@ -1921,14 +1863,36 @@ r ^OK\r?\n$
 # does not depend on whether the test suite was started from a terminal.
 got=$(pty "$SHELL" -c 'test -t 0 && test -t 1 && test -t 2 && echo terminal OK' </dev/null)
 e=$?
-got=${got%$'\r'}  # the \n in the $'\r\n' line-ending was already stripped by the command substitution
 exp=$'terminal OK'
 [[ e -eq 0 && $got == "$exp" ]] || err_exit "pty shell command: pseudoterminal not detected as terminal" \
 		"(expected status 0 and $(printf %q "$exp"), got status $e and $(printf %q "$got"))"
 pty "$SHELL" -c 'exit 7' </dev/null
 e=$?
 ((e == 7)) || err_exit "pty: shell exit 7: expected exit status 7, got $e"
+# The command's terminal turns each newline into CR LF. If pty's own standard
+# output is not a terminal, or is one that does not turn newlines into CR LF
+# itself, then pty must not pass those carriage returns on: the output should
+# have UNIX-style LF line endings, not DOS/Windows-style CR LF ones.
+got=$(pty printf 'line one\nline two\n' </dev/null)
+exp=$'line one\nline two'
+[[ $got == "$exp" ]] || err_exit "pty: carriage returns in line endings passed on" \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+# A carriage return that is not part of a line ending must be kept, also when
+# it is the last byte of the output.
+got=$(pty printf 'a\rb\n' </dev/null)
+exp=$'a\rb'
+[[ $got == "$exp" ]] || err_exit 'pty: carriage return not part of a line ending' \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(pty printf 'x\r' </dev/null)
+exp=$'x\r'
+[[ $got == "$exp" ]] || err_exit 'pty: trailing carriage return' \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$(pty printf 'x\r\n\r\r\n\r\n\nX' </dev/null)
+exp=$'x\r\n\r\r\n\r\n\nX'
+[[ $got == "$exp" ]] || err_exit 'pty: explicit \r and/or \n' \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
+# ======
 tst $LINENO <<"!"
 L shell signal message not redirected by a command's own stderr redirect
 

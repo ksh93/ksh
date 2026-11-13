@@ -28,15 +28,12 @@
 
 # setting TMOUT in a virtual subshell removes its special meaning
 # https://github.com/ksh93/ksh/issues/782
-(
-	if	! { true </dev/tty; } 2>/dev/null
-	then	warning "no tty -- TMOUT test skipped"
-		exit 0
-	fi
+# Use our own pty(1) to get a pseudo-tty in case the system doesn't have a tty configured
+pty "$SHELL" -c '
 	typeset -F s=SECONDS
-	"$SHELL" -c 'TMOUT=2; (TMOUT=3); TMOUT=1; read v' </dev/tty
+	"$SHELL" -c "TMOUT=2; (TMOUT=3); TMOUT=1; read v" </dev/tty
 	((SECONDS < s + 2))
-) &
+' &
 parallel_1=$!
 
 # TMOUT applies to 'read' from a non-terminal
