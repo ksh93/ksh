@@ -2254,7 +2254,7 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 			if(iop)
 			{
 				sfclose(iop);
-				dup2(savein,0);
+				ast_dup2(savein,0);
 				sh_close(savein);
 				sh.cur_line = NULL;
 				fifo_cleanup();

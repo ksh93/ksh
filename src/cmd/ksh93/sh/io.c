@@ -1235,9 +1235,9 @@ static void pat_handoff(Sfio_t *sp)
 	if(pv[0]!=fd)
 	{
 #if _lib_dup3 && O_cloexec
-		dup3(pv[0], fd, (sh.fdstatus[fd] & IOCLEX) ? O_cloexec : 0);
+		ast_dup3(pv[0], fd, (sh.fdstatus[fd] & IOCLEX) ? O_cloexec : 0);
 #else
-		dup2(pv[0], fd);
+		ast_dup2(pv[0], fd);
 		if(sh.fdstatus[fd] & IOCLEX)
 		{
 			/* dup2 clears the close-on-exec flag; restore it */
@@ -2349,7 +2349,7 @@ void	sh_iorestore_stderr(int last)
 			 * exit status is known, so leave this entry for sh_iorestore().
 			 * Accept the inevitable cost of restoring the FD a second time.
 			 */
-			dup2(savefd, 2);		/* avoid sh_dup2 and sh_close here; the Sfio stream must survive for now */
+			ast_dup2(savefd, 2);		/* avoid sh_dup2 and sh_close here; the Sfio stream must survive for now */
 			return;
 		}
 		/* do a full restore of FD 2 */
@@ -3126,7 +3126,7 @@ int sh_dup(int old)
 #undef dup2
 int sh_dup2(int old, int new)
 {
-	int fd = dup2(old,new);
+	int fd = ast_dup2(old,new);
 	if(fd==new)
 	{
 		if(sh.fdstatus[new] == IOCLOSE)
@@ -3142,7 +3142,7 @@ int sh_dup2(int old, int new)
 #undef dup3
 int sh_dup3(int old, int new, int flags)
 {
-	int fd = dup3(old,new,flags);
+	int fd = ast_dup3(old,new,flags);
 	if(fd==new)
 	{
 		if(sh.fdstatus[new] == IOCLOSE)
@@ -3164,7 +3164,7 @@ int sh_fcntl(int fd, int op, ...)
 	int newfd, arg;
 	va_list		ap;
 	va_start(ap, op);
-	arg =  va_arg(ap, int) ;
+	arg =  va_arg(ap, int);
 	va_end(ap);
 	newfd = fcntl(fd,op,arg);
 	if(newfd>=0) switch(op)

@@ -342,7 +342,7 @@ void sh_comsubpipechild(int pv[2])
 {
 	sh_close(pv[0]);
 	sh_close(1);  /* close existing stdout to free the Sfio stream */
-	if(dup2(pv[1],1) < 0)
+	if(ast_dup2(pv[1],1) < 0)
 	{
 		errormsg(SH_DICT,ERROR_SYSTEM|ERROR_PANIC,e_pipestdout);
 		UNREACHABLE();
@@ -1344,7 +1344,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 		/* check if standard output was preserved */
 		if(sp->tmpfd>=0)
 		{
-			if(dup2(sp->tmpfd,1) < 0)
+			if(ast_dup2(sp->tmpfd,1) < 0)
 			{
 				saveerrno = errno;
 				fatalerror = 1;

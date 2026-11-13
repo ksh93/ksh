@@ -464,9 +464,9 @@ extern Sfdouble_t	sh_strnum(const char*, char**, int);
 extern int		sh_access(const char*,int);
 extern int 		sh_close(int);
 extern int 		sh_close_batch(int,close_mode_t);
-extern int             sh_dup2(int,int);
+extern int		sh_dup2(int,int);
 #if _lib_dup3
-extern int             sh_dup3(int,int,int);
+extern int		sh_dup3(int,int,int);
 #endif
 extern int		sh_chdir(const char*);
 extern int 		sh_dup(int);

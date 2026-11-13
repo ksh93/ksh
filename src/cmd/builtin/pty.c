@@ -1520,7 +1520,7 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 			error(ERROR_system(1), "%s: cannot redirect messages", messages);
 			UNREACHABLE();
 		}
-		dup2(fd, 2);
+		ast_dup2(fd, 2);
 		if (drop)
 			ast_close(fd);
 	}

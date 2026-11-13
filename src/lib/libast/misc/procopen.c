@@ -175,7 +175,7 @@ modify(Proc_t* proc, int forked, int op, long arg1, long arg2)
 			{
 				if (arg2 != PROC_ARG_NULL)
 				{
-					if (dup2((int)arg1, (int)arg2) < 0)
+					if (ast_dup2((int)arg1, (int)arg2) < 0)
 						return -1;
 				}
 				if (op & PROC_FD_CHILD)
@@ -199,7 +199,7 @@ modify(Proc_t* proc, int forked, int op, long arg1, long arg2)
 				return -1;
 #endif /* TIOCSCTTY */
 			for (i = 0; i <= 2; i++)
-				if (arg1 != i && (int)arg2 != i && dup2((int)arg1, i) < 0)
+				if (arg1 != i && (int)arg2 != i && ast_dup2((int)arg1, i) < 0)
 					return -1;
 			if (arg1 > 2)
 				ast_close_batch((int)arg1, AST_QUEUE);
@@ -261,7 +261,7 @@ modify(Proc_t* proc, int forked, int op, long arg1, long arg2)
 #if F_dupfd_cloexec == F_DUPFD
 					fcntl(m->save, F_SETFD, FD_CLOEXEC);
 #endif /* F_dupfd_cloexec == F_DUPFD */
-					if (dup2(arg1, arg2) < 0)
+					if (ast_dup2(arg1, arg2) < 0)
 						return -1;
 					if (op & PROC_FD_CHILD)
 						ast_close(arg1);
@@ -342,10 +342,10 @@ restore(Proc_t* proc)
 				if (!(m->op & PROC_FD_PARENT))
 				{
 					if (m->op & PROC_FD_CHILD)
-						dup2(m->arg.fd.child.fd, m->arg.fd.parent.fd);
+						ast_dup2(m->arg.fd.child.fd, m->arg.fd.parent.fd);
 					fcntl(m->arg.fd.parent.fd, F_SETFD, m->arg.fd.parent.flag);
 				}
-				dup2(m->save, m->arg.fd.child.fd);
+				ast_dup2(m->save, m->arg.fd.child.fd);
 				ast_close(m->save);
 				if (m->arg.fd.child.flag)
 					fcntl(m->arg.fd.child.fd, F_SETFD, FD_CLOEXEC);
