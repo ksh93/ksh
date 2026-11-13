@@ -2246,7 +2246,16 @@ grp(Cenv_t* env, int parno)
 		break;
 	case '%':
 	case T_PERCENT:
-		e = node(env, REX_NEST, 0, 0, (UCHAR_MAX + 1) * sizeof(unsigned short));
+		e = node(env, REX_NEST, 0, 0, (UCHAR_MAX + 2) * sizeof(unsigned short));
+
+		/*
+		 * The type map is allocated after the Rex_t node (like the
+		 * re.data area that node() sets up). It has one entry for
+		 * each byte value, plus one at index UCHAR_MAX+1 for the
+		 * REX_NEST_terminator flag.
+		 */
+
+		e->re.nest.type = (unsigned short*)(e + 1);
 		e->re.nest.primary = isalnum(*env->cursor) ? -1 : *env->cursor;
 		n = 1;
 		for (;;)
