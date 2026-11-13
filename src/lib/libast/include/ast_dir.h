@@ -59,7 +59,7 @@
 #define D_RECLEN(d)		D_RECSIZ(d,D_NAMLEN(d))
 #endif
 
-#define D_RECSIZ(d,n)		(sizeof(*(d))-sizeof((d)->d_name)+((n)+sizeof(char*))&~(sizeof(char*)-1))
+#define D_RECSIZ(d,n)		((size_t)((char*)&(d)->d_name-(char*)(d))+((n)+sizeof(char*))&~(sizeof(char*)-1))
 
 #if _dir_ok && _mem_d_type_dirent && defined(DT_UNKNOWN) && defined(DT_REG) && defined(DT_DIR) && defined(DT_LNK)
 #define D_TYPE(d)		((d)->d_type)

@@ -36,7 +36,7 @@
 	size_t		total;		\
 	size_t		curline;	\
 	uintmax_t	lineno;		\
-	Context_line_t	line[1];
+	Context_line_t	line[];
 
 #include "context.h"
 
@@ -45,7 +45,7 @@ context_open(Sfio_t* ip, size_t before, size_t after, Context_list_f listf, void
 {
 	Context_t*	cp;
 
-	if (!(cp = newof(0, Context_t, 1, (before + after) * sizeof(Context_line_t))))
+	if (!(cp = newof(0, Context_t, 1, (before + after + 1) * sizeof(Context_line_t))))
 		return NULL;
 	cp->ip = ip;
 	cp->before = before;

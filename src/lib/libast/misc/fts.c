@@ -85,7 +85,7 @@ typedef int (*Stat_f)(const char*, struct stat*);
 	unsigned char	must;			/* must stat		*/ \
 	unsigned char	type;			/* DT_* type		*/ \
 	unsigned char	symlink;		/* originally a symlink	*/ \
-	char		name[sizeof(int)];	/* fts_name data	*/
+	char		name[];			/* fts_name data	*/
 
 #include <fts.h>
 
@@ -176,7 +176,7 @@ node(FTS* fts, FTSENT* parent, char* name, size_t namelen)
 	}
 	else
 	{
-		n = (namelen < MINNAME ? MINNAME : namelen + 1) - sizeof(int);
+		n = namelen < MINNAME ? MINNAME : namelen + 1;
 		if (!(f = newof(0, FTSENT, 1, n)))
 		{
 			fts->fts_errno = errno;
@@ -728,7 +728,13 @@ fts_open(char* const* pathnames, int flags, int (*comparf)(FTSENT* const*, FTSEN
 {
 	FTS*	fts;
 
-	if (!(fts = newof(0, FTS, 1, sizeof(FTSENT))))
+	/*
+	 * the allocation includes a FTSENT header, which lives
+	 * directly after the FTS struct, plus MINNAME bytes for its
+	 * name (the same minimum that node() allocates for a node)
+	 */
+
+	if (!(fts = newof(0, FTS, 1, sizeof(FTSENT) + MINNAME)))
 		return NULL;
 	fts->flags = flags;
 	fts->cd = (flags & FTS_NOCHDIR) ? 1 : -1;

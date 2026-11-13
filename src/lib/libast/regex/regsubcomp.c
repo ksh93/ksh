@@ -126,7 +126,7 @@ regsubcomp(regex_t* p, const char* s, const regflags_t* map, int minmatch, regfl
 		regfree(p);
 		return fatal(disc, REG_BADPAT, NULL);
 	}
-	if (!(sub = (regsub_t*)alloc(p->env->disc, NULL, sizeof(regsub_t) + strlen(s))) || !(sub->re_ops = (regsubop_t*)alloc(p->env->disc, NULL, (nops = 8) * sizeof(regsubop_t))))
+	if (!(sub = (regsub_t*)alloc(p->env->disc, NULL, sizeof(regsub_t) + strlen(s) + 1)) || !(sub->re_ops = (regsubop_t*)alloc(p->env->disc, NULL, (nops = 8) * sizeof(regsubop_t))))
 	{
 		if (sub)
 			alloc(p->env->disc, sub, 0);
