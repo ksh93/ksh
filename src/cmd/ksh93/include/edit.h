@@ -26,15 +26,12 @@
  *
  */
 
-#define SEARCHSIZE	80
-
 #include	"FEATURE/cmds"
 #include	"FEATURE/locale"
 #include	"terminal.h"
 #include	"national.h"
 
 #define STRIP		0377
-#define LOOKAHEAD	80
 
 #if SHOPT_MULTIBYTE
     typedef wchar_t genchar;
@@ -46,7 +43,8 @@
 
 #define TABSIZE	8
 #define PRSIZE	256
-#define MAXLINE	1024		/* longest edit line permitted */
+#define MAXLINE	8192		/* longest edit line permitted (in genchars) */
+#define MAXEXTLINE	(MAXLINE*CHARSIZE) /* longest external (multibyte) form of an edit line */
 
 typedef struct _edit_pos
 {
@@ -89,9 +87,9 @@ typedef struct edit
 	genchar	*e_inbuf;	/* pointer to input buffer */
 	char	*e_prompt;	/* pointer to trimmed final line of PS1 prompt, used when redrawing command line */
 	genchar	*e_killbuf;	/* pointer to delete buffer */
-	char	e_search[SEARCHSIZE];	/* search string */
+	char	e_search[MAXEXTLINE+1]; /* search string (external form) */
 	genchar	*e_physbuf;	/* temporary workspace buffer */
-	int	e_lbuf[LOOKAHEAD];/* pointer to look-ahead buffer */
+	int	e_lbuf[MAXLINE];	/* look-ahead buffer */
 	int	e_fd;		/* file descriptor */
 	int	e_ttyspeed;	/* line speed, also indicates tty parameters are valid */
 	int	e_tabcount;
@@ -124,8 +122,6 @@ typedef struct edit
 	Namval_t *e_default;	/* variable containing default value */
 } Edit_t;
 
-#undef MAXWINDOW
-#define MAXWINDOW	300	/* maximum width window */
 #define FAST	2
 #define SLOW	1
 #define ESC	cntl('[')

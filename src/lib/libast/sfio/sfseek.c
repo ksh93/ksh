@@ -198,6 +198,7 @@ Sfoff_t sfseek(Sfio_t*	f,	/* seek to a new location in this stream */
 
 	if(f->endb > f->next)
 	{	/* reduce wastage in future buffer fillings */
+		f->iosz = (f->next - f->data) + (f->endb - f->next)/2;
 		f->iosz = ((f->iosz + f->blksz-1)/f->blksz)*f->blksz;
 	}
 	if(f->iosz >= (size_t)f->size)

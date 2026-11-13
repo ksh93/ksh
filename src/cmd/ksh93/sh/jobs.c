@@ -912,7 +912,9 @@ static struct process *job_bystring(char *ajob)
 	if(isdigit(c))
 	{
 		int oerrno = errno;
-		int jid = strtoi(ajob, NULL, 10);
+		int jid;
+		errno = 0;
+		jid = strtoi(ajob, NULL, 10);
 		if(errno==ERANGE)
 		{
 			errno = oerrno;

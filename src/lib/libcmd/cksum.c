@@ -273,6 +273,7 @@ verify(State_t* state, char* s, char* check, Sfio_t* rp)
 			file = t;
 		*file++ = 0;
 		attr = 0;
+		errno = 0;
 		ull = strtoull(file, &e, 8);
 		mode = (mode_t)ull;
 		if (mode != ull)

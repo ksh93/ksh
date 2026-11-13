@@ -23,7 +23,7 @@
  */
 
 static const char usage[] =
-"[-?\n@(#)$Id: stty (ksh 93u+m) 2026-10-22 $\n]"
+"[-?\n@(#)$Id: stty (ksh 93u+m) 2026-11-11 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?stty - set or get terminal modes]"
 "[+DESCRIPTION?\bstty\b sets certain terminal I/O modes for the device "
@@ -419,17 +419,17 @@ static void tokenize_arg(termios_flag_u *t, char **arg, const char *full_args, t
 	{
 	    case TCFLAG_T:
 		t->tc = (tcflag_t)result;
-		if(errno!=ERANGE && t->tc != result)
+		if(t->tc != result)
 			errno = ERANGE;
 		break;
 	    case CC_T:
 		t->cc = (cc_t)result;
-		if(errno!=ERANGE && t->cc != result)
+		if(t->cc != result)
 			errno = ERANGE;
 		break;
 	    case SPEED_T:
 		t->s = (speed_t)result;
-		if(errno!=ERANGE && t->s != result)
+		if(t->s != result)
 			errno = ERANGE;
 		break;
 	}
@@ -1091,7 +1091,7 @@ b_stty(int argc, char** argv, Shbltin_t* context)
 		UNREACHABLE();
 	}
 	if (flags & T_FLAG)
-		sfprintf(sfstdout, "%d\n", tcgetpgrp(0));
+		sfprintf(sfstdout, "%d\n", tcgetpgrp(fd));
 	else if (*argv)
 	{
 		if (!argv[1] && **argv == ':')
@@ -1100,7 +1100,7 @@ b_stty(int argc, char** argv, Shbltin_t* context)
 			gin(*argv, &tty, 0);
 		else
 			set(argv, &tty);
-		if (tcsetattr(0, TCSANOW, &tty) < 0)
+		if (tcsetattr(fd, TCSANOW, &tty) < 0)
 		{
 			error(ERROR_system(1), "cannot set tty");
 			UNREACHABLE();

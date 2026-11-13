@@ -250,8 +250,8 @@ int ed_window(void)
 	cols = sh.columns - 1;
 	if(cols < MINWINDOW)
 		cols = MINWINDOW;
-	else if(cols > MAXWINDOW)
-		cols = MAXWINDOW;
+	else if(cols > MAXLINE)
+		cols = MAXLINE;
 	return cols;
 }
 
@@ -548,8 +548,8 @@ void	ed_setup(Edit_t *ep, int fd, int reedit)
 	if(ep->e_default && (pp = nv_getval(ep->e_default)))
 	{
 		n = strlen(pp);
-		if(n > LOOKAHEAD)
-			n = LOOKAHEAD;
+		if(n > MAXLINE)
+			n = MAXLINE;
 		ep->e_lookahead = (int)n;
 		while(n-- > 0)
 			ep->e_lbuf[n] = *pp++;
@@ -732,6 +732,11 @@ done:
 static int putstack(Edit_t *ep,char string[], int nbyte, int type)
 {
 	int c;
+	/* never overflow the look-ahead buffer (e.g. when a KEYBD trap expands the input) */
+	if(nbyte > MAXLINE - ep->e_lookahead)
+		nbyte = MAXLINE - ep->e_lookahead;
+	if(nbyte <= 0)
+		return 1;
 #if SHOPT_MULTIBYTE
 	char *endp, *p=string;
 	ssize_t size;
@@ -829,13 +834,13 @@ static int putstack(Edit_t *ep,char string[], int nbyte, int type)
 int ed_getchar(Edit_t *ep,int mode)
 {
 	int n = 0, c;
-	char *readin = fmtbuf(LOOKAHEAD + mbmax());
+	char *readin = fmtbuf(MAXLINE + mbmax());
 	if(!ep->e_lookahead)
 	{
 		ed_flush(ep);
 		ep->e_inmacro = 0;
 		*ep->e_vi_insert = (mode==-2);
-		if((n=ed_read(ep,ep->e_fd,readin,-LOOKAHEAD,0)) > 0)
+		if((n=ed_read(ep,ep->e_fd,readin,-MAXLINE,0)) > 0)
 			n = putstack(ep,readin,n,1);
 		*ep->e_vi_insert = 0;
 	}
@@ -874,7 +879,7 @@ int ed_getchar(Edit_t *ep,int mode)
 							break;
 					}
 				}
-				if(n=keytrap(ep,readin,n,LOOKAHEAD-n,mode))
+				if(n=keytrap(ep,readin,n,MAXLINE-n,mode))
 				{
 					putstack(ep,readin,n,0);
 					c = ep->e_lbuf[--ep->e_lookahead];
@@ -900,7 +905,7 @@ int ed_getchar(Edit_t *ep,int mode)
 #if SHOPT_ESH || SHOPT_VSH
 void ed_ungetchar(Edit_t *ep,int c)
 {
-	if (ep->e_lookahead < LOOKAHEAD)
+	if (ep->e_lookahead < MAXLINE)
 		ep->e_lbuf[ep->e_lookahead++] = c;
 	return;
 }
@@ -1205,11 +1210,11 @@ int	ed_external(const genchar *src, char *dest)
 {
 	genchar wc;
 	char *dp = dest;
-	char *dpmax = dp+sizeof(genchar)*MAXLINE-2;
+	char *dpmax = dp+MAXEXTLINE-2;
 	if((char*)src == dp)
 	{
 		int c;
-		char buffer[MAXLINE*sizeof(genchar)] = "";
+		char buffer[MAXEXTLINE] = "";
 		c = ed_external(src,buffer);
 
 #if _lib_wcscpy
@@ -1308,7 +1313,7 @@ static int keytrap(Edit_t *ep,char *inbuff,int insize, int bufsize, int mode)
 	int savexit;
 	Lex_t *lexp = (Lex_t*)sh.lex_context, savelex;
 #if SHOPT_MULTIBYTE
-	char buff[MAXLINE];
+	char buff[MAXEXTLINE];
 	ed_external(ep->e_inbuf,cp=buff);
 #else
 	cp = ep->e_inbuf;

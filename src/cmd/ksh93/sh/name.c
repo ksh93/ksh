@@ -256,7 +256,8 @@ static struct argnod *shift_words(struct argnod *arg, ssize_t off)
 			/* plain value: subscript is the "[n]=" prefix of the word */
 			char *ep, *val;
 			size_t len;
-			if(*arg->argval!='[' || strtoimax(arg->argval+1,&ep,10)!=n || *ep!=']' || ep[1]!='=')
+			char base = 10;
+			if(*arg->argval!='[' || strtonll(arg->argval+1,&ep,&base,-1)!=n || *ep!=']' || ep[1]!='=')
 				return NULL;
 			sfprintf(sh.stk,"[%jd]=%s",(intmax_t)(off+n),ep+2);
 			val = stkfreeze(sh.stk,1);
@@ -1229,14 +1230,17 @@ Namval_t *nv_create(const char *name,  Dt_t *root, nvflag_t flags, Namfun_t *dp)
 					{
 						ptrdiff_t m = cp-sp;
 						size_t len;
+						char *subesc;
 						sub = m?nv_getsub(np):NULL;
-						if(!sub)
+						if(sub)
+							subesc = nv_subesc(sub);
+						else
 						{
 							if(m && !(nvflags&NV_ADD))
 								return NULL;
-							sub = "0";
+							subesc = sub = "0";
 						}
-						len = strlen(sub)+2;
+						len = strlen(subesc)+2;
 						if(!copy)
 						{
 							copy = cp-name;
@@ -1247,7 +1251,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, nvflag_t flags, Namfun_t *dp)
 						}
 						if((ssize_t)len <= m)
 						{
-							memcpy(sp+1,sub,len-2);
+							memcpy(sp+1,subesc,len-2);
 							sp[len-1] = ']';
 							if((ssize_t)len < m)
 							{
@@ -1263,7 +1267,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, nvflag_t flags, Namfun_t *dp)
 							name = stack_extend(name, cp-1, r);
 							sp = (char*)name + m;
 							*sp = '[';
-							memcpy(sp+1,sub,len-2);
+							memcpy(sp+1,subesc,len-2);
 							sp[len-1] = ']';
 							cp = sp+len;
 						}
@@ -3596,6 +3600,55 @@ void nv_unref(Namval_t *np)
 	nv_optimize_clear(nq);
 }
 
+/*
+ * Backslash-escape any '[', ']' and '\\' characters in <sub>. The result
+ * returned is not freeable. If escaping was applied, nv_subesc returns a
+ * copy stored in a short-lived buffer, otherwise it returns the original.
+ *
+ * This is intended for associative array subscripts, which are arbitrary
+ * strings, so '[' and ']' are not special within them and escaping is the
+ * only way to unambiguously tell these apart from the subscript delimiters
+ * and from multidimensional subscripts or components of compound variables.
+ */
+char *nv_subesc(const char *sub)
+{
+	size_t n = 1;
+	const char *cp;
+	char *sp, *xp;
+	int esc = 0;
+	/* count length and determine the need to escape at all */
+	for(cp = sub; *cp; cp++) switch(*cp)
+	{
+		case '[':
+		case ']':
+		case '\\':
+			esc = 1;
+			n++;
+			/* FALLTHRUOGH */
+		default:
+			n++;
+	}
+	if(!esc)
+		return (char*)sub;
+	/* store an escaped copy in a temp buffer */
+	xp = sp = fmtbuf(n);
+	for(cp = sub; *cp; cp++) switch(*cp)
+	{
+		case '[':
+		case ']':
+		case '\\':
+			*xp++ = '\\';
+			/* FALLTHROUGH */
+		default:
+			*xp++ = *cp;
+	}
+	*xp = 0;
+	return sp;
+}
+
+/*
+ * Return the full canonical name of the variable <np>.
+ */
 char *nv_name(Namval_t *np)
 {
 	Namval_t *table;
@@ -3628,7 +3681,7 @@ char *nv_name(Namval_t *np)
 		if(np==sh.last_table)
 			sh.last_table = NULL;
 		if(nv_isarray(mp))
-			sfprintf(sh.strbuf,"%s[%s]",nv_name(mp),np->nvname);
+			sfprintf(sh.strbuf,"%s[%s]",nv_name(mp),nv_subesc(np->nvname));
 		else
 			sfprintf(sh.strbuf,"%s.%s",nv_name(mp),np->nvname);
 		sh.last_table = nq;

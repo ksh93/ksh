@@ -81,35 +81,28 @@
 
 static inline int xaccess(const char *path, int mode)
 {
-	static size_t pgsz;
-	struct statvfs vfs;
-	int ret;
+	static size_t	pgsz;
+	struct statvfs	vfs;
+	int		ret;
 
 	if (!pgsz)
 		pgsz = astconf_ulong(CONF_PAGESIZE);
-
 	if (!path || !*path)
 	{
 		errno = EFAULT;
-		goto err;
+		return -1;
 	}
-
 	do
 		ret = statvfs(path, &vfs);
 	while (ret < 0 && errno == EINTR);
-
 	if (ret < 0)
-		goto err;
-
+		return -1;
 	if (vfs.f_frsize*vfs.f_bavail < pgsz)
 	{
 		errno = ENOSPC;
-		goto err;
+		return -1;
 	}
-
 	return eaccess(path, mode);
-err:
-	return -1;
 }
 
 #define VALID(d)	(*(d)&&!xaccess(d,W_OK|X_OK))

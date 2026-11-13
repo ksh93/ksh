@@ -105,7 +105,7 @@ histfile=$tmp/hist_trim/sh_history
 	done
 ) >/dev/null 2>&1				# older ksh misdirects 'print -s' to stdout or stderr here
 size1=$(wc -c <$histfile)
-touch -d '2020-07-12T01:43:13' "$histfile"	# make the history file 'old' to force a physical trim of the file
+touch -t 202007120143.13 "$histfile"		# make the history file 'old' to force a physical trim of the file
 chmod a-w hist_trim				# verify that trimming works with a non-writable parent directory
 # only the last 50 entries should survive; 'print -s' triggers the trim
 (
@@ -205,6 +205,75 @@ else
 fi
 unset total present s
 HISTFILE=/dev/null
+
+# A command that is entered over multiple lines must not be written to the
+# history file before it is complete: a command that another session writes in
+# the meantime would end up in the middle of it, leaving an unterminated
+# command behind that is cancelled or merged on the next scan, so both commands
+# are lost. The complete command must be stored as one unit. The history index
+# of the session that entered it must also include the commands written by
+# other sessions, or that session cannot find its own command with fc or by
+# scrolling back with the arrow keys.
+# https://github.com/ksh93/ksh/issues/864
+typeset -i i
+long=$(awk -v ORS= 'BEGIN { for (i = 0; i < 4200; i++) print "x"; }')
+for variant in small large
+do	histfile=$tmp/hist_multiline/$variant/history
+	mkdir -p "${histfile%/*}" || exit
+	: >$histfile
+	fifo=$histfile.fifo
+	mkfifo -m 600 "$fifo" || { warning "mkfifo failed; skipping concurrent multiline commands test"; break; }
+	HISTFILE=$histfile "$SHELL" -i <$fifo >$histfile.out 2>&1 &
+	hpid=$!
+	exec 9>$fifo		# keep the fifo open: the shell must not see EOF yet
+	# Wait until the session has started and written to its history file.
+	print -u9 "print WARMUP"
+	for ((i = 0; i < 100; i++))
+	do	grep -q WARMUP "$histfile" && break
+		sleep .01
+	done
+	if	[[ $variant == large ]]
+	then	marker="LONGDONE # $long"			# larger than HIST_BSIZE
+		print -u9 "if true; then print $marker"
+		# Only a command larger than HIST_BSIZE was wrongly written to the
+		# file before it was finished; wait for that first so that the
+		# corruption is reproduced, otherwise this loop just expires.
+		size=$(wc -c <$histfile)
+		for ((i = 0; i < 100; i++))
+		do	(( $(wc -c <$histfile) > size )) && break
+			sleep .01
+		done
+	else	marker="then print SMALLDONE"			# well within HIST_BSIZE
+		print -u9 "if true"
+		print -u9 "$marker"
+	fi
+	(HISTFILE=$histfile; print -s other_session)		# concurrent write
+	print -u9 fi
+	print -u9 'fc -ln 1'
+	print -u9 exit
+	exec 9>&-
+	wait "$hpid"
+	# The session that entered the command must have both in its own history.
+	got=$(<$histfile.out)
+	[[ $got == *other_session* ]] \
+		|| err_exit "multiline history command ($variant): concurrent session's command lost" \
+		"(fc output: $(printf %q "$got"))"
+	[[ $got == *"$marker"* ]] || err_exit "multiline history command ($variant):" \
+		"incomplete or lost after a concurrent write" \
+		"(fc output: $(printf %q "$got" | cut -c 1-200))"
+	# A new session must find both commands in the history file as well.
+	got=$(
+		HISTFILE=$histfile
+		fc -ln 1 2>&1
+	)
+	[[ $got == *other_session* ]] || err_exit "multiline history command ($variant):" \
+		"concurrent session's command not in history file" \
+		"(fc output: $(printf %q "$got"))"
+	[[ $got == *"$marker"* ]] || err_exit "multiline history command ($variant):" \
+		"missing from history file" \
+		"(fc output: $(printf %q "$got"))"
+done
+unset i long variant histfile fifo hpid got marker size
 
 # ======
 exit $((Errors<125?Errors:125))

@@ -72,6 +72,7 @@ struid(const char* name)
 		id = (int)pw->pw_uid;
 	else
 	{
+		errno = 0;
 		id = strtoi(name, &e, 0);
 #if _WINIX
 		if (errno == ERANGE)

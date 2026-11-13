@@ -135,6 +135,7 @@ getaddrinfo(const char *restrict node,
 		return EAI_SYSTEM;
 	}
 	ip_addr = (unsigned long)((struct in_addr*)hp->h_addr)->s_addr;
+	errno = 0;
 	if ((n = strtol(service, &prot, 10)) > 0 && n <= USHRT_MAX && !*prot && errno != ERANGE)
 		ip_port = htons((unsigned short)n);
 	else
@@ -317,6 +318,9 @@ struct fdsave
 	int	orig_fd;	/* original file descriptor */
 	int	save_fd;	/* saved file descriptor */
 	int	subshell;	/* saved for subshell */
+#if SHOPT_SPAWN
+	char	restored;	/* set if the file descriptor was already restored */
+#endif  /* SHOPT_SPAWN */
 	char	*tname;		/* name used with >; */
 };
 
@@ -838,6 +842,7 @@ int sh_open(const char *path, int flags, ...)
 			{
 				if(flags==O_NONBLOCK)
 					return 1;
+				errno = 0;
 				fd = strtoi(path+8, &e, 10);
 				if (*e || errno==ERANGE)
 					fd = -1;
@@ -1070,6 +1075,15 @@ static size_t pat_line(const regex_t* rp, const char *buff, size_t n)
  * would keep writing that copy to a temporary file until the disk is full.
  */
 #define PAT_SHADOW_MAX	(256*1024)
+
+/*
+ * How far back the start of a matching record can be restored by seeking. A seek
+ * that the stream's buffer can serve is cheap and leaves the stream position
+ * correct; a longer one has to be served by the sfdcseekable() discipline, whose
+ * copy makes the reported position unreliable afterwards. A record that starts
+ * further back is passed on to a command separately instead (see pat_save()).
+ */
+#define PAT_RESTORE_MAX	(IOBSIZE/2)
 
 /*
  * Write <n> bytes from <buff> to file descriptor <fd>, ignoring interrupts.
@@ -1319,11 +1333,12 @@ static int pat_scan(Sfio_t *sp, regex_t *rp, unsigned int flags)
 			consumed = 0;
 		}
 		/*
-		 * Read a block at a time, but do not wait for a buffer to fill up (no negative <s>).
-		 * A terminal delivers input one line at a time, so waiting for a full buffer would
-		 * keep the search from matching an interactively typed input line.
+		 * Read a block at a time. On a terminal, do not wait for a block to fill up (no
+		 * negative <s>): a terminal delivers input one line at a time, so waiting for a
+		 * full buffer would keep the search from matching an interactively typed line.
+		 * In all other cases, fill the block.
 		 */
-		if(!(cp = sfreserve(sp, s, SFIO_LOCKR)) && !(cp = sfreserve(sp, SFIO_UNBOUND, SFIO_LOCKR)))
+		if(!(cp = sfreserve(sp, tty ? s : -s, SFIO_LOCKR)) && !(cp = sfreserve(sp, SFIO_UNBOUND, SFIO_LOCKR)))
 			break;
 		n = (size_t)sfvalue(sp);
 		for(pos = 0; pos < n; pos += part)
@@ -1354,10 +1369,19 @@ static int pat_scan(Sfio_t *sp, regex_t *rp, unsigned int flags)
 		}
 		if(matched)
 		{
-			/* save the start of the record that was read before this buffer (see pat_save()) */
-			pat_save(line, len - part);
+			size_t	head = len - part;
+			int	restored = 0;
 			/* release the reserve, consuming everything before the match */
 			sfread(sp, cp, pos);
+			/*
+			 * If the start of the record was read before this block, it has already been
+			 * consumed from the stream. Seek back to it, so that the whole record is available
+			 * to whatever reads the stream next. If it cannot be restored, then the pat_save()
+			 * call keeps the start of the record aside for pat_handoff() to pass on.
+			 */
+			if(head && !tty && head <= PAT_RESTORE_MAX)
+				restored = sfseek(sp, -(Sfoff_t)head, SEEK_CUR) >= 0;
+			pat_save(line, restored ? 0 : head);
 			break;
 		}
 		/* consume the data before the match, so that the reader gets it */
@@ -1699,6 +1723,7 @@ int	sh_redirect(struct ionod *iop, int flag)
 				if((fd=fname[0])>='0' && fd<='9')
 				{
 					char *number = fname;
+					errno = 0;
 					dupfd = strtoi(fname,&number,10);
 					if(*number=='-')
 					{
@@ -2169,6 +2194,9 @@ void sh_iosave(int origfd, int oldtop, char *name)
 	filemap[sh.topfd].tname = name;
 	filemap[sh.topfd].subshell = (flag&IOSUBSHELL);
 	filemap[sh.topfd].orig_fd = origfd;
+#if SHOPT_SPAWN
+	filemap[sh.topfd].restored = 0;
+#endif  /* SHOPT_SPAWN */
 	filemap[sh.topfd++].save_fd = savefd;
 	if(savefd >=0)
 	{
@@ -2224,6 +2252,10 @@ void	sh_iorestore(int last, int jmpval)
 	last &= ~IOSUBSHELL;
 	for (fd = sh.topfd - 1; fd >= last; fd--)
 	{
+#if SHOPT_SPAWN
+		if(filemap[fd].restored)
+			continue;	/* standard error was restored by sh_iorestore_stderr() */
+#endif /* SHOPT_SPAWN */
 		if(!flag && filemap[fd].subshell)
 			continue;
 		if(jmpval==SH_JMPSCRIPT)
@@ -2259,11 +2291,10 @@ void	sh_iorestore(int last, int jmpval)
 #else
 			sh_dup2(savefd,origfd);
 			if(sh.fdstatus[savefd]&IOCLEX)
-				fcntl(origfd,F_SETFD,FD_CLOEXEC);
+				sh_fcntl(origfd,F_SETFD,FD_CLOEXEC);  /* preserve close-on-exec */
 #endif
 			if(savefd==job.fd)
 				job.fd=origfd;
-			sh.fdstatus[origfd] = sh.fdstatus[savefd];
 			if(origfd<=2)
 			{
 				sfswap(sh.sftable[savefd],sh.sftable[origfd]);
@@ -2291,6 +2322,53 @@ void	sh_iorestore(int last, int jmpval)
 	if(last < sh.topfd)
 		sh.topfd = last;
 }
+
+#if SHOPT_SPAWN
+/*
+ * Restore standard error to the state it had before the command's own
+ * redirections were applied since <last>, so that job_wait()'s messages,
+ * such as those reporting that the command was terminated by a signal, are
+ * not subject to them while job_wait() is running. Like sh_iorestore(),
+ * this restores the standard error stream and its attributes, not just the
+ * file descriptor. It marks the entry so that sh_iorestore() skips it.
+ */
+void	sh_iorestore_stderr(int last)
+{
+	int	fd, savefd;
+	for (fd = sh.topfd - 1; fd >= last; fd--)
+	{
+		if (filemap[fd].orig_fd != 2)
+			continue;
+		if ((savefd = filemap[fd].save_fd) < 0)
+			return;
+		sfsync(sfstderr);
+		if (filemap[fd].tname && filemap[fd].tname != Empty)
+		{
+			/*
+			 * A '>;' temporary file can only be finalised once the command's
+			 * exit status is known, so leave this entry for sh_iorestore().
+			 * Accept the inevitable cost of restoring the FD a second time.
+			 */
+			dup2(savefd, 2);	/* avoid sh_dup2 and sh_close here; the Sfio stream must survive for now */
+			return;
+		}
+		/* do a full restore of FD 2 */
+		sh_close_batch(2, AUXILIARY);	/* skip the underlying close(2) to let dup2 do the close itself */
+		if (sh_dup2(savefd, 2) < 0)
+			return;
+		if (savefd == job.fd)
+			job.fd = 2;
+		if (sh.fdstatus[savefd] & IOCLEX)
+			sh_fcntl(2, F_SETFD, FD_CLOEXEC);
+		sfswap(sh.sftable[savefd], sh.sftable[2]);
+		sh.sftable[savefd] = NULL;
+		sh_close(savefd);
+		/* mark as restored so the next sh_iorestore() call will skip this FD */
+		filemap[fd].restored = 1;
+		return;
+	}
+}
+#endif /* SHOPT_SPAWN */
 
 /*
  * returns access information on open file <fd>
@@ -2625,7 +2703,7 @@ uint8_t sh_iocheckfd(int fd, ssize_t *filesize_p)
 	}
 	if(fd==0)
 		n &= ~IOWRITE;
-	else if(fd==1)
+	else if(fd==1 || fd==2)
 		n &= ~IOREAD;
 	if (filesize_p && fstatresult < -1)
 		fstatresult = fstat(fd,&statb);

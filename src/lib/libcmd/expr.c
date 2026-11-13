@@ -268,6 +268,7 @@ static int getnode(State_t* state, Node_t *np)
 					error(ERROR_exit(2), "position argument expected");
 					UNREACHABLE();
 				}
+				errno = 0;
 				ll = strtoll(cp, &ep, 10);
 				i = (ssize_t)ll;
 				if (!*ep)
@@ -284,6 +285,7 @@ static int getnode(State_t* state, Node_t *np)
 					error(ERROR_exit(2), "length argument expected");
 					UNREACHABLE();
 				}
+				errno = 0;
 				ll = strtoll(cp, &ep, 10);
 				j = (ssize_t)ll;
 				if (*ep)
@@ -326,6 +328,7 @@ static int getnode(State_t* state, Node_t *np)
 		np->str = cp;
 		if (*cp)
 		{
+			errno = 0;
 			np->num = strtol(np->str,&ep,10);
 			if (!*ep)
 			{
@@ -378,6 +381,7 @@ static int expr_cond(State_t* state, Node_t *np)
 				{
 					np->str = cp + match[1].rm_so;
 					np->str[match[1].rm_eo - match[1].rm_so] = 0;
+					errno = 0;
 					np->num = strtol(np->str,&cp,10);
 					if (cp!=np->str && *cp==0)
 					{

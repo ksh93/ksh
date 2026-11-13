@@ -235,9 +235,6 @@ Sfio_t* sftmp(size_t s)
 	Sfio_t		*f;
 	int		rv;
 	Sfnotify_f	notify = _Sfnotify;
-
-
-
 	static Sfdisc_t	Tmpdisc =
 			{ .exceptf = _tmpexcept,
 #if _tmp_rmfail

@@ -2,7 +2,7 @@
 *                                                                      *
 *               This software is part of the ast package               *
 *          Copyright (c) 1985-2011 AT&T Intellectual Property          *
-*          Copyright (c) 2020-2023 Contributors to ksh 93u+m           *
+*          Copyright (c) 2020-2026 Contributors to ksh 93u+m           *
 *                      and is licensed under the                       *
 *                 Eclipse Public License, Version 2.0                  *
 *                                                                      *
@@ -52,6 +52,12 @@ pathaccess_20100601(const char* dirs, const char* a, const char* b, int mode, ch
 	do
 	{
 		dirs = pathcat(dirs, sep, a, b, path, size);
+		if(!memchr(path, 0, size))
+		{
+			/* pathcat() could not fit the result: path is not null-terminated */
+			errno = ENAMETOOLONG;
+			return NULL;
+		}
 		pathcanon(path, size, 0);
 		if ((!sib || *path == '/') && pathexists(path, mode))
 		{

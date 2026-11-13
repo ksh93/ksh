@@ -18,7 +18,7 @@
 *                                                                      *
 ***********************************************************************/
 
-#include <ast.h>
+#include <stdlib.h>
 
 /*
  * return small format buffer chunk of size n
@@ -30,27 +30,21 @@ static char		buf[16 * 1024];
 static char*		nxt = buf;
 
 static char*		big;
-static size_t		bigsiz;
 
 char*
 fmtbuf(size_t n)
 {
 	char*	cur;
 
-	if (n > (size_t)(&buf[elementsof(buf)] - nxt))
+	if (big)
 	{
-		if (n > elementsof(buf))
-		{
-			if (n > bigsiz)
-			{
-				bigsiz = roundof(n, 8U * 1024U);
-				if (!(big = newof(big, char, bigsiz, 0)))
-					return NULL;
-			}
-			return big;
-		}
-		nxt = buf;
+		free(big);
+		big = NULL;
 	}
+	if (n > sizeof buf)
+		return big = malloc(n);
+	if (n > (size_t)(&buf[sizeof buf] - nxt))
+		nxt = buf;
 	cur = nxt;
 	nxt += n;
 	return cur;

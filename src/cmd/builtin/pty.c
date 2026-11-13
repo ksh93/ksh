@@ -18,23 +18,37 @@
 ***********************************************************************/
 
 static const char usage[] =
-"[-?\n@(#)pty (ksh 93u+m) 2026-10-22\n]"
+"[-?\n@(#)pty (ksh 93u+m) 2026-11-11\n]"
 "[-author?Glenn Fowler <gsf@research.att.com>]"
 "[-author?David Korn <dgk@research.att.com>]"
-"[-copyright?Copyright (c) 2001-2013 AT&T Intellectual Property]"
+"[-author?Martijn Dekker <martijn@inlv.org>]"
+"[-copyright?(c) 2001-2013 AT&T Intellectual Property]"
+"[-copyright?(c) 2020-2026 Contributors to ksh 93u+m]"
 "[-license?https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.html]"
 "[--catalog?builtin]"
-"[+NAME?pty - create pseudo terminal and run command]"
-"[+DESCRIPTION?\bpty\b creates a pseudo pty and then runs \bcommand\b "
+"[+NAME?pty - create pseudoterminal and run command]"
+"[+DESCRIPTION?\bpty\b creates a pseudo-tty and then runs \bcommand\b "
     "with arguments given by \aarg\a and the standard input, standard "
-    "output, and standard error connected to the pseudo terminal. By "
-    "default, the \bpty\b creates a new session.]"
+    "output, and standard error connected to the pseudoterminal.]"
 "[+?If \bcommand\b does not contain a \b/\b, the \bPATH\b variable will "
-    "be used to locate the \bcommand\b.]"
+    "be used to locate the \bcommand\b. "
+    "The \bcommand\b with its \barg\bs is invoked directly via \bexecve\b(2) "
+    "or an equivalent, so any shell constructs must be invoked via a shell, "
+    "as in \b\"$SHELL\" -c '\b\ashell commands here\a\b'\b.]"
 "[+?Input to \bpty\b will be written to the standard input of this "
     "command. The standard output and standard error from the command will "
     "be written to the standard output of \bpty\b.]"
 "[+?The \bpty\b command terminates when the command completes.]"
+"[+?\bpty\b does not need a terminal of its own; the pseudoterminal it "
+    "creates becomes the terminal of the command. At init time, \bpty\b "
+    "assigns it default attributes corresponding to a login session: "
+    "line editing in canonical mode, echoing of typed input, and signals "
+    "from the keyboard.]"
+"[+?If the \b-d\b option is not given and the standard input of \bpty\b "
+    "itself is a terminal, then the terminal is put in raw mode while the "
+    "\bcommand\b runs, so that any typed input to the command is passed on as "
+    "it is typed and echoed only by the command's pseudoterminal, which is in "
+    "canonical mode. The real terminal's attributes are restored on exit.]"
 "[d:dialogue?Execute the dialogue on the standard input. A dialogue is a "
     "sequence of commands, one command per line. All \are\a patterns are "
     "extended regular expressions. The \are\a \b?1\b will print the subject "
@@ -54,8 +68,8 @@ static const char usage[] =
             "matching \be\b or \bf\b]"
         "[f?end of \bi\b/\be\b block]"
         "[m \atext\a?write \atext\a to the standard error]"
-        "[p \atext\a?peek input until \atext\a is found at the beginning "
-            "of a line; input is not consumed]"
+        "[p \atext\a?peek ahead and verify the next line begins "
+            " with \atext\a; input is not consumed]"
         "[r [\are\a]]?read a line from the master [and it should match "
             "\are\a]]]"
         "[s \amilliseconds\a?sleep for \amilliseconds\a]"
@@ -98,13 +112,13 @@ static const char usage[] =
         "[+127?The command is found but cannot be executed.]"
         "[+128?The command could not be found.]"
     "}"
-"[+SEE ALSO?\bcommand\b(1), \bexec\b(1)]"
+"[+SEE ALSO?\bcommand\b(1), \bexec\b(1), \bopenpty\b(3), \bposix_openpt\b(3)]"
 ;
 
 #include <cmd.h>
 #include <error.h>
 #include <fcntl.h>
-#include <signal.h>
+#include <sig.h>
 #include <termios.h>
 #include <proc.h>
 #include <ctype.h>
@@ -219,7 +233,6 @@ static int
 mkpty(int* master, int* minion)
 {
 	struct termios	tty;
-	struct termios*	ttyp;
 #ifdef TIOCGWINSZ
 	struct winsize	win;
 	struct winsize*	winp;
@@ -234,20 +247,67 @@ mkpty(int* master, int* minion)
 	sigprocmask(SIG_BLOCK, &blckttou, &oldset);
 #endif
 	alarm(6);
-	if (tcgetattr(sffileno(sfstderr), &tty) < 0)
+#ifdef TIOCGWINSZ
+	if (ioctl(sffileno(sfstderr), TIOCGWINSZ, &win) < 0)
 	{
 		if (errno != ENOTTY)
-			error(-1, "unable to get standard error terminal attributes");
-#if _lib_cfmakeraw
-		cfmakeraw(&tty);
-#else
-		tty.c_iflag |= IGNPAR;
-		tty.c_iflag &= ~(ISTRIP | INLCR | IGNCR | ICRNL | IXON | IXANY | IXOFF);
-		tty.c_oflag &= ~OPOST;
-		tty.c_lflag &= ~(ISIG | ICANON | ECHO | ECHOE | ECHOK | ECHONL);
-#endif /* _lib_cfmakeraw */
-		ttyp = NULL;
+			error(-1, "unable to get standard error window size");
+		win.ws_row = 0;
+		win.ws_col = 0;
+		winp = NULL;
 	}
+	if (win.ws_row < 24)
+		win.ws_row = 24;
+	if (win.ws_col < 80)
+		win.ws_col = 80;
+	winp = &win;
+#endif
+#ifdef __linux__
+# if !_lib_openpty
+#  undef  _lib_openpty
+#  define _lib_openpty 1
+# endif
+#endif
+#if _lib_openpty
+	if (openpty(master, minion, NULL, NULL, winp) < 0)
+		return -1;
+#else
+#if _lib_grantpt && _lib_unlockpt
+#if !_lib_posix_openpt
+#ifndef _pty_clone
+#define _pty_clone	"/dev/ptmx"
+#endif
+#define posix_openpt(m)	open(_pty_clone,m)
+#endif
+	if ((*master = posix_openpt(O_RDWR)) < 0)
+		return -1;
+	if (grantpt(*master) || unlockpt(*master) || !(sname = ptsname(*master)) || (*minion = open(sname, O_RDWR|O_cloexec|O_NOCTTY)) < 0)
+	{
+		ast_close(*master);
+		return -1;
+	}
+#else
+	if (!(sname = ptymopen(master)) || (*minion = open(sname, O_RDWR|O_cloexec|O_NOCTTY)) < 0)
+		return -1;
+#endif
+#ifdef I_PUSH
+	{
+		struct termios	tst;
+		if (tcgetattr(*minion, &tst) < 0 && (ioctl(*minion, I_PUSH, "ptem") < 0 || ioctl(*minion, I_PUSH, "ldterm") < 0))
+		{
+			ast_close_batch(*minion,QUEUE);
+			ast_close_batch(*master,ENACT);
+			return -1;
+		}
+	}
+#endif
+#endif
+	if (tcgetattr(*minion, &tty) < 0)
+		error(ERROR_SYSTEM|1, "unable to get pty terminal attributes");
+	/*
+	 * The pseudoterminal must be suitable for interactive shell use: line editing
+	 * in canonical mode, echoing of typed input, and signals from the keyboard.
+	 */
 	tty.c_lflag |= ICANON | IEXTEN | ISIG | ECHO | ECHOE | ECHOK;
 #ifdef ECHOKE
 	tty.c_lflag |= ECHOKE;
@@ -273,63 +333,7 @@ mkpty(int* master, int* minion)
 	cfsetispeed(&tty, B38400);
 	cfsetospeed(&tty, B38400);
 #endif
-	ttyp = &tty;
-#ifdef TIOCGWINSZ
-	if (ioctl(sffileno(sfstderr), TIOCGWINSZ, &win) < 0)
-	{
-		if (errno != ENOTTY)
-			error(-1, "unable to get standard error window size");
-		win.ws_row = 0;
-		win.ws_col = 0;
-		winp = NULL;
-	}
-	if (win.ws_row < 24)
-		win.ws_row = 24;
-	if (win.ws_col < 80)
-		win.ws_col = 80;
-	winp = &win;
-#endif
-#ifdef __linux__
-# if !_lib_openpty
-#  undef  _lib_openpty
-#  define _lib_openpty 1
-# endif
-#endif
-#if _lib_openpty
-	if (openpty(master, minion, NULL, ttyp, winp) < 0)
-		return -1;
-#else
-#if _lib_grantpt && _lib_unlockpt
-#if !_lib_posix_openpt
-#ifndef _pty_clone
-#define _pty_clone	"/dev/ptmx"
-#endif
-#define posix_openpt(m)	open(_pty_clone,m)
-#endif
-	if ((*master = posix_openpt(O_RDWR)) < 0)
-		return -1;
-	if (grantpt(*master) || unlockpt(*master) || !(sname = ptsname(*master)) || (*minion = open(sname, O_RDWR|O_cloexec)) < 0)
-	{
-		ast_close(*master);
-		return -1;
-	}
-#else
-	if (!(sname = ptymopen(master)) || (*minion = open(sname, O_RDWR|O_cloexec)) < 0)
-		return -1;
-#endif
-#ifdef I_PUSH
-	{
-		struct termios	tst;
-		if (tcgetattr(*minion, &tst) < 0 && (ioctl(*minion, I_PUSH, "ptem") < 0 || ioctl(*minion, I_PUSH, "ldterm") < 0))
-		{
-			ast_close_batch(*minion,QUEUE);
-			ast_close_batch(*master,ENACT);
-			return -1;
-		}
-	}
-#endif
-#endif
-	if (ttyp && tcsetattr(*minion, TCSANOW, ttyp) < 0)
+	if (tcsetattr(*minion, TCSANOW, &tty) < 0)
 		error(ERROR_warn(0), "unable to set pty terminal attributes");
 #ifdef TIOCSWINSZ
 	if (winp && ioctl(*minion, TIOCSWINSZ, winp) < 0)
@@ -366,6 +370,119 @@ runcmd(char** argv, int minion, int session)
 	return procopen(argv[0], argv, NULL, ops, 0);
 }
 
+static int		ttyfd = -1;	/* file descriptor of pty's own terminal	*/
+static struct termios	ttyattrs;	/* saved attributes of pty's own terminal	*/
+
+/*
+ * Restore the attributes of pty's own terminal. Nothing is done if they have
+ * not been changed. This is called when process() returns and, via atexit(3),
+ * when pty exits for another reason, so that a terminal is not left in raw
+ * mode.
+ */
+
+static void
+rawoff(void)
+{
+	if (ttyfd >= 0)
+	{
+		tcsetattr(ttyfd, TCSADRAIN, &ttyattrs);
+		ttyfd = -1;
+	}
+}
+
+/*
+ * Put pty's own terminal in raw mode, saving its attributes for rawoff().
+ * Returns nonzero on success. The VMIN and VTIME values make a read return as
+ * soon as any input is available, so that input is passed on as it is typed.
+ */
+
+static int
+rawon(Sfio_t* ip)
+{
+	struct termios	tty;
+	int		fd = sffileno(ip);
+
+	if (!isatty(fd) || tcgetattr(fd, &tty) < 0)
+		return 0;
+	ttyattrs = tty;
+	tty.c_lflag &= (tcflag_t)~(ICANON | ECHO | ECHOE | ECHOK | ECHONL | IEXTEN);
+#ifdef ECHOCTL
+	tty.c_lflag &= (tcflag_t)~ECHOCTL;
+#endif
+#ifdef ECHOKE
+	tty.c_lflag &= (tcflag_t)~ECHOKE;
+#endif
+#ifdef ISIG
+	tty.c_lflag &= (tcflag_t)~ISIG;
+#endif
+	tty.c_iflag &= (tcflag_t)~(ICRNL | INLCR | IGNCR | IXON | IXOFF | ISTRIP | BRKINT | INPCK | PARMRK);
+	tty.c_oflag &= (tcflag_t)~OPOST;
+	tty.c_cc[VMIN] = 1;
+	tty.c_cc[VTIME] = 0;
+	if (tcsetattr(fd, TCSADRAIN, &tty) < 0)
+		return 0;
+	ttyfd = fd;
+	atexit(rawoff);
+	return 1;
+}
+
+/*
+ * Turn off echoing on the command's pseudoterminal. This is for running a
+ * non-dialogue command when pty has no terminal of its own; the input is then
+ * written to the pseudoterminal from a pipe or a file, and has already been
+ * echoed by the invoking terminal, so echoing it again at the pseudoterminal
+ * would show it twice. The pseudoterminal stays in canonical mode, so commands
+ * that read a line, such as 'read', continue to work normally.
+ */
+
+static void
+noecho(int fd)
+{
+	struct termios	tty;
+
+	if (tcgetattr(fd, &tty) < 0)
+		error(ERROR_warn(0), "unable to get pty terminal attributes");
+	tty.c_lflag &= (tcflag_t)~(ECHO | ECHONL);
+	if (tcsetattr(fd, TCSANOW, &tty) < 0)
+		error(ERROR_warn(0), "unable to set pty terminal attributes");
+}
+
+/*
+ * Pass input on to the command's terminal and return 1, or return 0 when the
+ * input has ended.
+ *
+ * The input is read from the file descriptor rather than with sfgetr(), which
+ * buffers input past the line it returns and leaves sfpoll() unable to see
+ * that there is more of it: the rest of the input would then only be passed on
+ * when output from the command happened to wake the loop in process().
+ * sfreserve() is no good either, as it can return a one-byte NUL buffer at the
+ * end of the input, which the command's terminal would echo.
+ */
+
+static int
+forward(Sfio_t* mp, Sfio_t* ip, int raw, char* buf)
+{
+	ssize_t		r;
+	char*		s;
+
+	if ((r = read(sffileno(ip), buf, SFIO_BUFSIZE)) <= 0)
+		return 0;
+	if (!raw)
+	{
+		/*
+		 * The command's terminal is in canonical mode and its line endings
+		 * come from the keyboard as '\r', so give it a '\r' for each newline
+		 * of the input.
+		 */
+		for (s = buf; s < buf + r; s++)
+			if (*s == '\n')
+				*s = '\r';
+	}
+	if (sfwrite(mp, buf, (size_t)r) != r || sfsync(mp))
+		error(ERROR_SYSTEM|2, "write failed");
+	return 1;
+}
+
 /*
  * default master dance
  */
@@ -375,9 +492,11 @@ process(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 {
 	int		i;
 	int		n;
-	int		t;
+	int		raw = 0;	/* pty's own terminal is in raw mode */
+	int		ready = 0;	/* input is a regular file: always ready to read */
 	ssize_t		r;
 	char*		s;
+	char		buf[SFIO_BUFSIZE];
 	Sfio_t*		ip;
 	Sfio_t*		sps[2];
 	struct stat	dst;
@@ -385,35 +504,59 @@ process(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 
 	NOT_USED(lp);
 	NOT_USED(delay);
+	NOT_USED(timeout);
 	ip = sfstdin;
 	if (!fstat(sffileno(ip), &dst) && !stat("/dev/null", &fst) && dst.st_dev == fst.st_dev && dst.st_ino == fst.st_ino)
 		ip = NULL;
-	do
+	else
 	{
+		/*
+		 * Avoid both parent terminal and pseudoterminal echoing typed input;
+		 * set pseudoterminal to raw mode. Note that b_pty() has already turned
+		 * off the echo on the real terminal, if any, via noecho().
+		 */
+		raw = rawon(ip);
+		/*
+		 * A regular file is always ready to read. Though sfpoll() marks a regular
+		 * file's stream ready, it still waits for the others to become ready. So the
+		 * regular file's data would not be passed on until the command produced
+		 * output, and any command that waits for that data would then wait forever.
+		 * Therefore, read it without polling until it terminates. This avoids a hang
+		 * in something like 'pty cat <file'.
+		 */
+		ready = !fstat(sffileno(ip), &dst) && S_ISREG(dst.st_mode);
+	}
+	for (;;)
+	{
+		if (mp && ip && ready && !forward(mp, ip, raw, buf))
+		{
+			ip = NULL;
+			ready = 0;
+		}
 		i = 0;
-		t = timeout;
 		if (mp)
 			sps[i++] = mp;
-		if (ip)
-		{
+		if (ip && !ready)
 			sps[i++] = ip;
-			t = -1;
-		}
 		if (!i)
 			break;
-		if ((n = sfpoll(sps, i, t)) <= 0)
+		/*
+		 * Wait for the command to produce output or for input to pass on.
+		 * While a file is being read, do not wait: more of it is passed on regardless.
+		 */
+		if ((n = sfpoll(sps, i, (ip && ready) ? 0 : -1)) <= 0)
 		{
 			if (n < 0)
 				error(ERROR_SYSTEM|2, "poll failed");
-			break;
+			if (!(ip && ready))
+				break;
 		}
-		for (i = t = 0; i < n; i++)
+		for (i = 0; i < n; i++)
 		{
 			if (!(sfvalue(sps[i]) & SFIO_READ))
 				/*skip*/;
 			else if (sps[i] == mp)
 			{
-				t++;
 				if (!(s = (char*)sfreserve(mp, SFIO_UNBOUND, -1)))
 				{
 					sfclose(mp);
@@ -425,27 +568,24 @@ process(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 					goto done;
 				}
 			}
-			else
+			else if (!forward(mp, ip, raw, buf))
 			{
-				t++;
-				if (!(s = sfgetr(ip, '\n', 1)))
-					ip = NULL;
-				else if (sfputr(mp, s, '\r') < 0 || sfsync(mp))
-				{
-					error(ERROR_SYSTEM|2, "write failed");
-					goto done;
-				}
+				ip = NULL;
+				ready = 0;
 			}
 		}
-	} while (t);
+		if (!mp)
+			break;	/* the command has terminated; nothing can consume input */
+	}
  done:
+	rawoff();
 	if (mp)
 		sfclose(mp);
 	return error_info.errors != 0;
 }
 
 /*
- * return 1 is extended re pattern matches text
+ * return 1 if extended RE <pattern> matches <text>
  */
 
 static int
@@ -497,6 +637,73 @@ match(char* pattern, char* text, int must)
 	return 1;
 }
 
+/*
+ * Time, in milliseconds, to wait for the rest of a line that is otherwise
+ * ready to be returned (see masterline()). A newline that ends the line, or
+ * the rest of a redraw, is nearly always already on its way when the text
+ * matches, so a short wait keeps the line intact without stalling the test.
+ */
+
+#define GRACE	50
+
+/*
+ * Return true if regex <pattern> does *not* end in a newline.
+ */
+
+static int
+unterminated(const char* pattern)
+{
+	size_t		n = strlen(pattern);
+
+	if (n > 0 && pattern[n - 1] == '$')
+		n--;
+	if (n >= 2 && pattern[n - 2] == '\\' && pattern[n - 1] == 'n')
+		return 0;
+	if (n >= 1 && pattern[n - 1] == '\n')
+		return 0;
+	return 1;
+}
+
+/*
+ * Time, in milliseconds, to wait for the shell's line editor to take over the
+ * terminal after it has displayed a prompt (see waitraw()).
+ */
+
+#define RAWWAIT	500
+
+/*
+ * Wait until the terminal is in raw mode.
+ *
+ * In the following idiomatic sequence in a pty dialogue:
+ *	p :test-1:
+ *	w some command
+ * the p command peeks for the shell prompt (PS1), then the w command writes
+ * immediately after it has been displayed. But ksh only switches the terminal
+ * away from canonical mode after printing the prompt. So there was a race
+ * condition: typing could start before the terminal is in raw mode, causing
+ * typeahead to be echoed, which interferes with the tests reading back input.
+ * To fix the race, this function is used to wait until the terminal is in
+ * raw mode before returning the prompt to the caller.
+ *
+ * A prompt that does not come from the editor (e.g., the read builtin's)
+ * stays in canonical mode; for those, we give up after the timeout.
+ */
+
+static void
+waitraw(Sfio_t* mp)
+{
+	struct termios	term;
+	int		fd = sffileno(mp);
+	int		n;
+
+	for (n = 0; n < RAWWAIT; n += 10)
+	{
+		if (tcgetattr(fd, &term) < 0 || !(term.c_lflag & ICANON))
+			return;
+		usleep(10 * 1000);
+	}
+}
+
 typedef struct Master_s
 {
 	Vmalloc_t*	vm;		/* allocation region			*/
@@ -506,15 +713,130 @@ typedef struct Master_s
 	char*		nxt;		/* next line				*/
 	char*		end;		/* end of lines				*/
 	char*		max;		/* end of buf				*/
-	char*		bufunderflow;	/* FIXME: kludge to cope with underflow	*/
 	char*		buf;		/* current buffer			*/
 	char*		prompt;		/* peek prompt				*/
-	ptrdiff_t	cursor;		/* cursor in buf, 0 if fresh line	*/
+	char*		partial;	/* text of an unfinished line		*/
+	size_t		partiallen;	/* length of the text in partial	*/
+	size_t		partialmax;	/* allocated size of partial		*/
 	int		line;		/* prompt line number			*/
 	char		save;		/* previous line's saved char		*/
 	char		saving;		/* set if saved char is to be restored	*/
 } Master_t;
-#define BUFUNDERFLOW	128		/* bytes of buffer underflow to allow	*/
+
+/*
+ * Make room for size bytes in the buffer that holds the text of an unfinished
+ * line (see below).
+ */
+
+static void
+reservepartial(Master_t* bp, size_t size)
+{
+	if (size > bp->partialmax)
+	{
+		bp->partialmax = roundof(size, (size_t)SFIO_BUFSIZE);
+		if (bp->partial)
+			bp->partial = vmresize(bp->vm, bp->partial, bp->partialmax);
+		else
+			bp->partial = vmnewof(bp->vm, NULL, char, bp->partialmax, 0);
+	}
+}
+
+/*
+ * Remember a line that was left unfinished, so that the next output from the
+ * master can be joined to it (a redraw can be split over several reads).
+ */
+
+static void
+savepartial(Master_t* bp, char* r)
+{
+	size_t	len = strlen(r);
+
+	if (r != bp->partial)
+	{
+		reservepartial(bp, len + 1);
+		memcpy(bp->partial, r, len + 1);
+	}
+	bp->partiallen = len;
+}
+
+/*
+ * Return a line that continues one returned earlier: the unfinished line's
+ * text is in bp->partial, and the new line is appended to it, so that the
+ * caller sees the line as a terminal would. The unfinished line cannot simply
+ * be pointed at in the buffer: it was returned at a read timeout, which resets
+ * the buffer, so in the buffer the new line does not follow it, and pointing
+ * before the buffer underflowed it.
+ */
+
+static char*
+continueline(Master_t* bp, char* r)
+{
+	size_t	len = strlen(r);
+
+	reservepartial(bp, bp->partiallen + len + 1);
+	memcpy(bp->partial + bp->partiallen, r, len + 1);
+	return bp->partial;
+}
+
+/*
+ * Collapse the redraw sequences in a line of master output to the text that a
+ * terminal would display: a carriage return moves the cursor to the start of
+ * the line, a backspace moves it back one character, a bell has no visible
+ * effect, and every other character overwrites what was at the cursor. So the
+ * line 'abc\rde' displays as 'de', and what a redraw does not overwrite is
+ * dropped once the line is complete: the shell rewrites the whole line when it
+ * redraws. Returns nonzero if the line is complete, i.e., terminated by a
+ * newline, and zero if the remaining output continues it. The redrawsback flag
+ * is set if the line ends in the middle of a redraw, i.e., the cursor moved
+ * back over text that a later redraw is going to overwrite.
+ */
+
+static int
+collapse(char* r, int* redrawsback)
+{
+	char*	s = r;		/* scan the raw output			*/
+	char*	c = r;		/* cursor in the collapsed line		*/
+	char*	w = r;		/* end of the collapsed line		*/
+	int	ch;
+	int	back = 0;	/* a redraw moved the cursor back	*/
+
+	while ((ch = (unsigned char)*s++))
+	{
+		if (ch == '\n')
+		{
+			w = c;
+			*w++ = '\n';
+			*w = 0;
+			return 1;
+		}
+		if (ch == '\r' && *s != '\n')
+		{
+			c = r;
+			back = 1;
+		}
+		else if (ch == '\b')
+		{
+			if (c > r)
+			{
+				c--;
+				back = 1;
+			}
+		}
+		else if (ch == '\a')
+			/*skip*/;
+		else
+		{
+			if (c < w)
+				*c = (char)ch;
+			else
+				*w++ = (char)ch;
+			c++;
+		}
+	}
+	*w = 0;
+	*redrawsback = back;
+	return 0;
+}
 
 /*
  * read one line from the master
@@ -523,52 +845,78 @@ typedef struct Master_s
 #define MASTER_EOF	(-1)
 #define MASTER_TIMEOUT	(-2)
 
+/*
+ * expand the prompt for the next line
+ */
+
 static char*
-masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t* bp)
+masterprompt(Master_t* bp)
+{
+	static char	buf[64];
+
+	if (!bp->prompt)
+		return NULL;
+	sfsprintf(buf, sizeof(buf), bp->prompt, ++bp->line);
+	return buf;
+}
+
+static char*
+masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, char* want, int must, int timeout, Master_t* bp)
 {
 	char*		r;
 	char*		s;
-	char*		t;
 	ssize_t		n;
 	size_t		promptlen = 0;
-	char		promptbuf[64];
+	int		redraw;
 
 	if (prompt)
-		promptlen = (size_t)sfsprintf(promptbuf, sizeof(promptbuf), prompt, ++bp->line);
+		promptlen = strlen(prompt);
  again:
 	if (prompt)
 	{
 		if (bp->cur < bp->end && bp->saving)
 			*bp->cur = bp->save;
-		if (strneq(bp->cur, promptbuf, promptlen))
+		/* avoid matching against consumed data: only match if the buffer hasn't been reset yet */
+		if (bp->cur < bp->end && strneq(bp->cur, prompt, promptlen))
 			r = bp->cur;
 		else
 			r = NULL;
-		if (bp->cur < bp->end && bp->saving)
-			*bp->cur = 0;
 		if (r)
 		{
-			error(-1, "p \"%s\"", fmtnesq(promptbuf, "\"", promptlen));
+			/* leave the matched line intact for the caller */
+			if (bp->cur < bp->end && bp->saving)
+				bp->saving = 0;
+			waitraw(mp);
+			error(-1, "p \"%s\"", fmtnesq(prompt, "\"", promptlen));
 			return r;
 		}
+		if (bp->cur < bp->end && bp->saving)
+			*bp->cur = 0;
 		if (r = bp->nxt)
 		{
-			if (strneq(r, promptbuf, promptlen))
+			if (strneq(r, prompt, promptlen))
 			{
-				error(-1, "p \"%s\"", fmtnesq(promptbuf, "\"", promptlen));
+				waitraw(mp);
+				error(-1, "p \"%s\"", fmtnesq(prompt, "\"", promptlen));
 				return r;
 			}
 			while (r = memchr(r, '\n', (size_t)(bp->end - r)))
 			{
-				if (strneq(r, promptbuf, promptlen))
+				if (strneq(++r, prompt, promptlen))
 				{
-					error(-1, "p \"%s\"", fmtnesq(promptbuf, "\"", promptlen));
+					waitraw(mp);
+					error(-1, "p \"%s\"", fmtnesq(prompt, "\"", promptlen));
 					return r;
 				}
-				r++;
 			}
 		}
-		*bp->cur = 0;
+		/*
+		 * Do not truncate unconsumed input here: the prompt may be split
+		 * over several reads, in which case it only matches once all of
+		 * its bytes have arrived and been preserved.
+		 */
+		if (bp->cur >= bp->end)
+			*bp->cur = 0;
 	}
 	else if (bp->nxt)
 	{
@@ -591,6 +939,36 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 		}
 		goto done;
 	}
+	else if (want && bp->cur < bp->end && unterminated(want))
+	{
+		/*
+		 * The shell has written something that is not terminated by a newline: a
+		 * command line that has been echoed but not yet run, for instance. Such text
+		 * is normally only returned when the poll below times out, so a test that
+		 * reads what the shell has already written would sit there for the whole
+		 * timeout. If no further output is available and the text already matches
+		 * what the caller is waiting for, then return it now-ish instead of waiting.
+		 */
+		if (bp->saving)
+			*bp->cur = bp->save;
+		r = bp->cur;
+		n = sfpoll(&mp, 1, GRACE);
+		if (!memchr(r, '\n', (size_t)(bp->end - r)) && (n <= 0 || !(sfvalue(mp) & SFIO_READ)) && match(want, r, 0))
+		{
+			bp->saving = 0;
+			*bp->end = 0;
+			bp->nxt = NULL;
+			bp->cur = bp->end = bp->buf;
+			goto done;
+		}
+		if (bp->saving)
+			*bp->cur = 0; /* restore the hidden line terminator */
+	}
+	/*
+	 * A master opened for reading and writing is reported as SFIO_WRITE
+	 * ready even when the poll times out, so a timeout has to be detected
+	 * as an absence of SFIO_READ rather than as a zero return value.
+	 */
 	if ((n = sfpoll(&mp, 1, timeout)) <= 0 || !(sfvalue(mp) & SFIO_READ))
 	{
 		if (n < 0)
@@ -610,9 +988,9 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 			r = bp->cur;
 			*bp->end = 0;
 			bp->nxt = NULL;
-			if (prompt && strneq(r, promptbuf, promptlen))
+			if (prompt && strneq(r, prompt, promptlen))
 			{
-				error(-1, "p \"%s\"", fmtnesq(promptbuf, "\"", promptlen));
+				error(-1, "p \"%s\"", fmtnesq(prompt, "\"", promptlen));
 				return r;
 			}
 			bp->cur = bp->end = bp->buf;
@@ -659,8 +1037,7 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 		size_t	new_buf_size;
 		r = bp->buf;
 		new_buf_size = (size_t)roundof(bp->max - bp->buf + 1 + n, SFIO_BUFSIZE);
-		bp->bufunderflow = vmresize(bp->vm, bp->bufunderflow, new_buf_size + BUFUNDERFLOW);
-		bp->buf = bp->bufunderflow + BUFUNDERFLOW;
+		bp->buf = vmresize(bp->vm, bp->buf, new_buf_size);
 		bp->max = bp->buf + new_buf_size - 1;
 		if (bp->buf != r)
 		{
@@ -698,60 +1075,21 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, int must, int timeout, Master_t
 	}
  done:
 	error(-3, "Q \"%s\"", fmtesq(r, "\""));
-	s = r;
-	if (bp->cursor)
-	{
-		r -= bp->cursor; /* FIXME: r may now be before bp->buf */
-		if (r < bp->bufunderflow)
-			error(ERROR_PANIC, "pty.c:%d: internal error: r is %td bytes before bp->bufunderflow", __LINE__, bp->bufunderflow - r);
-		bp->cursor = 0;
-	}
-	for (t = NULL, n = 0; *s; s++)
-		if (*s == '\n')
-		{
-			if (t)
-			{
-				*t++ = '\n';
-				*t = 0;
-				t = NULL;
-				n = 0;
-			}
-		}
-		else if (*s == '\r' && *(s + 1) != '\n')
-		{
-			if (t = strchr(s + 1, '\r'))
-				n += t - s;
-			else
-				n += strlen(s);
-			t = r;
-		}
-		else if (*s == '\a')
-		{
-			if (!t)
-				t = s;
-			*t = ' ';
-			n++;
-		}
-		else if (*s == '\b')
-		{
-			if (!t)
-				t = s;
-			if (t > r)
-				t--;
-			else
-				n++;
-		}
-		else if (t)
-			*t++ = *s;
-	if (t)
-		error(-3, "R \"%s\"", fmtesq(r, "\""));
-	if (n)
-		*(r + strlen(r) - n) = 0;
+	/*
+	 * If the last line returned was left unfinished by a redraw, then this
+	 * one continues it: put the two together so that the caller sees the
+	 * whole line. A complete line is finished here, and one that is still
+	 * unfinished is remembered for the next output to continue.
+	 */
+	if (bp->partiallen)
+		r = continueline(bp, r);
+	if (collapse(r, &redraw) == 0 && redraw)
+		savepartial(bp, r);
+	else
+		bp->partiallen = 0;
 	error(-1, "r \"%s\"", fmtesq(r, "\""));
 	if (lp)
 		sfputr(lp, fmtesq(r, "\""), '\n');
-	if (t)
-		bp->cursor = t - r;
 	if (bp->ignore && match(bp->ignore, r, 0))
 		goto again;
 	return r;
@@ -784,7 +1122,6 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 {
 	unsigned long long	ull;
 	useconds_t		ud;
-	long			l;
 	int			op;
 	int			line;
 	intmax_t		n;
@@ -804,8 +1141,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 	cond = vmnewof(vm, NULL, Cond_t, 1, 0);
 	master = vmnewof(vm, NULL, Master_t, 1, 0);
 	master->vm = vm;
-	master->bufunderflow = vmnewof(vm, NULL, char, 2 * SFIO_BUFSIZE, BUFUNDERFLOW);
-	master->buf = master->bufunderflow + BUFUNDERFLOW;
+	master->buf = vmnewof(vm, NULL, char, 2 * SFIO_BUFSIZE, 0);
 	master->cur = master->end = master->buf;
 	master->max = master->buf + 2 * SFIO_BUFSIZE - 1;
 	master->saving = 0;
@@ -830,7 +1166,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 		case 'w':
 			if (cond->flags & SKIP)
 				continue;
-			if (master->prompt && !masterline(mp, lp, master->prompt, 0, timeout, master))
+			if ((m = masterprompt(master)) && !masterline(mp, lp, m, NULL, 0, timeout, master))
 				goto done;
 			if (delay)
 				usleep(delay * 1000);
@@ -849,6 +1185,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 				usleep(delay * 1000);
 			break;
 		case 'd':
+			errno = 0;
 			ull = strtoull(s, &e, 0);
 			delay = (useconds_t)ull;
 			if (delay != ull)
@@ -864,7 +1201,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 				cond->next = vmnewof(vm, NULL, Cond_t, 1, 0);
 			cond = cond->next;
 			cond->flags = IF;
-			if ((cond->prev->flags & SKIP) && !(cond->text = NULL) || !(cond->text = masterline(mp, lp, NULL, 0, timeout, master)))
+			if ((cond->prev->flags & SKIP) && !(cond->text = NULL) || !(cond->text = masterline(mp, lp, NULL, NULL, 0, timeout, master)))
 				cond->flags |= KEPT|SKIP;
 			else if (match(s, cond->text, 0))
 				cond->flags |= KEPT;
@@ -918,17 +1255,23 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 		case 'p':
 			if (cond->flags & SKIP)
 				continue;
-			if (!(m = masterline(mp, lp, s, 1, timeout, master)))
+			if (!(m = masterline(mp, lp, s, NULL, 1, timeout, master)))
 				goto done;
+			if (!strneq(m, s, strlen(s)))
+			{
+				error(2, "expected \"%s\", got \"%s\"", s, fmtesq(m, "\""));
+				goto done;
+			}
 			break;
 		case 'r':
 			if (cond->flags & SKIP)
 				continue;
-			if (!(m = masterline(mp, lp, NULL, s[0] == '?' && s[1] == '.' ? -1 : 1, timeout, master)))
+			if (!(m = masterline(mp, lp, NULL, s, s[0] == '?' && s[1] == '.' ? -1 : 1, timeout, master)))
 				goto done;
 			match(s, m, 1);
 			break;
 		case 's':
+			errno = 0;
 			ull = strtoull(s, &e, 0);
 			ud = (useconds_t)ull;
 			if (ull != ud)
@@ -942,6 +1285,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 				usleep(ud * 1000);
 			break;
 		case 't':
+			errno = 0;
 			timeout = strtoi(s, &e, 0);
 			if (*e || errno == ERANGE)
 			{
@@ -954,7 +1298,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 				continue;
 			do
 			{
-				if (!(m = masterline(mp, lp, NULL, -1, timeout, master)))
+				if (!(m = masterline(mp, lp, NULL, s, -1, timeout, master)))
 				{
 					match(s, m, 1);
 					goto done;
@@ -962,6 +1306,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 			} while (!match(s, m, 0));
 			break;
 		case 'v':
+			errno = 0;
 			error_info.trace = -strtoi(s, &e, 0);
 			if (*e || errno == ERANGE)
 			{
@@ -970,6 +1315,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 			}
 			break;
 		case 'x':
+			errno = 0;
 			status = strtoi(s, &e, 0);
 			if (*e || errno == ERANGE)
 			{
@@ -1034,6 +1380,8 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 {
 	int		master;
 	int		minion;
+	int		master_status;
+	int		minion_status;
 	int		fd;
 	int		drop;
 	int		n;
@@ -1044,12 +1392,20 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 	char		buf[64];
 
 	useconds_t	delay = 0;
+	char*		myname = argv[0];
 	char*		log = NULL;
 	char*		messages = NULL;
 	char*		stty = NULL;
 	int		session = 1;
 	int		timeout = 1000;
-	int		(*fun)(Sfio_t*,Sfio_t*,useconds_t,int) = process;
+	int		run_dialogue = 0;
+
+	/*
+	 * In case pty was invoked as a background job, unignore SIGINT
+	 * and SIGQUIT; pty tests need these signals to work normally.
+	 */
+	signal(SIGINT, SIG_DFL);
+	signal(SIGQUIT, SIG_DFL);
 
 	cmdinit(argc, argv, context, ERROR_CATALOG, 0);
 	for (;;)
@@ -1058,7 +1414,7 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 		{
 		case 'd':
 			if (opt_info.num)
-				fun = dialogue;
+				run_dialogue = 1;
 			continue;
 		case 'D':
 			error_info.trace = -(int)opt_info.num;
@@ -1104,6 +1460,8 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 		error(ERROR_system(1), "cannot open master stream");
 		UNREACHABLE();
 	}
+	if (!run_dialogue && !isatty(sffileno(sfstdin)))
+		noecho(minion);
 	if (stty)
 	{
 		Argv_t* ap;
@@ -1119,15 +1477,18 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 		ap->argv = (char**)(ap + 1);
 		ap->args = (char*)(ap->argv + n + 2);
 		strcpy(ap->args, stty);
-		ap->argv[0] = "stty";
+		/* set stty's argv[0] to our own, otherwise future error messages will ID as stty instead of pty */
+		ap->argv[0] = myname;
 		sfsprintf(ap->argv[1] = buf, sizeof(buf), "--fd=%d", minion);
 		ap->argv[2] = s = ap->args;
 		for (n = 2; *s; s++)
+		{
 			if (isspace(*s))
 			{
 				*s = 0;
 				ap->argv[++n] = s + 1;
 			}
+		}
 		ap->argv[n + 1] = NULL;
 		b_stty(ap->argc, ap->argv, NULL);
 		free(ap);
@@ -1141,7 +1502,7 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 	}
 	if (!(proc = runcmd(argv, minion, session)))
 	{
-		error(ERROR_system(1), "unable run %s", argv[0]);
+		error(ERROR_system(1), "unable to run %s", argv[0]);
 		UNREACHABLE();
 	}
 	ast_close(minion);
@@ -1163,12 +1524,27 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 		if (drop)
 			ast_close(fd);
 	}
-	minion = (*fun)(mp, lp, delay, timeout);
-	master = procclose(proc);
+	minion_status = (run_dialogue ? dialogue : process)(mp, lp, delay, timeout);
+	master_status = procclose(proc);
 	if (lp && sfclose(lp))
 	{
 		error(ERROR_system(1), "%s: write error", log);
 		UNREACHABLE();
 	}
-	return !!error_info.errors;
+	if (error_info.errors)
+		return 1;
+	/*
+	 * A dialogue hangs the command up when it is done with it, so its exit
+	 * status says nothing about the dialogue: the status is then that of the
+	 * dialogue itself, which is the code of its 'x' command.
+	 */
+	if (run_dialogue)
+		return minion_status;
+	/*
+	 * No dialogue: the exit status is that of the command, or the
+	 * number of the signal that terminated it with its 8th bit set.
+	 */
+	if (master_status & (1 << EXIT_BITS))
+		master_status = 128 + EXIT_CODE(master_status);
+	return master_status;
 }
