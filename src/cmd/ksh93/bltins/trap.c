@@ -130,7 +130,7 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 					if(sh.st.trap[sig])
 						sh.trapnote |= SH_SIGTRAP;
 					else
-						sh.trapnote = 0;
+						sh.trapnote &= SH_SIGPENDING;
 
 				}
 				continue;

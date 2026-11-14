@@ -27,6 +27,7 @@
 #define GLOB_VERSION	20060717L
 
 #include <stdlib.h>
+#include <signal.h>
 
 struct dirent;
 struct stat;
@@ -57,7 +58,7 @@ struct _glob_
 
 	const char*	gl_fignore;
 	const char*	gl_suffix;
-	unsigned char*	gl_intr;
+	volatile sig_atomic_t*	gl_intr;
 
 	char		gl_delim;
 

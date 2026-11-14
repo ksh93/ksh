@@ -834,7 +834,17 @@ static int check_exec_optimization(int type, int execflg, int execflg2, struct i
  */
 int sh_exec(const Shnode_t *_t, int exec_flags)
 {
-	sh_sigcheck();
+	sig_atomic_t	trapnote;	/* non-volatile temp copy of sh.trapnote for optimising checks for multiple flags */
+	/* Process deferred signals, run deferred traps */
+	if (trapnote = sh.trapnote)
+	{
+		if (trapnote & SH_SIGPENDING)
+			sh_sigprocess();
+		if (trapnote & SH_SIGSET)
+			sh_exit(SH_EXITSIG);
+		if (trapnote & SH_SIGTRAPBITS)
+			sh_chktrap();
+	}
 	if(_t && sh.st.breakcnt==0 && !sh_isoption(SH_NOEXEC))
 	{
 		const Shnode_t	*volatile t = _t;
@@ -2618,7 +2628,7 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 			break;
 		    }
 		}
-		if(sh.trapnote || (sh.exitval && sh_isstate(SH_ERREXIT)) && t && echeck)
+		if((sh.trapnote & SH_SIGTRAPBITS) || (sh.exitval && sh_isstate(SH_ERREXIT)) && t && echeck)
 			sh_chktrap();
 		/* set $_ */
 		if(mainloop && com0)
@@ -2649,8 +2659,13 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 			else if(stktell(sh.stk))
 				stkseek(sh.stk,0);
 		}
-		if(sh.trapnote&SH_SIGSET)
-			sh_exit(SH_EXITSIG|sh.lastsig);
+		if(trapnote = sh.trapnote)
+		{
+			if(trapnote & SH_SIGPENDING)
+				sh_sigprocess();
+			if(trapnote & SH_SIGSET)
+				sh_exit(SH_EXITSIG|sh.lastsig);
+		}
 		if(was_monitor && sh_isoption(SH_MONITOR))
 			sh_onstate(SH_MONITOR);
 		if(was_errexit)
@@ -2760,7 +2775,7 @@ pid_t _sh_fork(pid_t parent,int flags,int *jobid)
 	static Sfulong_t forkcnt = 1000UL;
 	pid_t	curpgid = job.curpgid;
 	pid_t	postid = (flags&FAMP)?0:curpgid;
-	int	sig,nochild;
+	int	nochild;
 	if(parent<0)
 	{
 		sh_sigcheck();
@@ -2867,10 +2882,7 @@ pid_t _sh_fork(pid_t parent,int flags,int *jobid)
 	sh.spid = 0;
 	if((flags&FAMP) && sh.coutpipe>1)
 		sh_close(sh.coutpipe);
-	sig = sh.savesig;
-	sh.savesig = 0;
-	if(sig>0)
-		kill(sh.current_pid,sig);
+	sh.sigcritical = 0;
 	sh_sigcheck();
 	return 0;
 }
@@ -2889,19 +2901,15 @@ pid_t _sh_fork(pid_t parent,int flags,int *jobid)
 pid_t sh_fork(int flags, int *jobid)
 {
 	pid_t parent;
-	int sig;
 	if(!sh.pathlist)
 		path_get(Empty);
 	sfsync(NULL);
 	sh.trapnote &= ~SH_SIGTERM;
 	job_fork(-1);
-	sh.savesig = -1;
+	sh.sigcritical |= SH_SIGDEFER;
 	while(_sh_fork(parent=fork(),flags,jobid) < 0);
 	sh_stats(STAT_FORKS);
-	sig = sh.savesig;
-	sh.savesig = 0;
-	if(sig>0)
-		kill(sh.current_pid,sig);
+	sh.sigcritical = 0;
 	job_fork(parent);
 	return parent;
 }
@@ -3154,6 +3162,8 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 		nv_putval(SH_PATHNAMENOD,sh.st.filename,NV_NOFREE);
 		if(jmpval && jmpval!=SH_JMPFUN)
 			siglongjmp(*sh.jmplist,jmpval);
+		if(jmpval==SH_JMPFUN && sh.lastsig)
+			kill(sh.current_pid, sh.lastsig);  /* pass down unhandled signal that interrupted the function */
 		sh.st.loopcnt = save_loopcnt;
 		return r;
 	}
@@ -3168,7 +3178,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	nv_getval(sh_scoped(IFSNOD));
 	if(nsig)
 		memcpy(sh.st.trapcom, savsig, nsig);
-	sh.trapnote=0;
+	sh.trapnote &= SH_SIGPENDING;
 	sh.options = save_options;
 	sh.last_root = last_root;
 	if(jmpval == SH_JMPSUB)
@@ -3180,8 +3190,13 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	}
 	if(jmpval)
 		r=sh.exitval;
-	if(jmpval==SH_JMPFUN && sh.lastsig)
-		kill(sh.current_pid, sh.lastsig);  /* pass down unhandled signal that interrupted ksh function */
+	/*
+	 * Pass an unhandled signal on to the caller, except while a trap action
+	 * is running: the caller's trap for this signal is the trap that is
+	 * currently executing, so re-raising it would recursively re-enter it.
+	 */
+	if(jmpval==SH_JMPFUN && sh.lastsig && !sh.intrap)
+		kill(sh.current_pid, sh.lastsig);
 	if(jmpval > SH_JMPFUN)
 	{
 		sh_chktrap();

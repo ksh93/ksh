@@ -765,13 +765,15 @@ int sh_close(int fd)
 static int
 onintr(struct addrinfo* addr)
 {
+	if (sh.trapnote & SH_SIGPENDING)
+		sh_sigprocess();
 	if (sh.trapnote&SH_SIGSET)
 	{
 		freeaddrinfo(addr);
 		sh_exit(SH_EXITSIG);
 		return -1;
 	}
-	if (sh.trapnote)
+	if (sh.trapnote & SH_SIGTRAPBITS)
 		sh_chktrap();
 	return 0;
 }
@@ -879,8 +881,12 @@ int sh_open(const char *path, int flags, ...)
 	else
 	{
 		while((fd = open(path, flags, mode)) < 0)
-			if(errno!=EINTR || sh.trapnote)
+		{
+			if(errno==EINTR && (sh.trapnote & SH_SIGPENDING))
+				sh_sigprocess();
+			if(errno!=EINTR || (sh.trapnote & SH_SIGTRAPBITS))
 				return -1;
+		}
 	}
  ok:
 	flags &= O_ACCMODE;
@@ -2364,6 +2370,8 @@ static int slowexcept(Sfio_t *iop,int type,void *data,Sfdisc_t *handle)
 	}
 	if(type!=SFIO_READ)
 		return 0;
+	if(sh.trapnote & SH_SIGPENDING)
+		sh_sigprocess();
 	if((sh.trapnote&(SH_SIGSET|SH_SIGTRAP)) && errno!=EIO && errno!=ENXIO)
 		errno = EINTR;
 	fno = sffileno(iop);
@@ -2463,12 +2471,14 @@ static ssize_t piperead(Sfio_t *iop,void *buff,size_t size,Sfdisc_t *handle)
 {
 	int fd = sffileno(iop);
 	ssize_t ret;
+	if(sh.trapnote & SH_SIGPENDING)
+		sh_sigprocess();
 	if(job.waitsafe && job.savesig)
 	{
 		job_lock();
 		job_unlock();
 	}
-	if(sh.trapnote)
+	if(sh.trapnote & SH_SIGTRAPBITS)
 	{
 		errno = EINTR;
 		return -1;
@@ -2505,7 +2515,9 @@ static ssize_t slowread(Sfio_t *iop,void *buff,size_t size,Sfdisc_t *handle)
 	else
 #endif	/* SHOPT_VSH */
 		readf = ed_read;
-	if(sh.trapnote)
+	if(sh.trapnote & SH_SIGPENDING)
+		sh_sigprocess();
+	if(sh.trapnote & SH_SIGTRAPBITS)
 	{
 		errno = EINTR;
 		return -1;

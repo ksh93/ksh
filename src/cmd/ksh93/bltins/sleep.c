@@ -32,6 +32,8 @@
 #include	"FEATURE/time"
 #include	"FEATURE/poll"
 
+static int	run_traps;
+
 #if __APPLE__ && __MACH__
 /*
  * Bug in macOS: if sleep is invoked from the interactive command line and then suspended (^Z),
@@ -127,13 +129,10 @@ skip:
 		UNREACHABLE();
 	}
 	if(sflag && d==0)
-	{
-		WORKAROUND_START();
-		pause();  /* 'sleep -s' waits until a signal is sent */
-		WORKAROUND_END();
-	}
-	else
-		sh_delay(d,sflag);
+		d = INFINITY;  /* 'sleep -s' waits until a signal is sent */
+	run_traps = 1;
+	sh_delay(d,sflag);
+	run_traps = 0;
 	return 0;
 }
 
@@ -144,39 +143,43 @@ skip:
  */
 void sh_delay(Sfdouble_t t, int sflag)
 {
+	const int infinity = isinf(t);
 	uint32_t n;
 	Tv_t ts, tx;
-	if (isinf(t))
+	if (!infinity)
 	{
-		while (1)
+		if(t > UINT_MAX || t < 0)
 		{
-			WORKAROUND_START();
-			pause();
-			WORKAROUND_END();
-			if ((sh.trapnote & SH_SIGTRAP) || sflag)
-				return;
-			sh_sigcheck();
+			errormsg(SH_DICT,ERROR_exit(1),t<0?e_negative_flt:e_outofrange_flt,sizeof(t),t);
+			UNREACHABLE();
 		}
+		n = (uint32_t)t;
+		ts.tv_sec = n;
+		ts.tv_nsec = 1000000000 * (t - (Sfdouble_t)n);
 	}
-	if(t > UINT_MAX || t < 0)
-	{
-		errormsg(SH_DICT,ERROR_exit(1),t<0?e_negative_flt:e_outofrange_flt,sizeof(t),t);
-		UNREACHABLE();
-	}
-	n = (uint32_t)t;
-	ts.tv_sec = n;
-	ts.tv_nsec = 1000000000 * (t - (Sfdouble_t)n);
+	sflag = !!sflag;  /* guarantee 0 or 1 */
 	while(1)
 	{
 		int r;
+		/* to avoid a potential hang, check signals before sleeping */
+		if ((sh.trapnote & SH_SIGTRAP) || sflag == 2)
+			return;
+		sh_sigcheck();
+		if (run_traps && (sh.trapnote & SH_SIGTRAPBITS))
+			sh_chktrap();
 		WORKAROUND_START();
-		r = tvsleep(&ts, &tx);
+		if (infinity)
+			r = pause();
+		else
+		{
+			r = tvsleep(&ts, &tx);
+			ts = tx;
+		}
 		WORKAROUND_END();
 		if (r >= 0)
-			break;
-		if ((sh.trapnote & SH_SIGTRAP) || sflag)
-			break;
+			return;
 		sh_sigcheck();
-		ts = tx;
+		if (sflag == 1)
+			sflag = 2;
 	}
 }

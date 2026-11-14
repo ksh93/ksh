@@ -60,6 +60,12 @@ typedef void (*SH_SIGTYPE)(int,void(*)(int));
 #define SH_SIGTSTP		020	/* tstp signal received */
 #define SH_SIGTERM		SH_SIGOFF /* term signal received */
 #define SH_SIGRUNTIME		0400	/* runtime value */
+#define SH_SIGPENDING		010000	/* signal recorded, needs processing */
+#define SH_SIGTRAPBITS		(SH_SIGSET|SH_SIGTRAP|SH_SIGTSTP|SH_SIGTERM)
+
+/* bits for sh.sigcritical */
+#define SH_SIGDEFER		1	/* critical region: defer signal actions */
+#define SH_SIGDEFERHIT		2	/* actionable signal arrived while deferred */
 
 #define SH_SIGRTMIN		0	/* sh.sigruntime[] index */
 #define SH_SIGRTMAX		1	/* sh.sigruntime[] index */
@@ -126,6 +132,7 @@ do { \
 
 extern noreturn void 	sh_done(int);
 extern void 	sh_fault(int);
+extern void	sh_sigprocess(void);
 extern void	sh_winsize(int);
 extern void 	sh_sigclear(int);
 extern void 	sh_sigdone(void);

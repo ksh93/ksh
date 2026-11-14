@@ -639,7 +639,7 @@ _ast_glob(const char* pattern, int flags, int (*errfn)(const char*, int), glob_t
 	ptrdiff_t	optlen = 0;
 	size_t		suflen = 0;
 	ssize_t		extra = 1;
-	unsigned char	intr = 0;
+	volatile sig_atomic_t	intr = 0;
 
 	gp->gl_rescan = NULL;
 	gp->gl_error = 0;
