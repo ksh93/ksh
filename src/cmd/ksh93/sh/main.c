@@ -428,7 +428,7 @@ static void	exfile(Sfio_t *_iop, int _fno)
 	sh.st.optindex = 1;
 	opt_info.offset = 0;
 	sh.st.loopcnt = 0;
-	sh.trapnote = 0;
+	sh.trapnote &= SH_SIGPENDING;
 	sh.intrap = 0;
 	error_info.line = 1;
 	sh.inlineno = 1;
@@ -438,6 +438,9 @@ static void	exfile(Sfio_t *_iop, int _fno)
 	/* command loop */
 	while(1)
 	{
+		sh_sigcheck();
+		if (sh.trapnote & SH_SIGTRAPBITS)
+			sh_chktrap();
 		sh.nextprompt = 1;
 		sh_freeup();
 		stkset(sh.stk,NULL,0);
@@ -487,7 +490,7 @@ static void	exfile(Sfio_t *_iop, int _fno)
 #endif /* SHOPT_TIMEOUT */
 			sh.inlineno = 1;
 			error_info.line = 1;
-			sh.trapnote = 0;
+			sh.trapnote &= SH_SIGPENDING;
 			if(buff.mode == SH_JMPEXIT)
 			{
 				buff.mode = SH_JMPERREXIT;

@@ -208,7 +208,17 @@ extern char		*sh_getcwd(void);
 #define sh_getstate()	(sh.st.states)
 #define sh_setstate(x)	(sh.st.states = (x))
 
-#define sh_sigcheck()	do { if(sh.trapnote & SH_SIGSET) sh_exit(SH_EXITSIG); } while(0)
+#define sh_sigcheck()	do \
+{ \
+	sig_atomic_t	tn; \
+	if (tn = sh.trapnote) \
+	{ \
+		if (tn & SH_SIGPENDING) \
+			sh_sigprocess(); \
+		if (tn & SH_SIGSET) \
+			sh_exit(SH_EXITSIG); \
+	} \
+} while (0)
 
 extern int32_t		sh_mailchk;
 extern const char	e_dict[];	/* error message catalog */

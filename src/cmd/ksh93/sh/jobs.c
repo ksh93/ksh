@@ -197,11 +197,11 @@ void job_chldtrap(int unpost)
 	struct process *pw,*pwnext;
 	pid_t bckpid;
 	int oldexit;
-	unsigned char trapnote;
+	sig_atomic_t trapnote;
 	job_lock();
 	sh.sigflag[SIGCHLD] &= ~SH_SIGTRAP;
-	trapnote = sh.trapnote;
-	sh.trapnote = 0;
+	trapnote = sh.trapnote & SH_SIGTRAPBITS;
+	sh.trapnote &= SH_SIGPENDING;
 	for(pw=job.pwlist;pw;pw=pwnext)
 	{
 		pwnext = pw->p_nxtjob;
@@ -222,7 +222,7 @@ void job_chldtrap(int unpost)
 		sh.savexit = oldexit;
 		sh.bckpid = bckpid;
 	}
-	sh.trapnote = trapnote;
+	sh.trapnote = (sh.trapnote & SH_SIGPENDING) | trapnote;
 	job_unlock();
 }
 #endif /* SHOPT_BGX */
@@ -299,7 +299,19 @@ int job_reap(int sig)
 			}
 			break;
 		}
-		sh_sigcheck();
+		/*
+		 * When called from the SIGCHLD handler (sig != 0), do not
+		 * process queued signals here: that would run trap actions and
+		 * may longjmp while the interrupted code is using the shell
+		 * stack. A pending fatal signal is still handled as before.
+		 */
+		if(sig)
+		{
+			if(sh.trapnote & SH_SIGSET)
+				sh_exit(SH_EXITSIG);
+		}
+		else
+			sh_sigcheck();
 		if(pid<0)
 		{
 			if(errno==EINTR && (sig||job.savesig))
@@ -1471,10 +1483,10 @@ int	job_wait(pid_t pid)
 			continue;
 		if(nochild)
 			break;
-		if((intr && sh.trapnote) || (pid==1 && !intr))
+		if((intr && (sh.trapnote & SH_SIGTRAPBITS)) || (pid==1 && !intr))
 			break;
 	}
-	if(intr && sh.trapnote)
+	if(intr && (sh.trapnote & SH_SIGTRAPBITS))
 		sh.exitval = 1;
 	pwfg = NULL;
 	job_unlock();

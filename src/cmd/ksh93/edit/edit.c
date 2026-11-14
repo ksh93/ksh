@@ -611,6 +611,8 @@ int ed_read(void *context, int fd, char *buff, int size, int reedit)
 	sh.waitevent = NULL;
 	while(rv<0 && errno==EINTR)
 	{
+		if(sh.trapnote & SH_SIGPENDING)
+			sh_sigprocess();
 		if(sh.trapnote&(SH_SIGSET|SH_SIGTRAP))
 			goto done;
 #if SHOPT_ESH || SHOPT_VSH

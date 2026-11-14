@@ -1102,7 +1102,6 @@ u ^one two three end\r?\n$
 L tab completion of '.' and '..'
 # https://github.com/ksh93/ksh/issues/372
 
-
 # typing '.' followed by two tabs should show a menu that includes "number) ../"
 p :test-1:
 c : .
@@ -1123,7 +1122,6 @@ L Ctrl+C with SIGINT ignored
 # https://github.com/ksh93/ksh/issues/343
 # Fix improved on 2024-02-12.
 # Note: without emacs, the Ctrl+C should be echoed as ^C.
-
 
 # SIGINT ignored by child
 p :test-1:
@@ -1972,6 +1970,22 @@ w "$SHELL" -c 'kill -s KILL $$' 2>;sig2.out
 r 2>;sig2.out\r?\n$
 s 100
 r ^Killed\r?\n$
+!
+
+tst $LINENO <<"!"
+L trap signal at interactive prompt
+# A signal trapped while the shell is waiting for input must run its trap
+# before the next prompt is displayed.
+
+p :test-1:
+w trap 'echo OK' USR1
+r trap 'echo OK' USR1\r?\n$
+p :test-2:
+w kill -s USR1 $$
+r kill -s USR1 \$\$\r?\n$
+s 100
+r ^OK\r?\n$
+p :test-3:
 !
 
 # ^^^^^^ ADD NEW TESTS ABOVE THIS LINE ^^^^^^

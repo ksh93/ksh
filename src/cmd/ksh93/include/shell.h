@@ -283,7 +283,6 @@ struct Shell_s
 	char		nv_restore;	/* set while restoring variables upon terminating a virtual subshell */
 	int32_t		shlvl;		/* $SHLVL, non-subshell child shell level */
 	char		shcomp;		/* set when running shcomp */
-	unsigned char	trapnote;	/* set when trap/signal is pending */
 	struct sh_scoped st;		/* scoped information */
 	Stk_t		*stk;		/* stack pointer */
 	Sfio_t		*heredocs;	/* current here-doc temp file */
@@ -316,7 +315,9 @@ struct Shell_s
 	pid_t		pipepid;
 	pid_t		outpipepid;
 	int		topfd;
-	int		savesig;
+	volatile sig_atomic_t
+			trapnote,	/* pending signal/trap bitmask */
+			sigcritical;	/* critical region: defer signal actions */
 	unsigned char	*sigflag;	/* pointer to signal states */
 	char		intrap;		/* set while executing a trap action */
 	char		intrap_exit_n;	/* set if 'exit n' within trap */

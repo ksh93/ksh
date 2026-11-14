@@ -471,8 +471,6 @@ void sh_subfork(void)
 		csp = sh_comsubpipe(cspv);
 	}
 	sh.curenv = 0;
-	/* arm critical signal region */
-	sh.savesig = -1;
 	if(pid = sh_fork(F_SUBFORK,NULL))
 	{
 		sh.curenv = curenv;
@@ -502,8 +500,6 @@ void sh_subfork(void)
 		/* sh.comsub is deliberately *not* reset here; a forked command substitution is still a command substitution */
 		sp->subpid=0;
 		sh.st.trapcom[0] = (comsub==2 ? NULL : trap);
-		/* disarm critical signal region */
-		sh.savesig = 0;
 		/* sh_fork() increases ${.sh.subshell} but we forked an existing virtual subshell, so undo */
 		sh.realsubshell--;
 	}
@@ -1095,7 +1091,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 	sp->pwdfd = -1;	/* pwdfd should not be initialized to stdin */
 	sh_sigcheck();
 	/* arm critical signal region */
-	sh.savesig = -1;
+	sh.sigcritical |= SH_SIGDEFER;
 	if(sh.curenv==0)
 	{
 		subshell_data = NULL;
@@ -1220,8 +1216,8 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 		else if(sp->prev)
 			sp->pipe = sp->prev->pipe;
 		flags |= sh_state(SH_NOFORK);
-		/* execute the subshell if no signal was saved */
-		if(sh.savesig < 0)
+		/* execute the subshell only if no actionable signal arrived while deferred */
+		if(!(sh.sigcritical & SH_SIGDEFERHIT))
 		{
 #if !_lib_openat
 			if(sp->pwdfd < 0 && !sh.subshare)	/* if we couldn't get a file descriptor to our PWD ... */
@@ -1242,22 +1238,20 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 			else if(sh_isstate(SH_MONITOR))
 				sh_subfork();
 			/* disarm critical signal region */
-			sh.savesig = 0;
+			sh.sigcritical = 0;
 			/* Execute the subshell tree */
 			sh_exec(t,flags);
 		}
 	}
-	/* re-arm critical signal region (do not overwrite saved signal if any) */
-	if(!sh.savesig)
-		sh.savesig = -1;
+	/* re-arm critical signal region */
+	sh.sigcritical |= SH_SIGDEFER;
 	if(comsub!=2 && jmpval!=SH_JMPSUB && sh.st.trapcom[0] && sh.subshell)
 	{
 		/* trap on EXIT not handled by child */
 		char *trap=sh.st.trapcom[0];
 		sh.st.trapcom[0] = NULL;	/* prevent recursion */
 		sh_trap(trap,0);
-		if(!sh.savesig)
-			sh.savesig = -1;
+		sh.sigcritical |= SH_SIGDEFER;
 		free(trap);
 	}
 	if(sh.subshell==0)	/* we must have forked with sh_subfork(); this is the child process */
@@ -1265,7 +1259,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 		subshell_data = sp->prev;
 		sh_popcontext(&checkpoint);
 		/* disarm critical signal region */
-		sh.savesig = 0;
+		sh.sigcritical = 0;
 		if(jmpval==SH_JMPSCRIPT)
 			siglongjmp(*sh.jmplist,jmpval);
 		sh.exitval &= SH_EXITMASK;
@@ -1365,8 +1359,16 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 	}
 	if(sp->jobs)
 	{
-		job_subrestore(sp->jobs);
+		void *jobs = sp->jobs;
+		/*
+		 * Clear the pointer before restoring.  job_subrestore() may call
+		 * job_unlock(), which can reap a deferred child signal and then
+		 * longjmp out via sh_sigcheck().  If that happened before this
+		 * pointer was cleared, a later cleanup would restore (and free)
+		 * the same saved job again.
+		 */
 		sp->jobs = NULL;
+		job_subrestore(jobs);
 	}
 	sh.curenv = sh.jobenv = savecurenv;
 	job.curpgid = savejobpgid;
@@ -1516,9 +1518,8 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 		sh_argfree(argsav);
 	if(sh.topfd != checkpoint.topfd)
 		sh_iorestore(checkpoint.topfd|IOSUBSHELL,jmpval);
-	/* disarm critical signal region; remember saved signal */
-	n = sh.savesig;
-	sh.savesig = 0;
+	/* disarm critical signal region */
+	sh.sigcritical = 0;
 	if(sp->sig)
 	{
 		if(sp->prev)
@@ -1529,17 +1530,18 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 			sh_chktrap();
 		}
 	}
-	sh_sigcheck();
-	sh.trapnote = 0;
-	/* if a signal was saved in sh.savesig, reissue it */
-	if(n > 0)
-		kill(sh.current_pid, n);
+	/*
+	 * Clear stale trap state *before* processing queued signals, otherwise we have a race
+	 * condition: a trap set for a signal queued during cleanup would be cleared immediately.
+	 */
+	sh.trapnote &= SH_SIGPENDING;	/* clear stale trap state */
+	sh_sigcheck();			/* process queued signals */
 	if(sp->subpid)
 		job_wait(sp->subpid);
 	sh.comsub = sp->comsub;
 	if(comsub && iop && sp->pipefd<0)
 		sfseek(iop,0,SEEK_SET);
-	if(sh.trapnote)
+	if(sh.trapnote & SH_SIGTRAPBITS)
 		sh_chktrap();
 	if(sh.exitval > SH_EXITSIG)
 	{

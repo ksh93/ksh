@@ -40,23 +40,124 @@
 static char	indone;
 static int	cursig = -1;
 
+#define SIGQSIZE		SH_TRAP
+static volatile sig_atomic_t	sigq[SIGQSIZE];
+static volatile sig_atomic_t	sigqhead, sigqtail;
+static volatile sig_atomic_t	sigqpend[SIGQSIZE];
+static volatile sig_atomic_t	sigprocessing;
+
+static void	sh_fault_action(int);
+
 /*
- * Most signals caught or ignored by the shell come here
+ * sh_fault is the main signal handler for almost all signals in ksh.
+ * Record a signal for later processing. For asynchronous signal safety,
+ * only plain sig_atomic_t stores and reads are performed here, except
+ * for fatal signals and SIGFPE where processing it here is inevitable.
  */
 void	sh_fault(int sig)
+{
+	int save_errno = errno;
+	int fatal = abortsig(sig);
+	if (fatal && !(sh.sigflag && sh.st.trapcom && sig < SH_TRAP && sh.st.trapcom[sig]))
+	{
+		/*
+		 * A fatal signal must not be deferred indefinitely. Since there is no
+		 * trap, restore the default disposition and let the kernel terminate
+		 * the shell as it normally would; this also preserves a useful core dump.
+		 */
+		signal(sig,SIG_DFL);
+		kill(sh.current_pid, sig);
+		goto done;
+	}
+	if (fatal || sig==SIGFPE)
+	{
+		/*
+		 * If there is a trap for a fatal signal, it has to run now, safe or not.
+		 * For SIGFPE we must always make sh_fault_action longjmp out of the condition.
+		 * The instructions generating these synchronous faults are retried as soon as
+		 * this handler returns, so deferring them would put the shell in an infinite loop.
+		 */
+		sigprocessing = 1;
+		sh_fault_action(sig);
+		sigprocessing = 0;
+		goto done;
+	}
+	if (sig > 0 && sig < SIGQSIZE)
+	{
+		if ((sh.sigcritical & SH_SIGDEFER) && sh.sigflag && !(sh.sigflag[sig]&SH_SIGIGNORE))
+			sh.sigcritical |= SH_SIGDEFERHIT;
+		sh.trapnote |= SH_SIGPENDING;
+		if (!sigqpend[sig])
+		{
+			int next = ((int)sigqtail+1) % SIGQSIZE;
+			if (next != (int)sigqhead)
+			{
+				sigq[sigqtail] = sig;
+				sigqtail = next;
+			}
+			sigqpend[sig] = 1;
+		}
+	}
+done:
+	/*
+	 * Always restore errno, because this code is run during signal handling which may interrupt loops like:
+	 *	while((fd = open(path, flags, mode)) < 0)
+	 *		if(errno!=EINTR)
+	 *			<throw error>;
+	 * otherwise that may fail if a signal is caught between the open() call and the errno!=EINTR check.
+	 */
+	errno = save_errno;
+}
+
+/*
+ * Process signals recorded by sh_fault(). This runs in normal (non-signal)
+ * context, so it is safe to call the heavyweight machinery below.
+ */
+void sh_sigprocess(void)
+{
+	int sig, save_errno;
+	if (!(sh.trapnote & SH_SIGPENDING) || sigprocessing || (sh.sigcritical & SH_SIGDEFER))
+		return;
+	/* consume the flag before processing; a new signal makes it sticky */
+	sigprocessing = 1;
+	sh.trapnote &= ~SH_SIGPENDING;
+	while (!(sh.sigcritical & SH_SIGDEFER))
+	{
+		if (sigqhead != sigqtail)
+		{
+			sig = (int)sigq[sigqhead];
+			sigqhead = (sigqhead+1) % SIGQSIZE;
+		}
+		else
+		{
+			for (sig = 1; sig < SIGQSIZE; sig++)
+				if (sigqpend[sig])
+					break;
+			if (sig >= SIGQSIZE)
+				break;
+		}
+		sigqpend[sig] = 0;
+		save_errno = errno;
+		sh_fault_action(sig);
+		errno = save_errno;
+	}
+	/* a trap action may have entered a critical region */
+	if (sh.sigcritical & SH_SIGDEFER)
+		sh.trapnote |= SH_SIGPENDING;
+	sigprocessing = 0;
+}
+
+/*
+ * The old signal handler body.  This is now only called from normal context
+ * (sh_sigprocess), except for fatal signals handled by sh_fault() and for
+ * SIGFPE, which are synchronous and would be retried if the handler returned.
+ */
+static void sh_fault_action(int sig)
 {
 	int 		flag=0;
 	char		*trap;
 	struct checkpt	*pp = (struct checkpt*)sh.jmplist;
 	int		action=0;
-	int		save_errno = errno;
-	if(sh.savesig)
-	{
-		/* critical region, save and process later */
-		if(!(sh.sigflag[sig]&SH_SIGIGNORE))
-			sh.savesig = sig;
-		goto done;
-	}
 #ifdef SIGWINCH
 	if(sig==SIGWINCH)
 		sh_winsize(0);
@@ -191,14 +292,6 @@ done:
 		errormsg(SH_DICT,ERROR_PANIC,"arithmetic fault");
 		UNREACHABLE();
 	}
-	/*
-	 * Always restore errno, because this code is run during signal handling which may interrupt loops like:
-	 *	while((fd = open(path, flags, mode)) < 0)
-	 *		if(errno!=EINTR)
-	 *			<throw error>;
-	 * otherwise that may fail if a signal is caught between the open() call and the errno!=EINTR check.
-	 */
-	errno = save_errno;
 	return;
 }
 
@@ -397,7 +490,23 @@ void	sh_sigreset(int mode)
 	sh.st.trapcom[0] = NULL;
 	if(mode)
 		sh.st.trapmax = 0;
-	sh.trapnote=0;
+	/* Mode 2 is used in forked children, which must discard inherited signals. */
+	if (mode == 2 || !(sh.sigcritical & SH_SIGDEFER))
+	{
+		sh.trapnote=0;
+		/* reset the signal queue */
+		sigqhead = sigqtail = 0;
+		/* avoid memset below; not compatible with volatile access */
+		for (sig = 1; sig < SIGQSIZE; sig++)
+			sigqpend[sig] = 0;
+	}
+	else
+	{	/*
+		 * A critical region is active. Keep the queued signals for
+		 * sh_sigcheck() after the region is disarmed; only clear trap state.
+		 */
+		sh.trapnote &= SH_SIGPENDING;
+	}
 }
 
 /*
@@ -427,15 +536,17 @@ void	sh_chktrap(void)
 {
 	int	sig=sh.st.trapmax;
 	char	*trap;
+	if(sh.trapnote & SH_SIGPENDING)
+		sh_sigprocess();
 	if(sh.trapnote&SH_SIGALRM)
 		sh_timetraps();
-	if(!sh.trapnote)
+	if(!(sh.trapnote & SH_SIGTRAPBITS))
 		sig=0;
 	sh.trapnote &= ~SH_SIGTRAP;
 	/* execute errexit trap first */
 	if(sh_isstate(SH_ERREXIT) && sh.exitval)
 	{
-		unsigned char	sav_trapnote = sh.trapnote;
+		sig_atomic_t	sav_trapnote = sh.trapnote & SH_SIGTRAPBITS;
 		sh.trapnote &= ~SH_SIGSET;
 		if(sh.st.trap[SH_ERRTRAP])
 		{
@@ -444,7 +555,7 @@ void	sh_chktrap(void)
 			sh_trap(trap,0);
 			sh.st.trap[SH_ERRTRAP] = trap;
 		}
-		sh.trapnote = sav_trapnote;
+		sh.trapnote = (sh.trapnote & SH_SIGPENDING) | sav_trapnote;
 		if(sh_isoption(SH_ERREXIT))
 		{
 			struct checkpt	*pp = (struct checkpt*)sh.jmplist;
@@ -547,8 +658,17 @@ int sh_trap(const char *trap, int mode)
 	savxit_return = sh.exitval;
 	if(sh.intrap_exit_n)
 		sh.intrap_exit_n = 0;
-	else
+	else if(!(sh.exitval & SH_EXITSIG) || sh.chldexitsig)
+	{
+		/*
+		 * Restore the pre-trap status after a normal trap action. If the
+		 * trap was interrupted by a signal sent to the shell itself, keep
+		 * the signal status so the shell terminates instead of silently
+		 * returning to the code that ran the trap. A signal status from a
+		 * child process is part of the trap action and is still restored.
+		 */
 		sh.exitval = savxit;
+	}
 	stkset(sh.stk,savptr,staktop);
 	fcrestore(&savefc);
 	if(was_history)
@@ -584,7 +704,7 @@ void sh_exit(int xno)
 	if((sh.trapnote&SH_SIGTSTP) && job.jobcontrol)
 	{
 		/* ^Z detected by the shell */
-		sh.trapnote = 0;
+		sh.trapnote &= SH_SIGPENDING;
 		sh.sigflag[SIGTSTP] = 0;
 		if(!sh.subshell && sh_isstate(SH_MONITOR) && !sh_isstate(SH_STOPOK))
 			return;
@@ -594,7 +714,7 @@ void sh_exit(int xno)
 		sh.lastsig = 0;
 		sh_onstate(SH_MONITOR);
 		sh_offstate(SH_STOPOK);
-		sh.trapnote = 0;
+		sh.trapnote &= SH_SIGPENDING;
 		sh.forked = 1;
 		if(sh_isstate(SH_INTERACTIVE) && (sig=sh_fork(0,NULL)))
 		{
@@ -646,7 +766,10 @@ void sh_exit(int xno)
 	if(pp->mode == SH_JMPSCRIPT && !pp->prev)
 		sh_done(sig);
 	if(pp->mode)
+	{
+		sigprocessing = 0;
 		siglongjmp(pp->buff,pp->mode);
+	}
 }
 
 static void array_notify(Namval_t *np, void *data)

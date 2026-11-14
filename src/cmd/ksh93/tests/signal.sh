@@ -660,6 +660,61 @@ do	for cmd
 	done
 done
 
+# ======
+# Unsetting the trap and resending the signal from within the trap action should terminate the shell
+{ got=$("$SHELL" -c '
+	trap "print -n B; trap - USR2; kill -s USR2 "$$"; print -n C" USR2
+	print -n A
+	kill -s USR2 "$$"
+	print -n D
+' 2>&1); } 2>/dev/null
+e=$?
+exp_e=$(( $(kill -l USR2) + 256 ))
+exp='AB'
+[[ e -eq exp_e && $got == "$exp" ]] || err_exit 'unseet trap and reset signal from within trap action' \
+	"(expected status $exp_e$( ((exp_e>128)) && print -n /SIG && kill -l "$exp_e") and $(printf %q "$exp")," \
+	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e") and $(printf %q "$got"))"
+
+# Unsetting the trap and resending the signal from a POSIX function called by the trap action should terminate the shell
+{ got=$("$SHELL" -c '
+	fn() {
+		print -n C
+		trap - USR2
+		kill -s USR2 "$$"
+		print -n D
+	}
+	trap "print -n B; fn; print -n E" USR2
+	print -n A
+	kill -s USR2 "$$"
+	print -n F
+' 2>&1); } 2>/dev/null
+e=$?
+exp_e=$(( $(kill -l USR2) + 256 ))
+exp='ABC'
+[[ e -eq exp_e && $got == "$exp" ]] || err_exit 'unseet trap and reset signal from POSIX function called by trap action' \
+	"(expected status $exp_e$( ((exp_e>128)) && print -n /SIG && kill -l "$exp_e") and $(printf %q "$exp")," \
+	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e") and $(printf %q "$got"))"
+
+# Unsetting the trap and resending the signal from a ksh function called by the trap action should terminate only the function
+{ got=$("$SHELL" -c '
+	function fn {
+		print -n C
+		trap - USR2
+		kill -s USR2 "$$"
+		print -n D
+	}
+	trap "print -n B; fn; print -n E" USR2
+	print -n A
+	kill -s USR2 "$$"
+	print -n F
+' 2>&1); } 2>/dev/null
+e=$?
+exp_e=0
+exp='ABCEF'
+[[ e -eq exp_e && $got == "$exp" ]] || err_exit 'unseet trap and reset signal from ksh function called by trap action' \
+	"(expected status $exp_e$( ((exp_e>128)) && print -n /SIG && kill -l "$exp_e") and $(printf %q "$exp")," \
+	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e") and $(printf %q "$got"))"
+
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
 wait "$parallel_1"; r=$(< parallel_1.err) || exit 125; eval "$r"
