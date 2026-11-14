@@ -190,7 +190,7 @@ if (error_info.trace < DEBUG_TRACE) sfprintf(sfstderr, "%s: debug-%d: AHA%d _ast
 				bp = cp;
 				break;
 			}
-			if (sub[1] > (ssize_t)n && !isalpha(c))
+			if (sub[1] > (ssize_t)n && !isalpha((unsigned char)c))
 			{
 				bp = cp;
 				n = (size_t)sub[1];
@@ -211,8 +211,8 @@ if (error_info.trace < DEBUG_TRACE) sfprintf(sfstderr, "%s: debug-%d: AHA%d _ast
 		{
 			if (cp->index)
 			{
-				for (m += sub[1]; *m && !isalnum(*m); m++);
-				if (!isdigit(*m))
+				for (m += sub[1]; *m && !isalnum((unsigned char)*m); m++);
+				if (!isdigit((unsigned char)*m))
 					m = cp->index;
 			}
 			else
@@ -243,8 +243,8 @@ if (error_info.trace < DEBUG_TRACE) sfprintf(sfstderr, "%s: debug-%d: AHA%d _ast
 	}
 	while (b < e && (c = *m++))
 	{
-		if (islower(c))
-			c = toupper(c);
+		if (islower((unsigned char)c))
+			c = toupper((unsigned char)c);
 		*b++ = (char)c;
 	}
 	*b = 0;

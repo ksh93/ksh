@@ -101,7 +101,7 @@ fmtquote(const char* as, const char* qb, const char* qe, size_t n, int flags)
 		else
 		{
 			c = *s++;
-			if (!(flags & FMT_ESCAPED) && (iscntrl(c) || !isprint(c) || c == '\\'))
+			if (!(flags & FMT_ESCAPED) && (iscntrl((unsigned char)c) || !isprint((unsigned char)c) || c == '\\'))
 			{
 				escaped = 1;
 				*b++ = '\\';
@@ -197,7 +197,7 @@ fmtquote(const char* as, const char* qb, const char* qe, size_t n, int flags)
 				else if (singlequote || (flags & FMT_SHELL))
 					spaced = 1;
 			}
-			else if (!spaced && !escaped && (isspace(c) || ((flags & FMT_SHELL) || shell) && (strchr("\";~&|()<>[]*?", c) || c == '#' && (b == f || isspace(*(b - 1))))))
+			else if (!spaced && !escaped && (isspace((unsigned char)c) || ((flags & FMT_SHELL) || shell) && (strchr("\";~&|()<>[]*?", c) || c == '#' && (b == f || isspace((unsigned char)*(b - 1))))))
 				spaced = 1;
 			*b++ = (char)c;
 		}

@@ -1182,7 +1182,7 @@ int hist_copy(char *s1,int size,int command,int line)
 
 int hist_iswordbndry(int c)
 {
-	return isspace(c) || strchr("|&;()`<>",c);
+	return isspace((unsigned char)c) || strchr("|&;()`<>",c);
 }
 
 /*

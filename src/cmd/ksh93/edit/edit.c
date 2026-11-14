@@ -52,12 +52,12 @@ static char *erase_eos;  /* erase to end of screen */
 #endif /*  SHOPT_ESH || SHOPT_VSH */
 
 #if SHOPT_MULTIBYTE
-#   define is_cntrl(c)	((c<=STRIP) && iscntrl(c))
-#   define is_print(c)	((c&~STRIP) || isprint(c))
+#   define is_cntrl(c)	((c<=STRIP) && iscntrl((unsigned char)c))
+#   define is_print(c)	((c&~STRIP) || isprint((unsigned char)c))
 #   define genlen(str)	ed_genlen(str)
 #else
-#   define is_cntrl(c)	iscntrl(c)
-#   define is_print(c)	isprint(c)
+#   define is_cntrl(c)	iscntrl((unsigned char)c)
+#   define is_print(c)	isprint((unsigned char)c)
 #   define genlen(str)	strlen(str)
 #endif
 
@@ -899,7 +899,7 @@ int ed_getchar(Edit_t *ep,int mode)
 		/*** map '\r' to '\n' ***/
 		if(c == '\r' && mode!=2)
 			c = '\n';
-		if(ep->e_tabcount && !(c=='\t'||c==ESC || c=='\\' || c=='=' || c==cntl('L') || isdigit(c)))
+		if(ep->e_tabcount && !(c=='\t'||c==ESC || c=='\\' || c=='=' || c==cntl('L') || (c >= 0 && c <= UCHAR_MAX && isdigit((unsigned char)c))))
 			ep->e_tabcount = 0;
 	}
 	else

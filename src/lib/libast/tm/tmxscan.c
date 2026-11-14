@@ -184,7 +184,7 @@ scan(const char* s, char** e, const char* format, char** f, Time_t t, long flags
 	char*		u = NULL;
 	char**		sp = &stack[0];
 
-	while (isspace(*s))
+	while (isspace((unsigned char)*s))
 		s++;
 	b = s;
  again:
@@ -249,7 +249,7 @@ scan(const char* s, char** e, const char* format, char** f, Time_t t, long flags
 				set.year = (n - 19) * 100 + tm->tm_year % 100;
 				continue;
 			case 'd':
-				if (pedantic && !isdigit(*s))
+				if (pedantic && !isdigit((unsigned char)*s))
 					goto next;
 				/* FALLTHROUGH */
 			case 'e':
@@ -301,7 +301,7 @@ scan(const char* s, char** e, const char* format, char** f, Time_t t, long flags
 				}
 				/* FALLTHROUGH */
 			case 't':
-				while (isspace(*s))
+				while (isspace((unsigned char)*s))
 					s++;
 				continue;
 			case 'N':
@@ -412,8 +412,8 @@ scan(const char* s, char** e, const char* format, char** f, Time_t t, long flags
 			*sp++ = (char*)format;
 			format = (const char*)p;
 		}
-		else if (isspace(d))
-			while (isspace(*s))
+		else if (isspace((unsigned char)d))
+			while (isspace((unsigned char)*s))
 				s++;
 		else if (*s != d)
 			break;
@@ -441,13 +441,13 @@ scan(const char* s, char** e, const char* format, char** f, Time_t t, long flags
  done:
 	if (e)
 	{
-		while (isspace(*s))
+		while (isspace((unsigned char)*s))
 			s++;
 		*e = (char*)s;
 	}
 	if (f)
 	{
-		while (isspace(*format))
+		while (isspace((unsigned char)*format))
 			format++;
 		*f = (char*)format;
 	}

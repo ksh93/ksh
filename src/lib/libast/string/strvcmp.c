@@ -33,12 +33,12 @@ strvcmp(const char* a, const char* b)
 
 	for (;;)
 	{
-		if (isdigit(*a) && isdigit(*b))
+		if (isdigit((unsigned char)*a) && isdigit((unsigned char)*b))
 		{
 			na = nb = 0;
-			while (isdigit(*a))
+			while (isdigit((unsigned char)*a))
 				na = na * 10 + (unsigned)*a++ - '0';
-			while (isdigit(*b))
+			while (isdigit((unsigned char)*b))
 				nb = nb * 10 + (unsigned)*b++ - '0';
 			if (na < nb)
 				return -1;

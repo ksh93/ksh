@@ -85,7 +85,7 @@ static int charcmp(int a, int b, int nocase)
 			return towlower((wint_t)a)==towlower((wint_t)b);
 		else
 #endif
-			return tolower(a)==tolower(b);
+			return tolower((unsigned char)a)==tolower((unsigned char)b);
 	}
 	return a==b;
 }
@@ -599,7 +599,7 @@ int ed_macro(Edit_t *ep, int i)
 		ep->e_macro[2] = (char)(i = ed_getchar(ep,1));
 	else
 		ep->e_macro[2] = 0;
-	if (isalnum(i)&&(np=nv_search(ep->e_macro,sh.alias_tree,0))&&(out=nv_getval(np)))
+	if (i >= 0 && i <= UCHAR_MAX && isalnum((unsigned char)i)&&(np=nv_search(ep->e_macro,sh.alias_tree,0))&&(out=nv_getval(np)))
 	{
 		/* copy to buff in internal representation */
 #if SHOPT_MULTIBYTE

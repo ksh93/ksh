@@ -183,7 +183,7 @@ getfmt(Sfio_t* sp, void* vp, Sffmt_t* dp)
 			if (i = *--v)
 			{
 				*v = 0;
-				if (i == ':' && fp->fmt.fmt == 's' && strlen(a) > 4 && !isalnum(*(a + 4)))
+				if (i == ':' && fp->fmt.fmt == 's' && strlen(a) > 4 && !isalnum((unsigned char)*(a + 4)))
 				{
 					d = *(a + 4);
 					*(a + 4) = 0;
@@ -308,7 +308,7 @@ getfmt(Sfio_t* sp, void* vp, Sffmt_t* dp)
 		value->s = s;
 		if (fp->level == 1)
 			while ((s = strchr(s, CC_esc)) && *(s + 1) == '[')
-				do fp->invisible++; while (*s && !islower(*s++));
+				do fp->invisible++; while (*s && !islower((unsigned char)*s++));
 		break;
 	case 'Z':
 		fp->fmt.fmt = 'c';

@@ -45,14 +45,14 @@ strelapsed(const char* s, char** e, int n)
 
 	for (;;)
 	{
-		while (isspace(*s) || *s == '_')
+		while (isspace((unsigned char)*s) || *s == '_')
 			s++;
 		if (!*(last = s))
 			break;
 		if (z)
 		{
 			z = 0;
-			if (*s == '0' && (!(c = *(s + 1)) || isspace(c) || c == '_'))
+			if (*s == '0' && (!(c = *(s + 1)) || isspace((unsigned char)c) || c == '_'))
 			{
 				last = s + 1;
 				break;
@@ -74,7 +74,7 @@ strelapsed(const char* s, char** e, int n)
 		if (s == last + 1)
 			break;
 		if (!p)
-			while (isspace(c) || c == '_')
+			while (isspace((unsigned char)c) || c == '_')
 				c = *s++;
 		switch (c)
 		{
@@ -141,7 +141,7 @@ strelapsed(const char* s, char** e, int n)
 			goto done;
 		}
 		t += v;
-		while (isalpha(*s))
+		while (isalpha((unsigned char)*s))
 			s++;
 	}
  done:

@@ -164,7 +164,7 @@ tmxfmt(char *restrict buf, size_t len, const char *restrict format, Time_t t)
 				continue;
 			case 'E':
 			case 'O':
-				if (!isalpha(*format))
+				if (!isalpha((unsigned char)*format))
 					break;
 				alt = c;
 				continue;
@@ -358,7 +358,7 @@ tmxfmt(char *restrict buf, size_t len, const char *restrict format, Time_t t)
 		case 'P':	/* (AST|GNU) lower case meridian */
 			p = tm_info.format[TM_MERIDIAN + (tm->tm_hour >= 12)];
 			while (cp < ep && (n = *p++))
-				*cp++ = (char)(isupper(n) ? tolower(n) : n);
+				*cp++ = (char)(isupper((unsigned char)n) ? tolower((unsigned char)n) : n);
 			continue;
 		case 'q':	/* quarter of the year (1-4) */
 			cp = number(cp, ep, (long)(tm->tm_mon / 3) + 1, 0, width, pad);
@@ -367,7 +367,7 @@ tmxfmt(char *restrict buf, size_t len, const char *restrict format, Time_t t)
 			if (c = *format)
 			{
 				format++;
-				if (isalpha(c))
+				if (isalpha((unsigned char)c))
 				{
 					switch (c)
 					{

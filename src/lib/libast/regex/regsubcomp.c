@@ -232,18 +232,18 @@ regsubcomp(regex_t* p, const char* s, const regflags_t* map, int minmatch, regfl
 			switch (op->op)
 			{
 			case REG_SUB_UPPER:
-				if (islower(c))
-					c = toupper(c);
+				if (islower((unsigned char)c))
+					c = toupper((unsigned char)c);
 				break;
 			case REG_SUB_LOWER:
-				if (isupper(c))
-					c = tolower(c);
+				if (isupper((unsigned char)c))
+					c = tolower((unsigned char)c);
 				break;
 			case REG_SUB_UPPER|REG_SUB_LOWER:
-				if (isupper(c))
-					c = tolower(c);
-				else if (islower(c))
-					c = toupper(c);
+				if (isupper((unsigned char)c))
+					c = tolower((unsigned char)c);
+				else if (islower((unsigned char)c))
+					c = toupper((unsigned char)c);
 				break;
 			}
 			*t++ = (char)c;
@@ -260,15 +260,15 @@ regsubcomp(regex_t* p, const char* s, const regflags_t* map, int minmatch, regfl
 		case '0': case '1': case '2': case '3': case '4':
 		case '5': case '6': case '7': case '8': case '9':
 			c -= '0';
-			if (isdigit(*s) && (p->env->flags & REG_MULTIREF))
+			if (isdigit((unsigned char)*s) && (p->env->flags & REG_MULTIREF))
 				c = c * 10 + *s++ - '0';
 			break;
 		case 'l':
 			if (c = *s)
 			{
 				s++;
-				if (isupper(c))
-					c = tolower(c);
+				if (isupper((unsigned char)c))
+					c = tolower((unsigned char)c);
 				*t++ = (char)c;
 			}
 			continue;
@@ -276,8 +276,8 @@ regsubcomp(regex_t* p, const char* s, const regflags_t* map, int minmatch, regfl
 			if (c = *s)
 			{
 				s++;
-				if (islower(c))
-					c = toupper(c);
+				if (islower((unsigned char)c))
+					c = toupper((unsigned char)c);
 				*t++ = (char)c;
 			}
 			continue;

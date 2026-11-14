@@ -698,9 +698,9 @@ static int varname(const char *str, ptrdiff_t n)
 #else
 		c = *(unsigned char*)str++;
 #endif
-		if(dot && !(isalpha(c)||c=='_'))
+		if(dot && !((c >= 0 && c <= UCHAR_MAX && isalpha((unsigned char)c))||c=='_'))
 			break;
-		else if(dot==0 && !(isalnum(c) || c=='_' || c == '.'))
+		else if(dot==0 && !((c >= 0 && c <= UCHAR_MAX && isalnum((unsigned char)c)) || c=='_' || c == '.'))
 			break;
 		dot = (c=='.');
 	}

@@ -185,7 +185,7 @@ vercmp(FTSENT* const* ap, FTSENT* const* bp)
 
 	for (;;)
 	{
-		if (isdigit(*a) && isdigit(*b))
+		if (isdigit((unsigned char)*a) && isdigit((unsigned char)*b))
 		{
 			m = strtoi((char*)a, &e, 10);
 			a = (unsigned char*)e;
@@ -287,7 +287,7 @@ dllsopen(const char* lib, const char* name, const char* version)
 		}
 		if (!version)
 			for (t = (char*)name; *t; t++)
-				if ((*t == '-' || *t == '.' || *t == '?') && isdigit(*(t + 1)))
+				if ((*t == '-' || *t == '.' || *t == '?') && isdigit((unsigned char)*(t + 1)))
 				{
 					if (*t != '-')
 						scan->flags |= DLL_MATCH_VERSION;
@@ -308,7 +308,7 @@ dllsopen(const char* lib, const char* name, const char* version)
 	{
 		sfprintf(scan->tmp, "%s%s", info->prefix, name);
 		for (s = (char*)version; *s; s++)
-			if (isdigit(*s))
+			if (isdigit((unsigned char)*s))
 				sfputc(scan->tmp, *s);
 		sfprintf(scan->tmp, "%s", info->suffix);
 		if (!(s = sfstruse(scan->tmp)))
@@ -327,7 +327,7 @@ dllsopen(const char* lib, const char* name, const char* version)
 			{
 				t = buf;
 				for (s = (char*)version; *s; s++)
-					if (isdigit(*s) && t < &buf[sizeof(buf)-1])
+					if (isdigit((unsigned char)*s) && t < &buf[sizeof(buf)-1])
 						*t++ = *s;
 				*t = 0;
 				version = (const char*)buf;
@@ -448,7 +448,7 @@ dllsread(Dllscan_t* scan)
 	if (!(scan->flags & DLL_INFO_PREVER))
 		while (b > scan->buf)
 		{
-			if (!isdigit(*(b - 1)) && *(b - 1) != '.')
+			if (!isdigit((unsigned char)*(b - 1)) && *(b - 1) != '.')
 				break;
 			b--;
 		}
@@ -457,7 +457,7 @@ dllsread(Dllscan_t* scan)
 		b -= 2;
 	n = m = 0;
 	for (t = b; t > scan->buf; t--)
-		if (isdigit(*(t - 1)))
+		if (isdigit((unsigned char)*(t - 1)))
 			n = 1;
 		else if (*(t - 1) != m)
 		{
@@ -477,15 +477,15 @@ dllsread(Dllscan_t* scan)
 		}
 	if (n)
 	{
-		if (isdigit(t[0]) && isdigit(t[1]) && !isdigit(t[2]))
+		if (isdigit((unsigned char)t[0]) && isdigit((unsigned char)t[1]) && !isdigit((unsigned char)t[2]))
 			n = (t[0] - '0') * 10 + (t[1] - '0');
-		else if (isdigit(t[1]) && isdigit(t[2]) && !isdigit(t[3]))
+		else if (isdigit((unsigned char)t[1]) && isdigit((unsigned char)t[2]) && !isdigit((unsigned char)t[3]))
 			n = (t[1] - '0') * 10 + (t[2] - '0');
 		else
 			n = 0;
 		if (n && !(n & (n - 1)))
 		{
-			if (!isdigit(t[0]))
+			if (!isdigit((unsigned char)t[0]))
 				t++;
 			m = *(t += 2);
 		}

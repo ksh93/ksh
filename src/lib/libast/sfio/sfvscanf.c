@@ -243,7 +243,7 @@ static int _sfgetwc(Scan_t*	sc,	/* the scanning handle		*/
 			if(fmt == 'c')
 				return 1;
 			else if(fmt == 's')
-			{	if(n > 1 || (n == 1 && !isspace(b[0]) ) )
+			{	if(n > 1 || (n == 1 && !isspace((unsigned char)b[0]) ) )
 					return 1;
 				else	goto no_match;
 			}
@@ -338,13 +338,13 @@ loop_fmt:
 	SFMBCLR(&fmbs);
 	while((fmt = *form++))
 	{	if(fmt != '%')
-		{	if(isspace(fmt))
+		{	if(isspace((unsigned char)fmt))
 			{	if(fmt != '\n' || !(f->flags&SFIO_LINE))
 					fmt = -1;
 				for(;;)
 				{	if(SFgetc(f,inp) < 0 || inp == fmt)
 						goto loop_fmt;
-					else if(!isspace(inp))
+					else if(!isspace((unsigned char)inp))
 					{	SFungetc(f,inp);
 						goto loop_fmt;
 					}
@@ -378,7 +378,7 @@ loop_fmt:
 
 		if(*form == '%')
 		{	form += 1;
-			do SFgetc(f,inp); while(isspace(inp)); /* skip starting blanks */
+			do SFgetc(f,inp); while(isspace((unsigned char)inp)); /* skip starting blanks */
 			SFungetc(f,inp);
 			goto match_1;
 		}
@@ -464,7 +464,7 @@ loop_fmt:
 
 		case '.' : /* width & base */
 			dot += 1;
-			if(isdigit(*form))
+			if(isdigit((unsigned char)*form))
 			{	fmt = *form++;
 				goto dot_size;
 			}
@@ -500,7 +500,7 @@ loop_fmt:
 		case '0' : case '1' : case '2' : case '3' : case '4' :
 		case '5' : case '6' : case '7' : case '8' : case '9' :
 		dot_size :
-			for(v = fmt-'0'; isdigit(*form); ++form)
+			for(v = fmt-'0'; isdigit((unsigned char)*form); ++form)
 				v = v*10 + (*form - '0');
 
 			if(*form == '$')
@@ -547,8 +547,8 @@ loop_fmt:
 			}
 			else if (fmt == 'z')
 				flags = (flags&~SFFMT_TYPES) | SFFMT_ZFLAG;
-			else if(isdigit(*form))
-				for(size = 0, n = *form; isdigit((int)n); n = *++form)
+			else if(isdigit((unsigned char)*form))
+				for(size = 0, n = *form; isdigit((unsigned char)n); n = *++form)
 					size = size*10 + (n - '0');
 			goto loop_flags;
 
@@ -745,7 +745,7 @@ loop_fmt:
 			SFgetc(f,inp);
 		else
 		{	do	{ SFgetc(f,inp); }
-			while(isspace(inp)); /* skip starting blanks */
+			while(isspace((unsigned char)inp)); /* skip starting blanks */
 		}
 		if(inp < 0)
 			goto done;
@@ -788,7 +788,7 @@ loop_fmt:
 			{	if(inp == '-')
 					flags |= SFFMT_MINUS;
 				while(--width > 0 && SFgetc(f,inp) >= 0)
-					if(!isspace(inp))
+					if(!isspace((unsigned char)inp))
 						break;
 			}
 			if(inp < 0)
@@ -971,7 +971,7 @@ loop_fmt:
 
 			if(fmt == 's')
 			{	do
-				{	if(isspace(inp))
+				{	if(isspace((unsigned char)inp))
 						break;
 					if((n += 1) <= size)
 						*argv.s++ = (char)inp;

@@ -72,7 +72,7 @@ strpsearch(const void* tab, size_t num, size_t siz, const char* name, char** nex
 					v = 0;
 					s++;
 				}
-				else if (!isalpha(*t))
+				else if (!isalpha((unsigned char)*t))
 				{
 					if (v || !*s)
 					{

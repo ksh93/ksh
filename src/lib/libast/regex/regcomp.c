@@ -757,7 +757,7 @@ magic(Cenv_t* env, int c, int escaped)
 					env->error = REG_BADESC;
 					goto bad;
 				}
-				if ((env->flags & REG_MULTIREF) && isdigit(*sp))
+				if ((env->flags & REG_MULTIREF) && isdigit((unsigned char)*sp))
 				{
 					c = (c - T_BACK) * 10 + (*sp - '0');
 					if (c > 0 && c <= env->parno && env->paren[c])
@@ -916,7 +916,7 @@ token(Cenv_t* env)
 					return T_END;
 			} while (c != '\n');
 		}
-		else if (!isspace(c))
+		else if (!isspace((unsigned char)c))
 			break;
 		env->cursor++;
 	}
@@ -971,7 +971,7 @@ token(Cenv_t* env)
 			env->error = REG_EPAREN;
 			return T_BAD;
 		}
-		else if (isspace(c) && (env->flags & REG_COMMENT))
+		else if (isspace((unsigned char)c) && (env->flags & REG_COMMENT))
 			return c;
 		return magic(env, c, 1);
 	}
@@ -1024,14 +1024,14 @@ col(Celt_t* ce, int ic, unsigned char* bp, int bw, int bc, unsigned char* ep, in
 			c = bc;
 			if (ic)
 			{
-				if (isupper(c))
+				if (isupper((unsigned char)c))
 				{
-					c = tolower(c);
+					c = tolower((unsigned char)c);
 					cc = -1;
 				}
-				else if (islower(c))
+				else if (islower((unsigned char)c))
 				{
-					c = toupper(c);
+					c = toupper((unsigned char)c);
 					cc = -1;
 				}
 			}
@@ -1080,14 +1080,14 @@ col(Celt_t* ce, int ic, unsigned char* bp, int bw, int bc, unsigned char* ep, in
 				c = ec;
 				if (ic)
 				{
-					if (isupper(c))
+					if (isupper((unsigned char)c))
 					{
-						c = tolower(c);
+						c = tolower((unsigned char)c);
 						cc = -1;
 					}
-					else if (islower(c))
+					else if (islower((unsigned char)c))
 					{
-						c = toupper(c);
+						c = toupper((unsigned char)c);
 						cc = -1;
 					}
 				}
@@ -1695,10 +1695,10 @@ bra(Cenv_t* env)
 		for (i = 0; i <= UCHAR_MAX; i++)
 			if (settst(e->re.charclass, i))
 			{
-				if (isupper((int)i))
-					c = tolower((int)i);
-				else if (islower((int)i))
-					c = toupper((int)i);
+				if (isupper((unsigned char)i))
+					c = tolower((unsigned char)i);
+				else if (islower((unsigned char)i))
+					c = toupper((unsigned char)i);
 				else
 					continue;
 				setadd(e->re.charclass, c);
@@ -2256,7 +2256,7 @@ grp(Cenv_t* env, int parno)
 		 */
 
 		e->re.nest.type = (unsigned short*)(e + 1);
-		e->re.nest.primary = isalnum(*env->cursor) ? -1 : *env->cursor;
+		e->re.nest.primary = isalnum((unsigned char)*env->cursor) ? -1 : *env->cursor;
 		n = 1;
 		for (;;)
 		{
@@ -2325,7 +2325,7 @@ grp(Cenv_t* env, int parno)
 				goto nesting;
 			default:
 			nesting:
-				if (isalnum(i) || (e->re.nest.type[i] & (REX_NEST_close|REX_NEST_escape|REX_NEST_literal|REX_NEST_quote|REX_NEST_delimiter|REX_NEST_separator|REX_NEST_terminator)))
+				if (isalnum((unsigned char)i) || (e->re.nest.type[i] & (REX_NEST_close|REX_NEST_escape|REX_NEST_literal|REX_NEST_quote|REX_NEST_delimiter|REX_NEST_separator|REX_NEST_terminator)))
 					goto invalid;
 				e->re.nest.type[i] = REX_NEST_open;
 				if ((x = chr(env, &esc)) < 0 || (e->re.nest.type[x] & (REX_NEST_close|REX_NEST_escape|REX_NEST_delimiter|REX_NEST_separator|REX_NEST_terminator)))
@@ -2363,7 +2363,7 @@ grp(Cenv_t* env, int parno)
 		return e;
 	case '(':
 		c = 0;
-		if (isdigit(*env->cursor))
+		if (isdigit((unsigned char)*env->cursor))
 		{
 			f = NULL;
 			do
@@ -2374,7 +2374,7 @@ grp(Cenv_t* env, int parno)
 					return NULL;
 				}
 				c = c * 10 + (*env->cursor++ - '0');
-			} while (isdigit(*env->cursor));
+			} while (isdigit((unsigned char)*env->cursor));
 			if (*env->cursor++ != ')')
 			{
 				env->error = REG_BADRPT;
@@ -2469,7 +2469,7 @@ grp(Cenv_t* env, int parno)
 	case '0': case '1': case '2': case '3': case '4':
 	case '5': case '6': case '7': case '8': case '9':
 		c -= '0';
-		while (isdigit(*env->cursor))
+		while (isdigit((unsigned char)*env->cursor))
 		{
 			if (c > (INT_MAX / 10))
 			{
@@ -2628,7 +2628,7 @@ seq(Cenv_t* env)
 			if (c >= 0)
 			{
 				n = 1;
-				*s++ = (unsigned char)((env->flags & REG_ICASE) ? toupper((int)c) : c);
+				*s++ = (unsigned char)((env->flags & REG_ICASE) ? toupper((unsigned char)c) : c);
 			}
 			else if (c == C_ESC || (env->flags & REG_ICASE))
 			{
@@ -2682,7 +2682,7 @@ seq(Cenv_t* env)
 						drop(env->disc, e);
 						goto error_return;
 					}
-					f->re.onechar = (unsigned char)((env->flags & REG_ICASE) ? toupper((int)x) : x);
+					f->re.onechar = (unsigned char)((env->flags & REG_ICASE) ? toupper((unsigned char)x) : x);
 				}
 				else
 				{
@@ -3027,7 +3027,7 @@ regcomp(regex_t* p, const char* pattern, regflags_t flags)
 		if (!(fold = newof(0, unsigned char, UCHAR_MAX, 1)))
 			return fatal(disc, REG_ESPACE, pattern);
 		for (i = 0; i <= UCHAR_MAX; i++)
-			fold[i] = (unsigned char)toupper(i);
+			fold[i] = (unsigned char)toupper((unsigned char)i);
 		LCINFO(AST_LC_CTYPE)->data = fold;
 	}
  again:

@@ -145,9 +145,9 @@ getids(char* s, char** e, Key_t* key, int options)
 	char		buf[64];
 
 	key->uid = key->gid = -1;
-	while (isspace(*s))
+	while (isspace((unsigned char)*s))
 		s++;
-	for (t = s; (n = *t) && n != ':' && n != '.' && !isspace((int)n); t++);
+	for (t = s; (n = *t) && n != ':' && n != '.' && !isspace((unsigned char)n); t++);
 	if (n)
 	{
 		options |= OPT_CHOWN;
@@ -179,7 +179,7 @@ getids(char* s, char** e, Key_t* key, int options)
 			}
 			key->uid = j;
 		}
-		for (s = t; (n = *t) && !isspace((int)n); t++);
+		for (s = t; (n = *t) && !isspace((unsigned char)n); t++);
 		if (n)
 		{
 			if ((n = t++ - s) >= (ssize_t)sizeof(buf))

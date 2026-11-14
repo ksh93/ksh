@@ -70,7 +70,7 @@ int	b_trap(int argc,char *argv[],Shbltin_t *context)
 		if(!dflag && !pflag)
 		{
 			/* first argument all digits or - means clear */
-			while(isdigit(*arg))
+			while(isdigit((unsigned char)*arg))
 				arg++;
 			clear = (arg!=action && *arg==0);
 			if(!clear)
@@ -271,7 +271,7 @@ endopts:
 			sig_list(usemenu);
 		else while(signame = *argv++)
 		{
-			if(isdigit(*signame))
+			if(isdigit((unsigned char)*signame))
 			{
 				int i;
 				errno = 0;
@@ -356,7 +356,7 @@ static int sig_number(const char *string)
 	const Shtable_t	*tp;
 	int		n, sig=0;
 	char		*last, *name;
-	if(isdigit(*string))
+	if(isdigit((unsigned char)*string))
 	{
 		errno = 0;
 		n = strtoi(string,&last,10);
@@ -370,8 +370,8 @@ static int sig_number(const char *string)
 		do
 		{
 			c = *string++;
-			if(islower(c))
-				c = toupper(c);
+			if(islower((unsigned char)c))
+				c = toupper((unsigned char)c);
 			sfputc(sh.stk,c);
 		}
 		while(c);
@@ -380,7 +380,7 @@ static int sig_number(const char *string)
 		{
 			sig = 1;
 			o += 3;
-			if(isdigit(*stkptr(sh.stk,o)))
+			if(isdigit((unsigned char)*stkptr(sh.stk,o)))
 			{
 				errno = 0;
 				n = strtoi(stkptr(sh.stk,o),&last,10);

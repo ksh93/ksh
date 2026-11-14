@@ -117,7 +117,7 @@ static unsigned long writedefs(Lex_t *lexp,struct argnod *arglist, int line, int
 				break;
 			while((n= *++cp))
 			{
-				if(isdigit(n))
+				if(isdigit((unsigned char)n))
 					width = 10*width + (size_t)n-'0';
 				else if(n=='L' || n=='R' || n =='Z')
 					justify = n;
@@ -335,7 +335,7 @@ static const char *paramsub(const char *str)
 				continue;
 			if(*str=='{')
 				str++;
-			if(!isdigit(*str) && strchr("?#@*!$ ",*str)==NULL)
+			if(!isdigit((unsigned char)*str) && strchr("?#@*!$ ",*str)==NULL)
 			{
 				if(str[-1]=='{')
 					str--;  /* variable in the form of ${var} */
@@ -368,7 +368,7 @@ static Shnode_t *getanode(Lex_t *lp, struct argnod *ap)
 		if(sh_isoption(SH_NOEXEC) && (ap->argflag&ARG_MAC) &&
 			((p = paramsub(ap->argval)) != NULL))
 		{
-			for(q = p; !isspace(*q) && *q != '\0'; q++)
+			for(q = p; !isspace((unsigned char)*q) && *q != '\0'; q++)
 				;
 			errormsg(SH_DICT, ERROR_warn(0), e_lexwarnvar,
 				sh.inlineno, ap->argval, q - p, p);
@@ -798,7 +798,7 @@ static Shnode_t	*arithfor(Lex_t *lexp,Shnode_t *tf)
 		if(!lexp->token)
 			break;
 		/* remove trailing white space */
-		while(offset>(signed)ARGVAL && ((c= *stkptr(sh.stk,offset-1)),isspace(c)))
+		while(offset>(signed)ARGVAL && ((c= *stkptr(sh.stk,offset-1)),isspace((unsigned char)c)))
 			offset--;
 		/* check for empty initialization expression */
 		if(offset==ARGVAL && n==0)
@@ -814,7 +814,7 @@ static Shnode_t	*arithfor(Lex_t *lexp,Shnode_t *tf)
 		else
 			tw->wh.whtre = t;
 	}
-	while((offset=fcpeek(0)) && isspace((int)offset))
+	while((offset=fcpeek(0)) && isspace((unsigned char)offset))
 		fcseek(1);
 	sfputr(sh.stk,fcseek(0),-1);
 	argp = stkfreeze(sh.stk,1);

@@ -390,7 +390,7 @@ b_cat(int argc, char** argv, Shbltin_t* context)
 		{
 			int	i;
 			for (i = 0200; i <= 0377; i++)
-				if (isprint(i))
+				if (isprint((unsigned char)i))
 					states[i] = 0;
 		}
 	}

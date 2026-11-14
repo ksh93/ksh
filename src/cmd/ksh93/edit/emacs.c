@@ -82,15 +82,15 @@ One line screen editor for any program
 #   if _lib_iswdigit
 #      define digit(c)	iswdigit((wint_t)(c))
 #   else
-#      define digit(c)	((c&~STRIP)==0 && isdigit(c))
+#      define digit(c)	((c&~STRIP)==0 && isdigit((unsigned char)c))
 #   endif
 
 #else
 #   define gencpy(a,b)	strcopy((char*)(a),(char*)(b))
 #   define genncpy(a,b,n)	strncopy((char*)(a),(char*)(b),n)
 #   define genlen(str)	strlen(str)
-#   define isword(c)	(isalnum(out[c]) || (out[c]=='_'))
-#   define digit(c)	isdigit(c)
+#   define isword(c)	(isalnum((unsigned char)out[c]) || (out[c]=='_'))
+#   define digit(c)	isdigit((unsigned char)c)
 #endif /* SHOPT_MULTIBYTE */
 
 typedef struct _emacs_
@@ -438,9 +438,9 @@ int ed_emacsread(void *context, int fd,char *buff,int _scend, int _reedit)
 				{
 					c = out[i];
 #if SHOPT_MULTIBYTE
-					if((c&~STRIP)==0 && islower(c))
+					if((c&~STRIP)==0 && islower((unsigned char)c))
 #else
-					if(islower(c))
+					if(islower((unsigned char)c))
 #endif /* SHOPT_MULTIBYTE */
 					{
 						c += 'A' - 'a';
@@ -775,9 +775,9 @@ static int escape(Emacs_t* ep,genchar *out,int count)
 				{
 					i = out[cur];
 #if SHOPT_MULTIBYTE
-					if((i&~STRIP)==0 && isupper(i))
+					if((i&~STRIP)==0 && isupper((unsigned char)i))
 #else
-					if(isupper(i))
+					if(isupper((unsigned char)i))
 #endif /* SHOPT_MULTIBYTE */
 					{
 						i += 'a' - 'A';
@@ -1661,7 +1661,7 @@ static int _isword(int c)
 #if _lib_iswalnum
 	return iswalnum((wint_t)c) || c=='_';
 #else
-	return (c&~STRIP) || isalnum(c) || c=='_';
+	return (c&~STRIP) || isalnum((unsigned char)c) || c=='_';
 #endif
 }
 #endif /* SHOPT_MULTIBYTE */

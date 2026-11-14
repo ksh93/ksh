@@ -42,7 +42,7 @@
 
 static int chr2str(char* buf, char v)
 {
-	if(isprint(v) && v != '\\')
+	if(isprint((unsigned char)v) && v != '\\')
 	{	*buf++ = v;
 		return 1;
 	}
@@ -309,7 +309,7 @@ loop_fmt :
 				v = form[0] == 'l' ? form[1] : form[0];
 				if(v == 'c' || v == 'C' || v == 's' || v == 'S')
 					goto loop_flags;
-				if(*form && !isalnum(*form))
+				if(*form && !isalnum((unsigned char)*form))
 				{	v = form[1] == 'l' ? form[2] : form[1];
 					if(v == 'c' || v == 'C' || v == 's' || v == 'S')
 					{	if(*form == '*')
@@ -322,7 +322,7 @@ loop_fmt :
 				}
 			}
 
-			if(isdigit(*form) )
+			if(isdigit((unsigned char)*form) )
 			{	fmt = *form++;
 				goto dot_size;
 			}
@@ -362,7 +362,7 @@ loop_fmt :
 		case '4' : case '5' : case '6' :
 		case '7' : case '8' : case '9' :
 		dot_size :
-			for(v = fmt - '0'; isdigit(*form); ++form)
+			for(v = fmt - '0'; isdigit((unsigned char)*form); ++form)
 				v = v*10 + (*form - '0');
 			if(*form == '$')
 			{	form += 1;
@@ -422,8 +422,8 @@ loop_fmt :
 				flags = (flags & ~SFFMT_TYPES) | SFFMT_LDOUBLE;
 			else if (fmt == 'z')
 				flags = (flags&~SFFMT_TYPES) | SFFMT_ZFLAG;
-			else if(isdigit(*form) )
-			{	for(size = 0, n = *form; isdigit((int)n); n = *++form)
+			else if(isdigit((unsigned char)*form) )
+			{	for(size = 0, n = *form; isdigit((unsigned char)n); n = *++form)
 					size = size*10 + (n - '0');
 			}
 			goto loop_flags;
@@ -1188,7 +1188,7 @@ loop_fmt :
 				sp = endsp = buf+1;	/* reserve space for sign */
 				*endsp++ = '0';
 				*endsp++ = fmt == 'a' ? 'x' : 'X';
-				if (!isxdigit(*ep))
+				if (!isxdigit((unsigned char)*ep))
 					goto infinite;
 				if (base < 0)
 					base = 0;
@@ -1228,7 +1228,7 @@ loop_fmt :
 			}
 
 		e_format: /* build the x.yyyy string */
-			if(isalpha(*ep))
+			if(isalpha((unsigned char)*ep))
 				goto infinite;
 			sp = endsp = buf+1;	/* reserve space for sign */
 			if (base <= 0)
@@ -1263,12 +1263,12 @@ loop_fmt :
 			/* the e/Exponent separator and sign */
 			*--ep = (decpt > 0 || dval == 0.) ? '+' : '-';
 			*--ep = fmt == 'a' ? 'p' : fmt == 'A' ? 'P' :
-				isupper(fmt) ? 'E' : 'e';
+				isupper((unsigned char)fmt) ? 'E' : 'e';
 
 			goto end_aefg;
 
 		f_format: /* data before the decimal point */
-			if(isalpha(*ep))
+			if(isalpha((unsigned char)*ep))
 			{
 			infinite:
 				flags &= ~SFFMT_ZERO;

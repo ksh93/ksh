@@ -1196,9 +1196,9 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 	while (s = sfgetr(sfstdin, '\n', 1))
 	{
 		error_info.line++;
-		while (isspace(*s))
+		while (isspace((unsigned char)*s))
 			s++;
-		if ((op = *s++) && isspace(*s))
+		if ((op = *s++) && isspace((unsigned char)*s))
 			s++;
 		switch (op)
 		{
@@ -1511,7 +1511,7 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 		size_t sz;
 		n = 2;
 		for (s = stty; *s; s++)
-			if (isspace(*s))
+			if (isspace((unsigned char)*s))
 				n++;
 		sz = (size_t)(n + 2) * sizeof(char*) + (size_t)(s - stty + 1);
 		if (!(ap = newof(0, Argv_t, 1, sz)))
@@ -1526,7 +1526,7 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 		ap->argv[2] = s = ap->args;
 		for (n = 2; *s; s++)
 		{
-			if (isspace(*s))
+			if (isspace((unsigned char)*s))
 			{
 				*s = 0;
 				ap->argv[++n] = s + 1;

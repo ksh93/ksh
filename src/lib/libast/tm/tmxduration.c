@@ -40,7 +40,7 @@ tmxduration(const char* s, char** e)
 	ptrdiff_t	i;
 
 	now = TMX_NOW;
-	while (isspace(*s))
+	while (isspace((unsigned char)*s))
 		s++;
 	if (*s == 'P' || *s == 'p')
 		ns = tmxdate(s, &last, now) - now;

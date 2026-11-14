@@ -245,7 +245,7 @@ S2I_function(const char* a, char** e, int base)
 		errno = EINVAL;
 		return 0;
 	}
-	while (S2I_valid(s) && isspace(*s))
+	while (S2I_valid(s) && isspace((unsigned char)*s))
 		s++;
 	if ((negative = S2I_valid(s) && (*s == '-')) || S2I_valid(s) && *s == '+')
 		k = ++s;
@@ -281,7 +281,7 @@ S2I_function(const char* a, char** e, int base)
 				}
 				/* a single 0 is not an octal base prefix if followed by a non-digit suffix --
 				 * but do set octal for '8' and '9' to catch invalid 0-prefixed octal numbers */
-				else if (isdigit(c))
+				else if (isdigit((unsigned char)c))
 				{
 					s++;
 					base = 8;

@@ -145,7 +145,7 @@ ccmapid(const char* name)
 		{
 			if (!(c = name[sub[1]]))
 				return mp->ccode;
-			if (sub[1] > n && !isalpha(c))
+			if (sub[1] > n && !isalpha((unsigned char)c))
 			{
 				n = sub[1];
 				bp = mp;

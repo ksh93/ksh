@@ -161,7 +161,7 @@ fmtfmt(const char* as)
 					}
 					continue;
 				default:
-					if (!q && isalpha(c))
+					if (!q && isalpha((unsigned char)c))
 					{
 						if (t == '?')
 							t = 'i';

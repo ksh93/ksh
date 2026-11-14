@@ -121,8 +121,8 @@ typefix(char* buf, const char* t)
 		t += 2;
 	while (c = *t++)
 	{
-		if (isupper(c))
-			c = tolower(c);
+		if (isupper((unsigned char)c))
+			c = tolower((unsigned char)c);
 		if ((*b++ = (char)c) == '/' && (*t == 'x' || *t == 'X') && *(t + 1) == '-')
 			t += 2;
 	}
@@ -640,8 +640,8 @@ findopen(const char* file, const char* pattern, const char* type, Finddisc_t* di
 				fp->decode.end = b;
 				if (fp->decode.ignorecase)
 					for (s = fp->decode.pattern; s <= b; s++)
-						if (isupper(*s))
-							*s = (char)tolower(*s);
+						if (isupper((unsigned char)*s))
+							*s = (char)tolower((unsigned char)*s);
 			}
 		}
 	}
@@ -875,10 +875,10 @@ findread(Find_t* fp)
 				if (*fp->decode.pattern == '/' && b > fp->decode.path)
 					b--;
 				for (; s >= b; s--)
-					if (*s == *fp->decode.end || ignorecase && tolower(*s) == *fp->decode.end)
+					if (*s == *fp->decode.end || ignorecase && tolower((unsigned char)*s) == *fp->decode.end)
 					{
 						if (ignorecase)
-							for (e = fp->decode.end - 1, q = s - 1; *e && (*q == *e || tolower(*q) == *e); e--, q--);
+							for (e = fp->decode.end - 1, q = s - 1; *e && (*q == *e || tolower((unsigned char)*q) == *e); e--, q--);
 						else
 							for (e = fp->decode.end - 1, q = s - 1; *e && *q == *e; e--, q--);
 						if (!*e)

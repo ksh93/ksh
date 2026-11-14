@@ -345,14 +345,14 @@ synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror
 		state.synthesizing = 1;
 		for (;;)
 		{
-			for (s = ve; isspace(*s); s++);
-			for (d = s; *d && !isspace(*d); d++);
-			for (se = d; isspace(*d); d++);
-			for (v = d; *v && !isspace(*v); v++);
-			for (de = v; isspace(*v); v++);
+			for (s = ve; isspace((unsigned char)*s); s++);
+			for (d = s; *d && !isspace((unsigned char)*d); d++);
+			for (se = d; isspace((unsigned char)*d); d++);
+			for (v = d; *v && !isspace((unsigned char)*v); v++);
+			for (de = v; isspace((unsigned char)*v); v++);
 			if (!*v)
 				break;
-			for (ve = v; *ve && !isspace(*ve); ve++);
+			for (ve = v; *ve && !isspace((unsigned char)*ve); ve++);
 			if (*ve)
 				*ve = 0;
 			else
@@ -382,39 +382,39 @@ synthesize(Feature_t* fp, const char* path, const char* value, Error_f conferror
 	d = state.data;
 	for (;;)
 	{
-		while (isspace(*d))
+		while (isspace((unsigned char)*d))
 			d++;
 		if (!*d)
 			break;
-		if (strneq(d, s, (size_t)n) && isspace(d[n]))
+		if (strneq(d, s, (size_t)n) && isspace((unsigned char)d[n]))
 		{
 			if (!value)
 			{
-				for (d += n + 1; *d && !isspace(*d); d++);
-				for (; isspace(*d); d++);
-				for (s = d; *s && !isspace(*s); s++);
+				for (d += n + 1; *d && !isspace((unsigned char)*d); d++);
+				for (; isspace((unsigned char)*d); d++);
+				for (s = d; *s && !isspace((unsigned char)*s); s++);
 				n = s - d;
 				value = (const char*)d;
 				goto ok;
 			}
-			for (s = p = d + n + 1; *s && !isspace(*s); s++);
-			for (; isspace(*s); s++);
-			for (v = s; *s && !isspace(*s); s++);
+			for (s = p = d + n + 1; *s && !isspace((unsigned char)*s); s++);
+			for (; isspace((unsigned char)*s); s++);
+			for (v = s; *s && !isspace((unsigned char)*s); s++);
 			n = s - v;
 			if ((!path || *path == *p && (ssize_t)strlen(path) == (v - p - 1) && !memcmp(path, p, (size_t)(v - p - 1))) && strneq(v, value, (size_t)n))
 				goto ok;
-			for (; isspace(*s); s++);
+			for (; isspace((unsigned char)*s); s++);
 			if (*s)
 				for (; *d = *s++; d++);
 			else if (d != state.data)
 				d--;
 			break;
 		}
-		for (; *d && !isspace(*d); d++);
-		for (; isspace(*d); d++);
-		for (; *d && !isspace(*d); d++);
-		for (; isspace(*d); d++);
-		for (; *d && !isspace(*d); d++);
+		for (; *d && !isspace((unsigned char)*d); d++);
+		for (; isspace((unsigned char)*d); d++);
+		for (; *d && !isspace((unsigned char)*d); d++);
+		for (; isspace((unsigned char)*d); d++);
+		for (; *d && !isspace((unsigned char)*d); d++);
 	}
 	if (!value)
 	{
@@ -849,7 +849,7 @@ lookup(Lookup_t* look, const char* name, unsigned int flags)
 		name++;
  again:
 	for (p = prefix; p < &prefix[prefix_elements]; p++)
-		if (strneq(name, p->name, (size_t)p->length) && ((c = name[p->length] == '_' || name[p->length] == '(' || name[p->length] == '#') || (v = isdigit(name[p->length]) && name[p->length + 1] == '_')))
+		if (strneq(name, p->name, (size_t)p->length) && ((c = name[p->length] == '_' || name[p->length] == '(' || name[p->length] == '#') || (v = isdigit((unsigned char)name[p->length]) && name[p->length + 1] == '_')))
 		{
 			if (p->call < 0)
 			{
@@ -951,8 +951,8 @@ fmtlower(const char* s)
 	b = t = fmtbuf(strlen(s) + 1);
 	while (c = *s++)
 	{
-		if (isupper(c))
-			c = tolower(c);
+		if (isupper((unsigned char)c))
+			c = tolower((unsigned char)c);
 		*t++ = (char)c;
 	}
 	*t = 0;
@@ -1444,7 +1444,7 @@ astgetconf(const char* name, const char* path, const char* value, int flags, Err
 			{
 				sfprintf(tmp, "/dev/");
 				for (s = (char*)name; s < (char*)name + n - 3; s++)
-					sfputc(tmp, isupper(*s) ? tolower(*s) : *s);
+					sfputc(tmp, isupper((unsigned char)*s) ? tolower((unsigned char)*s) : *s);
 				if ((s = sfstruse(tmp)) && !access(s, F_OK))
 				{
 					if (value)
@@ -1477,8 +1477,8 @@ astgetconf(const char* name, const char* path, const char* value, int flags, Err
 				return print(NULL, &altlook, altname, path, flags, conferror);
 			}
 			for (s = altname; *s; s++)
-				if (isupper(*s))
-					*s = (char)tolower(*s);
+				if (isupper((unsigned char)*s))
+					*s = (char)tolower((unsigned char)*s);
 			if (tmp = sfstropen())
 			{
 				for (n = 0; n < elementsof(dirs); n++)
@@ -1612,9 +1612,9 @@ astconflist(Sfio_t* sp, const char* path, int flags, const char* pattern)
 			call = "GC";
 			while (f = sfgetr(pp, '\n', 1))
 			{
-				for (s = f; *s && *s != '=' && *s != ':' && !isspace(*s); s++);
+				for (s = f; *s && *s != '=' && *s != ':' && !isspace((unsigned char)*s); s++);
 				if (*s)
-					for (*s++ = 0; isspace(*s); s++);
+					for (*s++ = 0; isspace((unsigned char)*s); s++);
 				if (!lookup(&look, f, (unsigned)flags))
 				{
 					if(pattern)

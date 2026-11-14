@@ -903,7 +903,7 @@ static struct process *job_bystring(char *ajob)
 	if(*ajob++ != '%' || !pw)
 		return NULL;
 	c = *ajob;
-	if(isdigit(c))
+	if(isdigit((unsigned char)c))
 	{
 		int oerrno = errno;
 		int jid;

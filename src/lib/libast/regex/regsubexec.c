@@ -93,8 +93,8 @@ sub(const regex_t* p, regsub_t* b, const char* ss, regsubop_t* op, size_t nmatch
 				while (s < e)
 				{
 					c = *s++;
-					if (islower(c))
-						c = toupper(c);
+					if (islower((unsigned char)c))
+						c = toupper((unsigned char)c);
 					*b->re_cur++ = (char)c;
 				}
 				break;
@@ -102,8 +102,8 @@ sub(const regex_t* p, regsub_t* b, const char* ss, regsubop_t* op, size_t nmatch
 				while (s < e)
 				{
 					c = *s++;
-					if (isupper(c))
-						c = tolower(c);
+					if (isupper((unsigned char)c))
+						c = tolower((unsigned char)c);
 					*b->re_cur++ = (char)c;
 				}
 				break;
@@ -111,10 +111,10 @@ sub(const regex_t* p, regsub_t* b, const char* ss, regsubop_t* op, size_t nmatch
 				while (s < e)
 				{
 					c = *s++;
-					if (isupper(c))
-						c = tolower(c);
-					else if (islower(c))
-						c = toupper(c);
+					if (isupper((unsigned char)c))
+						c = tolower((unsigned char)c);
+					else if (islower((unsigned char)c))
+						c = toupper((unsigned char)c);
 					*b->re_cur++ = (char)c;
 				}
 				break;

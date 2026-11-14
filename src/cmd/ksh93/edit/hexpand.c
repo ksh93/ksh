@@ -252,7 +252,7 @@ int hist_expand(const char *ln, char **xp)
 			n = 0; /* skip history file referencing */
 			break;
 		case '-': /* back reference by number */
-			if(!isdigit(*(cp+1)))
+			if(!isdigit((unsigned char)*(cp+1)))
 				goto string_event;
 			cp++;
 			/* FALLTHROUGH */
@@ -267,7 +267,7 @@ int hist_expand(const char *ln, char **xp)
 		case '8':
 		case '9':
 			n = 0;
-			while(isdigit(*cp))
+			while(isdigit((unsigned char)*cp))
 				n = n * 10 + (*cp++) - '0';
 			if(c == '-')
 				n = -n;
@@ -288,7 +288,7 @@ int hist_expand(const char *ln, char **xp)
 			{
 				cp++;
 				if((!(flag&HIST_QUESTION) &&
-				   (*cp == ':' || isspace(*cp)
+				   (*cp == ':' || isspace((unsigned char)*cp)
 				    || *cp == '^' || *cp == '$'
 				    || *cp == '*' || *cp == '-'
 				    || *cp == '%')
@@ -414,7 +414,7 @@ getline:
 				if((*evp == ':') || w[1] == -2)
 				{
 					w[n] = c - '0';
-					while(isdigit(c=*cp++))
+					while(isdigit((unsigned char)(c=*cp++)))
 						w[n] = w[n] * 10 + c - '0';
 					flag |= HIST_WORDDSGN;
 					if(n == 0)
@@ -451,7 +451,7 @@ getsel:
 
 		while((c = sfgetc(ref)) > 0)
 		{
-			if(isspace(c))
+			if(isspace((unsigned char)c))
 			{
 				flag |= (c == '\n' ? HIST_NEWLINE : 0);
 				continue;
@@ -481,7 +481,7 @@ getsel:
 				if(p)
 					sfputc(tmp, c);
 			}
-			while((c = sfgetc(ref)) > 0  && (!isspace(c) || q));
+			while((c = sfgetc(ref)) > 0  && (!isspace((unsigned char)c) || q));
 
 			if(w[0] == -2 && sftell(ref) > w[1])
 				break;
@@ -678,7 +678,7 @@ getsel:
 
 			while((c = sfgetc(tmp)) > 0)
 			{
-				if(isspace(c))
+				if(isspace((unsigned char)c))
 				{
 					flag = flag & ~HIST_NEWLINE;
 
@@ -686,7 +686,7 @@ getsel:
 					   blank or a newline */
 					do
 						flag |= (c == '\n' ? HIST_NEWLINE : 0);
-					while((c = sfgetc(tmp)) > 0 && isspace(c));
+					while((c = sfgetc(tmp)) > 0 && isspace((unsigned char)c));
 
 					sfungetc(tmp, c);
 
