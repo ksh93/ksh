@@ -96,6 +96,10 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 - Fixed a parser bug that caused a script compiled with shcomp to hang
   on a multidimensional array assignment such as: foo=(1 2 (3 4 5) 6 7)
 
+2026-10-23:
+
+- Fixed POSIX timer handling after fork in process substitutions.
+
 2026-10-22:
 
 - The sleep builtin will now reject values beyond UINT_MAX and negative
