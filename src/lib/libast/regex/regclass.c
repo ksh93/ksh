@@ -75,7 +75,7 @@ static int  Ispunct(int c)
 {
 #if _iswpunct_broken  /* workaround assumes ASCII */
 	if (c < 128)
-		return ispunct(c);
+		return ispunct((unsigned char)c);
 #endif
 	return iswpunct((wint_t)c);
 }

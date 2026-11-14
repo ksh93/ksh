@@ -73,7 +73,7 @@ Sfdouble_t _sfstrtod(const char*	s,	/* string to convert */
 #endif
 
 	/* skip initial blanks */
-	while(isspace(*s))
+	while(isspace((unsigned char)*s))
 		++s;
 
 	/* get the sign */
@@ -88,7 +88,7 @@ Sfdouble_t _sfstrtod(const char*	s,	/* string to convert */
 		for(m = BATCH, n = 0; m > 0; --m, ++s)
 		{	/* get and process a char */
 			c = *s;
-			if(isdigit(c))
+			if(isdigit((unsigned char)c))
 				n = 10*n + (c - '0');
 			else	break;
 		}

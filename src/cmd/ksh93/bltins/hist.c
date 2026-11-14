@@ -136,11 +136,11 @@ int	b_hist(int argc,char *argv[], Shbltin_t *context)
 			argv++;
 			continue;
 		}
-		else if(isdigit(*arg) || *arg == '-')
+		else if(isdigit((unsigned char)*arg) || *arg == '-')
 		{
 			/* see if completely numeric */
 			do	arg++;
-			while(isdigit(*arg));
+			while(isdigit((unsigned char)*arg));
 			if(*arg==0)
 			{
 				arg = argv[1];

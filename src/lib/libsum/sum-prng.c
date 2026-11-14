@@ -69,7 +69,7 @@ prng_open(const Method_t* method, const char* name)
 			if (*s == '=' && !v)
 				v = s;
 		i = (v ? v : s) - t;
-		if (isdigit(*t) || v && strneq(t, "mpy", (size_t)i) && (t = v + 1))
+		if (isdigit((unsigned char)*t) || v && strneq(t, "mpy", (size_t)i) && (t = v + 1))
 			sum->mpy = (Prngnum_t)strtoul(t, NULL, 0);
 		else if (strneq(t, "add", (size_t)i))
 			sum->add = v ? (Prngnum_t)strtoul(v + 1, NULL, 0) : ~sum->add;

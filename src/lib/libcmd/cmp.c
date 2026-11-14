@@ -110,7 +110,7 @@ pretty(Sfio_t *out, int o, int delim, int flags)
 		}
 		else
 			m = 0;
-		if (isspace(o) || !isprint(o))
+		if (isspace((unsigned char)o) || !isprint((unsigned char)o))
 		{
 			if (!m)
 				*s++ = ' ';

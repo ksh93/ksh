@@ -108,10 +108,10 @@ static int towctrans(int c, wctrans_t t)
 	}
 	else
 #endif
-	if(t==1 && isupper(c))
-		c = tolower(c);
-	else if(t==2 && islower(c))
-		c = toupper(c);
+	if(t==1 && c >= 0 && c <= UCHAR_MAX && isupper((unsigned char)c))
+		c = tolower((unsigned char)c);
+	else if(t==2 && c >= 0 && c <= UCHAR_MAX && islower((unsigned char)c))
+		c = toupper((unsigned char)c);
 	return c;
 }
 #endif
@@ -533,7 +533,7 @@ static char* get_ifs(Namval_t *np, Namfun_t *fp)
 					cp++;
 				else if(c=='\n')
 					n = S_NL;
-				else if(isspace(c))
+				else if(isspace((unsigned char)c))
 					n = S_SPACE;
 				sh.ifstable[c] = (char)n;
 			}
@@ -1000,7 +1000,7 @@ static Sfdouble_t nget_version(Namval_t *np, Namfun_t *fp)
 	NOT_USED(np);
 	NOT_USED(fp);
 	while (c = *cp++)
-		if (isdigit(c))
+		if (isdigit((unsigned char)c))
 			t = 10 * t + c - '0';
 	return (Sfdouble_t)t;
 }
@@ -1079,7 +1079,7 @@ static Namval_t *create_math(Namval_t *np,const char *name,nvflag_t flag,Namfun_
 	NOT_USED(flag);
 	if(!name)
 		return SH_MATHNOD;
-	if(name[0]!='a' || name[1]!='r' || name[2]!='g' || name[4] || !isdigit(name[3]) || (name[3]=='0' || (name[3]-'0')>MAX_MATH_ARGS))
+	if(name[0]!='a' || name[1]!='r' || name[2]!='g' || name[4] || !isdigit((unsigned char)name[3]) || (name[3]=='0' || (name[3]-'0')>MAX_MATH_ARGS))
 		return NULL;
 	fp->last = (char*)&name[4];
 	return nv_namptr(sh.mathnodes,(size_t)(name[3]-'1'));
@@ -1221,7 +1221,7 @@ int sh_type(const char *path)
 		if (*s == '.' && *(s+1) == 'e' && *(s+2) == 'x' && *(s+3) == 'e')
 			s += 4;
 #endif
-		if (!isalnum(*s))
+		if (!isalnum((unsigned char)*s))
 			return t;
 	}
 	return t & ~(SH_TYPE_KSH|SH_TYPE_RESTRICTED);

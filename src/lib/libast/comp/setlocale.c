@@ -126,7 +126,7 @@ _ast_strxfrm_workaround(char *restrict s1, const char *restrict s2, size_t n)
 static int
 default_wcwidth(wchar_t w)
 {
-	return w >= 0 && w <= 255 && !iscntrl(w) ? 1 : -1;
+	return w >= 0 && w <= 255 && !iscntrl((unsigned char)w) ? 1 : -1;
 }
 
 #endif
@@ -1909,7 +1909,7 @@ default_iswalpha(wchar_t c)
 #if _hdr_wchar && _lib_wctype && _lib_iswctype
 	return iswalpha((wint_t)c);
 #else
-	return c >= 0 && c <= 0x7f ? isalpha((int)c) : 0;
+	return c >= 0 && c <= 0x7f ? isalpha((unsigned char)c) : 0;
 #endif
 }
 

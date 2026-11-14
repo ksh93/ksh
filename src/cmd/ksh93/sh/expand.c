@@ -277,7 +277,7 @@ again:
 			{
 				char *endc;
 				incr = 1;
-				if(isdigit(*pat) || *pat=='+' || *pat=='-')
+				if(isdigit((unsigned char)*pat) || *pat=='+' || *pat=='-')
 				{
 					first = (ssize_t)strtol(pat,&endc,0);
 					if(endc==(cp-1))

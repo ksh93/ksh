@@ -154,7 +154,7 @@ static const char usage[] =
 #define ftello		ftell
 #endif
 
-#define delimiter(c)	(isspace(c)||(c)==';'||(c)=='('||(c)==')'||(c)=='`'||(c)=='|'||(c)=='&'||(c)=='=')
+#define delimiter(c)	(isspace((unsigned char)c)||(c)==';'||(c)=='('||(c)==')'||(c)=='`'||(c)=='|'||(c)=='&'||(c)=='=')
 
 #define add(b,c)	(((b)->nxt >= (b)->end) ? append(b, "") : NULL, *(b)->nxt++ = (c))
 #define unadd(b)	(--(b)->nxt)
@@ -944,7 +944,7 @@ static void substitute(Buf_t *buf, char *s)
 			b = s - 1;
 			t = ++s;
 			n = *t == '-' ? 0 : '-';  /* disable %{var-x} if var starts with - */
-			valid_sh_name = !newexp && (isalpha(*t) || *t == '_');
+			valid_sh_name = !newexp && (isalpha((unsigned char)*t) || *t == '_');
 			s++;
 			while ( (c = *s) &&
 				c != '?' &&
@@ -955,7 +955,7 @@ static void substitute(Buf_t *buf, char *s)
 				c != '}' )
 			{
 				s++;
-				if (valid_sh_name && !isalnum(c) && c != '_')
+				if (valid_sh_name && !isalnum((unsigned char)c) && c != '_')
 					valid_sh_name = 0;
 			}
 			vnterm = s;
@@ -1060,12 +1060,12 @@ static void substitute(Buf_t *buf, char *s)
 					while (*q)
 					{
 						char	*a;
-						while (isspace(*q))
+						while (isspace((unsigned char)*q))
 							q++;
 						if (!*q)
 							break;
 						a = q;
-						while (*q && !isspace(*q))
+						while (*q && !isspace((unsigned char)*q))
 							q++;
 						n++;
 						c = *q, *q = 0;  /* terminate for duplicate() */
@@ -1096,9 +1096,9 @@ static void substitute(Buf_t *buf, char *s)
 						errno = 0;
 						do
 						{
-							while (isspace(*v))
+							while (isspace((unsigned char)*v))
 								v++;
-							while ((n = *v++) && !isspace(n))
+							while ((n = *v++) && !isspace((unsigned char)n))
 								if (putc(n, f) == EOF) break;
 							if (putc('\n', f) == EOF) break;
 						} while (n);
@@ -1175,8 +1175,8 @@ static void substitute(Buf_t *buf, char *s)
 						 * Taking the first word from ${mam_libsum} can very easily be handled
 						 * by the shell script instead, so this is disabled at strict level 2+.
 						 */
-						for (t = v; isspace(*t); t++);
-						for (; *t && !isspace(*t); t++);
+						for (t = v; isspace((unsigned char)*t); t++);
+						for (; *t && !isspace((unsigned char)*t); t++);
 						if (*t)
 							*t = 0;
 						else
@@ -1803,9 +1803,9 @@ static void run(Rule_t *r, char *s)
 						i = 2;
 					else
 					{
-						for (i = 3; isspace(*(t + i)); i++);
+						for (i = 3; isspace((unsigned char)*(t + i)); i++);
 						*s = (char)c;
-						for (s = t + i; *s && !isspace(*s); s++);
+						for (s = t + i; *s && !isspace((unsigned char)*s); s++);
 						c = *s;
 						*s = 0;
 						append(buf, t + 2);
@@ -1945,8 +1945,8 @@ static void attributes(Rule_t *r, char *s)
 	for (;;)
 	{
 		int	flag = 0;
-		for (; isspace(*s); s++);
-		for (t = s; *s && !isspace(*s); s++);
+		for (; isspace((unsigned char)*s); s++);
+		for (t = s; *s && !isspace((unsigned char)*s); s++);
 		if (!(n = (size_t)(s - t)))
 			break;
 		switch (*t)
@@ -2064,13 +2064,13 @@ static char *require(char *lib, int dontcare)
 		{
 			for (;;)
 			{
-				while (isspace(c = fgetc(f)));
+				while (isspace((unsigned char)(c = fgetc(f))));
 				if (c == EOF)
 					break;
 				do
 				{
 					add(tmp, (char)c);
-				} while ((c = fgetc(f)) != EOF && !isspace(c));
+				} while ((c = fgetc(f)) != EOF && !isspace((unsigned char)c));
 				s = use(tmp);
 				if (s[0] && (s[0] != '-' || s[1]))
 				{
@@ -2219,31 +2219,31 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 	while (s = input())
 	{
 		/* skip initial whitespace and empty line */
-		for (; isspace(*s); s++);
+		for (; isspace((unsigned char)*s); s++);
 		if (!*s)
 			continue;
 		/* expand all variables, except in comments */
 		if (!(s[0] == 'n' && s[1] == 'o' && s[2] == 't' && s[3] == 'e'))
 			s = expand(line, s);
 		/* isolate command name (u), argument word (t), and the operand string (v) */
-		for (u = s; *s && !isspace(*s); s++);
+		for (u = s; *s && !isspace((unsigned char)*s); s++);
 		if (*s)
 		{
-			for (*s++ = 0; isspace(*s); s++);
-			for (t = s; *s && !isspace(*s); s++);
+			for (*s++ = 0; isspace((unsigned char)*s); s++);
+			for (t = s; *s && !isspace((unsigned char)*s); s++);
 			if (*s)
-				for (*s++ = 0; isspace(*s); s++);
+				for (*s++ = 0; isspace((unsigned char)*s); s++);
 			v = s;
 		}
 		else
 			t = v = s;
 		/* enforce 4-letter lowercase command name */
-		if (u[0]<'a' || u[0]>'z' || u[1]<'a' || u[1]>'z' || u[2]<'a' || u[2]>'z' || u[3]<'a' || u[3]>'z' || u[4] && !isspace(u[4]))
+		if (u[0]<'a' || u[0]>'z' || u[1]<'a' || u[1]>'z' || u[2]<'a' || u[2]>'z' || u[3]<'a' || u[3]>'z' || u[4] && !isspace((unsigned char)u[4]))
 			error_out("not a command name", u);
 		switch (KEY(u[0], u[1], u[2], u[3]))
 		{
 		case KEY('b','i','n','d'):
-			if (!(t[0] == '-' && t[1] == 'l' && isalnum(t[2])))
+			if (!(t[0] == '-' && t[1] == 'l' && isalnum((unsigned char)t[2])))
 				error_out("syntax error", u);
 			/* make sure it's finished linking before calling require() */
 			append_ar_name(buf, t + 2);
@@ -2262,7 +2262,7 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 				for (;;)
 				{
 					Rule_t	*rp;
-					for (t = s; *s && !isspace(*s); s++);
+					for (t = s; *s && !isspace((unsigned char)*s); s++);
 					if (*s)
 						*s = 0;
 					else
@@ -2278,7 +2278,7 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 					}
 					if (!s)
 						break;
-					for (*s++ = ' '; isspace(*s); s++);
+					for (*s++ = ' '; isspace((unsigned char)*s); s++);
 				}
 				/*
 				 * read library header dependency rules from $INSTALLROOT/lib/mam/NAME
@@ -2458,11 +2458,11 @@ static void make(Rule_t *r, Makestate_t *parentstate)
 			{
 				/* zero-terminate current word and find next word */
 				nextw = NULL;
-				for (cp = w; *cp && !isspace(*cp); cp++);
+				for (cp = w; *cp && !isspace((unsigned char)*cp); cp++);
 				if (*cp)
 				{
 					*cp++ = '\0';
-					for (; *cp && isspace(*cp); cp++);
+					for (; *cp && isspace((unsigned char)*cp); cp++);
 					if (*cp)
 						nextw = cp;
 				}
@@ -2757,18 +2757,18 @@ static int scan(Dict_item_t *item)
 	{
 		while (s = input())
 		{
-			for (; isspace(*s); s++);
+			for (; isspace((unsigned char)*s); s++);
 			/* examine only commands of the form bind -lfoo */
-			if (s[0] != 'b' || s[1] != 'i' || s[2] != 'n' || s[3] != 'd' || !isspace(s[4]))
+			if (s[0] != 'b' || s[1] != 'i' || s[2] != 'n' || s[3] != 'd' || !isspace((unsigned char)s[4]))
 				continue;
-			for (s += 5; isspace(*s); s++);
+			for (s += 5; isspace((unsigned char)*s); s++);
 			if (s[0] != '-' || s[1] != 'l' || !s[2])
 				continue;
 			/* construct potential leaf directory name */
 			append(buf, "lib");
 			append(buf, s + 2);
 			t = use(buf);
-			for (s = t; *s && !isspace(*s); s++);
+			for (s = t; *s && !isspace((unsigned char)*s); s++);
 			*s = '\0';
 			/* add a rule and prepend it onto the prerequisites */
 			if ((q = getval(state.leaf, t)) && q != r)

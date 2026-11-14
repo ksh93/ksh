@@ -48,7 +48,7 @@ pathgetlink(const char* name, char* buf, size_t siz)
 	}
 	buf[n] = 0;
 #ifdef UNIV_MAX
-	if (isspace(*buf))
+	if (isspace((unsigned char)*buf))
 	{
 		char*	s;
 		char*	t;
@@ -59,12 +59,12 @@ pathgetlink(const char* name, char* buf, size_t siz)
 
 		s = buf;
 		t = tmp;
-		while (isalnum(*++s) || *s == '_' || *s == '.');
+		while (isalnum((unsigned char)*++s) || *s == '_' || *s == '.');
 		if (*s++)
 		{
 			for (;;)
 			{
-				if (!*s || isspace(*s))
+				if (!*s || isspace((unsigned char)*s))
 				{
 					if (match)
 					{

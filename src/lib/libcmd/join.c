@@ -99,9 +99,14 @@ static const char usage[] =
 
 #include <ctype.h>
 
-#ifndef iswspace
-#define iswspace(x)	isspace(x)
-#endif
+#undef wint_t
+#undef iswspace
+#define wint_t		Sflong_t
+#define iswspace	_libcmd_iswspace
+static inline int iswspace(wint_t wc)
+{
+	return wc >= 0 && wc <= UCHAR_MAX && isspace((unsigned char)wc);
+}
 
 #endif
 

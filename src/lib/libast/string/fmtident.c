@@ -39,7 +39,7 @@ fmtident(const char* a)
 	i = 0;
 	for (;;)
 	{
-		while (isspace(*s))
+		while (isspace((unsigned char)*s))
 			s++;
 		if (s[0] == '[')
 		{
@@ -48,7 +48,7 @@ fmtident(const char* a)
 		}
 		else if (s[0] == '@' && s[1] == '(' && s[2] == '#' && s[3] == ')')
 			s += 4;
-		else if (s[0] == '$' && s[1] == 'I' && s[2] == 'd' && s[3] == ':' && isspace(s[4]))
+		else if (s[0] == '$' && s[1] == 'I' && s[2] == 'd' && s[3] == ':' && isspace((unsigned char)s[4]))
 		{
 			s += 5;
 			i |= IDENT;
@@ -59,10 +59,10 @@ fmtident(const char* a)
 	if (i)
 	{
 		i &= IDENT;
-		for (t = s; isprint(*t) && *t != '\n'; t++)
+		for (t = s; isprint((unsigned char)*t) && *t != '\n'; t++)
 			if (i && t[0] == ' ' && t[1] == '$')
 				break;
-		while (t > s && isspace(t[-1]))
+		while (t > s && isspace((unsigned char)t[-1]))
 			t--;
 		i = (size_t)(t - s);
 		buf = fmtbuf(i + 1);

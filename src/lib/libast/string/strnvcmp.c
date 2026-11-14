@@ -45,12 +45,12 @@ strnvcmp(const char* a, const char* b, size_t n)
 		}
 		else if (b >= be)
 			return -1;
-		if (isdigit(*a) && isdigit(*b))
+		if (isdigit((unsigned char)*a) && isdigit((unsigned char)*b))
 		{
 			na = nb = 0;
-			while (a < ae && isdigit(*a))
+			while (a < ae && isdigit((unsigned char)*a))
 				na = na * 10 + (unsigned)*a++ - '0';
-			while (b < be && isdigit(*b))
+			while (b < be && isdigit((unsigned char)*b))
 				nb = nb * 10 + (unsigned)*b++ - '0';
 			if (na < nb)
 				return -1;

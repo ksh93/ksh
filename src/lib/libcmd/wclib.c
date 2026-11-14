@@ -34,9 +34,14 @@
 
 #else
 
-#ifndef iswspace
-#define iswspace(x)	isspace(x)
-#endif
+#undef wint_t
+#undef iswspace
+#define wint_t		Sflong_t
+#define iswspace	_libcmd_iswspace
+static inline int iswspace(wint_t wc)
+{
+	return wc >= 0 && wc <= UCHAR_MAX && isspace((unsigned char)wc);
+}
 
 #endif
 
@@ -67,7 +72,7 @@ Wc_t* wc_init(int mode)
 		wp->mb = -1;
 	w = mode & WC_WORDS;
 	for (n = (1<<CHAR_BIT); --n >= 0;)
-		wp->type[n] = (w && isspace(n)) ? WC_SP : 0;
+		wp->type[n] = (w && isspace((unsigned char)n)) ? WC_SP : 0;
 	wp->type['\n'] = WC_SP|WC_NL;
 	if ((mode & (WC_MBYTE|WC_WORDS)) && wp->mb > 0)
 	{

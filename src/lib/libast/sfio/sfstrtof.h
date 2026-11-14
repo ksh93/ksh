@@ -199,7 +199,7 @@ S2F_function(const char* str, char** end)
 	 * skip initial blanks
 	 */
 
-	do c = GET(s); while (isspace(c));
+	do c = GET(s); while (isspace((unsigned char)c));
 	SET(s, t, b);
 
 	/*
@@ -344,7 +344,7 @@ S2F_function(const char* str, char** end)
 			PUT(s);
 			return 0;
 		}
-		do c = GET(s); while (c && !isspace(c));
+		do c = GET(s); while (c && !isspace((unsigned char)c));
 		PUT(s);
 		return negative ? -NAN : NAN;
 	}

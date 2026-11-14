@@ -71,7 +71,7 @@ stropt(const char* as, const void* tab, int siz, int(*f)(void*, const void*, int
 	{
 		for (;;)
 		{
-			while (isspace(*s) || *s == ',') s++;
+			while (isspace((unsigned char)*s) || *s == ',') s++;
 			if (*s == 'n' && *(s + 1) == 'o')
 			{
 				s += 2;
@@ -88,7 +88,7 @@ stropt(const char* as, const void* tab, int siz, int(*f)(void*, const void*, int
 				for (p = (char**)tab; t = *p; p = (char**)((char*)p + siz))
 				{
 					for (v = s; *t && *t == *v; t++, v++);
-					if (!*t || isspace(*v) || *v == ',' || *v == '=')
+					if (!*t || isspace((unsigned char)*v) || *v == ',' || *v == '=')
 						break;
 					if (*v == ':' && *(v + 1) == '=')
 					{
@@ -108,7 +108,7 @@ stropt(const char* as, const void* tab, int siz, int(*f)(void*, const void*, int
 				p = (char**)(v = s);
 				t = NULL;
 			}
-			while (*v && !isspace(*v) && *v != '=' && *v != ',')
+			while (*v && !isspace((unsigned char)*v) && *v != '=' && *v != ',')
 				if (*v++ == ':' && *v == '=')
 				{
 					if (!t)
@@ -143,7 +143,7 @@ stropt(const char* as, const void* tab, int siz, int(*f)(void*, const void*, int
 					}
 					else if (qr)
 						*t++ = (char)c;
-					else if (c == ',' || isspace(c))
+					else if (c == ',' || isspace((unsigned char)c))
 						break;
 					else if (c == '"' || c == '\'')
 					{

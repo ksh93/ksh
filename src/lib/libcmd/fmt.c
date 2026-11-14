@@ -528,13 +528,13 @@ dofmt(Fmt_t* fp)
 					*dp++ = ' ';
 				continue;
 			}
-			else if (!isprint(c))
+			else if (!isprint((unsigned char)c))
 				continue;
 			if (dp >= &buf[sizeof(buf) - 3])
 			{
 				tp = dp;
 				while (--tp > buf)
-					if (isspace(*tp))
+					if (isspace((unsigned char)*tp))
 					{
 						cp -= dp - tp;
 						dp = tp;

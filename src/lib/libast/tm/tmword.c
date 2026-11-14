@@ -49,13 +49,13 @@ tmword(const char* s, char** e, const char* t, char** suf, int n)
 		{
 			if (c != '.')
 			{
-				if (!isalpha(c) || c != *t && (islower(c) ? toupper(c) : tolower(c)) != *t)
+				if (!isalpha((unsigned char)c) || c != *t && (islower((unsigned char)c) ? toupper((unsigned char)c) : tolower((unsigned char)c)) != *t)
 					break;
 				t++;
 			}
 		}
 		s--;
-		if (!isalpha(c))
+		if (!isalpha((unsigned char)c))
 		{
 			if (c == '_')
 				s++;
@@ -69,8 +69,8 @@ tmword(const char* s, char** e, const char* t, char** suf, int n)
 			while (n-- && (t = *suf++))
 			{
 				s = b;
-				while (isalpha(c = *s++) && (c == *t || (islower(c) ? toupper(c) : tolower(c)) == *t)) t++;
-				if (!*t && !isalpha(c))
+				while (isalpha((unsigned char)(c = *s++)) && (c == *t || (islower((unsigned char)c) ? toupper((unsigned char)c) : tolower((unsigned char)c)) == *t)) t++;
+				if (!*t && !isalpha((unsigned char)c))
 				{
 					if (c != '_')
 						s--;

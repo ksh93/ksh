@@ -78,7 +78,7 @@ expr(Expr_t* ex, int precedence)
 	char*	pos;
 	int	operand = 1;
 
-	while (c = getchr(ex), isspace(c));
+	while (c = getchr(ex), isspace((unsigned char)c));
 	switch (c)
 	{
 	case 0:
@@ -239,9 +239,9 @@ expr(Expr_t* ex, int precedence)
 			else n %= x;
 			break;
 		default:
-			if (isspace(c)) continue;
+			if (isspace((unsigned char)c)) continue;
 			pos = --ex->nextchr;
-			if (isdigit(c)) n = strton(ex->nextchr, &ex->nextchr, NULL, 0);
+			if (isdigit((unsigned char)c)) n = strton(ex->nextchr, &ex->nextchr, NULL, 0);
 			else if (ex->convert) n = (*ex->convert)(ex->nextchr, &ex->nextchr, ex->handle);
 			if (ex->nextchr == pos) err(ex, "syntax error");
 			goto gotoperand;

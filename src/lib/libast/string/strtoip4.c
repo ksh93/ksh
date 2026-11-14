@@ -53,7 +53,7 @@ strtoip4(const char* s, char** e, uint32_t* paddr, unsigned char* pbits)
 	const char*	b;
 
 	r = -1;
-	while (isspace(*s))
+	while (isspace((unsigned char)*s))
 		s++;
 	b = s;
 	addr = 0;

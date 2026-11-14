@@ -64,7 +64,7 @@ int	b_umask(int argc,char *argv[],Shbltin_t *context)
 	argv += opt_info.index;
 	if(mask = *argv)
 	{
-		if(isdigit(*mask))
+		if(isdigit((unsigned char)*mask))
 		{
 			int c;
 			while(c = *mask++)

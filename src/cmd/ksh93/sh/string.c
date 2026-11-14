@@ -302,7 +302,7 @@ static char	*sh_fmtcsv(const char *string)
 int	sh_isprint(int c)
 {
 	if(!mbwide() || c<=127)				/* not in multibyte locale, or multibyte but c is ASCII? */
-		return isprint(c);			/* use plain isprint(3) */
+		return isprint((unsigned char)c);	/* use plain isprint(3) */
 	/* On some systems, iswgraph(3) returns true for some of these. Override for consistency. */
 	if ((ast.locale.set & AST_LC_utf8) &&
 			(c == 0x00A0 ||			/* non-breaking space */
@@ -320,7 +320,7 @@ int	sh_isprint(int c)
 int	sh_isspace(int c)
 {
 	if(!mbwide() || c<=127)				/* not in multibyte locale, or multibyte but c is ASCII? */
-		return isspace(c);			/* use plain isprint(3) */
+		return isspace((unsigned char)c);	/* use plain isprint(3) */
 	return iswspace((wint_t)c);
 }
 
@@ -410,7 +410,7 @@ char	*sh_fmtq(const char *string)
 				if(mbwide())
 				{
 					/* We're in a multibyte locale */
-					if(c<0 || c<128 && !isprint(c))
+					if(c<0 || c<128 && !isprint((unsigned char)c))
 					{
 						/* Invalid multibyte char, or unprintable ASCII char: quote as hex byte */
 						c = *((unsigned char *)op);
@@ -424,10 +424,10 @@ char	*sh_fmtq(const char *string)
 						continue;
 					}
 				}
-				else if(!isprint(c))
+				else if(!isprint((unsigned char)c))
 				{
 				quote_one_byte:
-					sfprintf(sh.stk, isxdigit(*cp) ? "\\x[%.2x]" : "\\x%.2x", c);
+					sfprintf(sh.stk, isxdigit((unsigned char)*cp) ? "\\x[%.2x]" : "\\x%.2x", c);
 					continue;
 				}
 				state=0;
@@ -490,7 +490,7 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 				continue;
 			if (c == '\'' || !iswprint((wint_t)c))
 #else
-			if (c == '\'' || !isprint(c))
+			if (c == '\'' || !isprint((unsigned char)c))
 #endif /* SHOPT_MULTIBYTE */
 			{
 				q = single;
@@ -555,7 +555,7 @@ char	*sh_fmtqf(const char *string, int single, int fold)
 #if SHOPT_MULTIBYTE
 					if(!iswprint((wint_t)c))
 #else
-					if(!isprint(c))
+					if(!isprint((unsigned char)c))
 #endif
 					{
 						if ((n -= 4) <= 0)

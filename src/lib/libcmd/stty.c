@@ -603,7 +603,7 @@ static void output(struct termios *sp, int flags)
 				continue;
 			if(off==_POSIX_VDISABLE)
 				sfprintf(sfstdout,"%s = <undef>;%c",tp->name,delim);
-			else if(isprint(off&0xff))
+			else if(isprint((unsigned char)off&0xff))
 				sfprintf(sfstdout,"%s = %c;%c",tp->name,off,delim);
 			else
 				sfprintf(sfstdout,"%s = ^%c;%c",tp->name,off==0177?'?':(off^0100),delim);  /* assumes ASCII */

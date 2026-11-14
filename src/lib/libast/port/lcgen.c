@@ -214,9 +214,9 @@ macro(FILE* f, char* p1, char* p2, char* p3)
 					m = 1;
 					break;
 				}
-				else if (islower(c))
-					c = toupper(c);
-				else if (!isalnum(c))
+				else if (islower((unsigned char)c))
+					c = toupper((unsigned char)c);
+				else if (!isalnum((unsigned char)c))
 					c = '_';
 				*b++ = (char)c;
 			}
@@ -314,7 +314,7 @@ main(int argc, char** argv)
 	while (s = fgets(buf, sizeof(buf), stdin))
 	{
 		line++;
-		while (isspace(*s))
+		while (isspace((unsigned char)*s))
 			s++;
 		if (!*s || *s == '#')
 			continue;
@@ -322,10 +322,10 @@ main(int argc, char** argv)
 		vp = arg;
 		for (;;)
 		{
-			for (*vp++ = s; *s && !isspace(*s); s++);
+			for (*vp++ = s; *s && !isspace((unsigned char)*s); s++);
 			if (!*s)
 				break;
-			for (*s++ = 0; isspace(*s); s++);
+			for (*s++ = 0; isspace((unsigned char)*s); s++);
 			if (!strcmp(*(vp - 1), "-"))
 				*(vp - 1) = NULL;
 			if (!*s || vp >= ve)

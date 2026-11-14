@@ -56,7 +56,7 @@ tmzone(const char* name, char** end, const char* type, int* dst)
 	static char		off[16];
 
 	tmset(tm_info.zone, time(NULL), 0);
-	if ((name[0] == '+' || name[0] == '-') && (fixed.west = (short)tmgoff(name, &e, TM_LOCALZONE)) != TM_LOCALZONE && (!*e || isspace(*e)))
+	if ((name[0] == '+' || name[0] == '-') && (fixed.west = (short)tmgoff(name, &e, TM_LOCALZONE)) != TM_LOCALZONE && (!*e || isspace((unsigned char)*e)))
 	{
 		p = fixed.standard = fixed.daylight = off;
 		*p++ = 'Z';

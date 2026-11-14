@@ -151,11 +151,11 @@ match(const char* s, const char* p, size_t minimum, int standard)
 		t = s;
 		if (standard)
 		{
-			if (isdigit(*t))
-				while (*p && !isdigit(*p))
+			if (isdigit((unsigned char)*t))
+				while (*p && !isdigit((unsigned char)*p))
 					p++;
-			else if (isdigit(*p))
-				while (*t && !isdigit(*t))
+			else if (isdigit((unsigned char)*p))
+				while (*t && !isdigit((unsigned char)*t))
 					t++;
 		}
 		if (*p)
@@ -170,7 +170,7 @@ match(const char* s, const char* p, size_t minimum, int standard)
 					/*ok*/;
 				else if (*t == '-')
 				{
-					if (standard && isdigit(*p))
+					if (standard && isdigit((unsigned char)*p))
 					{
 						t++;
 						continue;
@@ -182,7 +182,7 @@ match(const char* s, const char* p, size_t minimum, int standard)
 				}
 				else if (*p == '-')
 				{
-					if (standard && isdigit(*t))
+					if (standard && isdigit((unsigned char)*t))
 					{
 						p++;
 						continue;
@@ -255,9 +255,9 @@ canonical(const Lc_language_t* lp, const Lc_territory_t* tp, const Lc_charset_t*
 				if (u)
 				{
 					u = 0;
-					c = toupper(c);
+					c = toupper((unsigned char)c);
 				}
-				else if (!isalnum(c))
+				else if (!isalnum((unsigned char)c))
 					u = 1;
 				*s++ = (char)c;
 			}
@@ -285,15 +285,15 @@ canonical(const Lc_language_t* lp, const Lc_territory_t* tp, const Lc_charset_t*
 					if (u)
 					{
 						u = 0;
-						c = toupper(c);
+						c = toupper((unsigned char)c);
 					}
-					else if (!isalnum(c))
+					else if (!isalnum((unsigned char)c))
 						u = 1;
 					*s++ = (char)c;
 				}
 			}
 			else
-				for (t = tp->code; s < e && (*s = (char)toupper(*t++)); s++);
+				for (t = tp->code; s < e && (*s = (char)toupper((unsigned char)*t++)); s++);
 			if (r)
 			{
 				*s = 0;
@@ -320,8 +320,8 @@ canonical(const Lc_language_t* lp, const Lc_territory_t* tp, const Lc_charset_t*
 			else
 				for (t = cp->code; s < e && (c = *t++); s++)
 				{
-					if (islower(c))
-						c = toupper(c);
+					if (islower((unsigned char)c))
+						c = toupper((unsigned char)c);
 					*s = (char)c;
 				}
 		}
@@ -433,12 +433,12 @@ lcmake(const char* name)
 	n = 0;
 	while (s < e && (c = *t++))
 	{
-		if (isspace(c) || (c == '(' || c == '-' && *t == '-') && ++n)
+		if (isspace((unsigned char)c) || (c == '(' || c == '-' && *t == '-') && ++n)
 		{
-			while ((c = *t++) && (isspace(c) || (c == '-' || c == '(' || c == ')') && ++n))
+			while ((c = *t++) && (isspace((unsigned char)c) || (c == '-' || c == '(' || c == ')') && ++n))
 			if (!c)
 				break;
-			if (isalnum(c) && !n)
+			if (isalnum((unsigned char)c) && !n)
 				*s++ = '-';
 			else
 			{
@@ -470,8 +470,8 @@ lcmake(const char* name)
 		}
 		else
 		{
-			if (isupper(c))
-				c = tolower(c);
+			if (isupper((unsigned char)c))
+				c = tolower((unsigned char)c);
 			*s++ = (char)c;
 		}
 	}
@@ -486,20 +486,20 @@ lcmake(const char* name)
 		}
 		while (s < e && (c = *t++))
 		{
-			if (isspace(c) || (c == '(' || c == ')' || c == '-' && *t == '-') && ++n)
+			if (isspace((unsigned char)c) || (c == '(' || c == ')' || c == '-' && *t == '-') && ++n)
 			{
-				while ((c = *t++) && (isspace(c) || (c == '-' || c == '(' || c == ')') && ++n))
+				while ((c = *t++) && (isspace((unsigned char)c) || (c == '-' || c == '(' || c == ')') && ++n))
 				if (!c)
 					break;
-				if (isalnum(c) && !n)
+				if (isalnum((unsigned char)c) && !n)
 					*s++ = '-';
 				else
 					n = 0;
 			}
 			if (c == '_' || c == '.' || c == '@')
 				break;
-			if (isupper(c))
-				c = tolower(c);
+			if (isupper((unsigned char)c))
+				c = tolower((unsigned char)c);
 			*s++ = (char)c;
 		}
 	}

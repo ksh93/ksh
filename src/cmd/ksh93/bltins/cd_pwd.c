@@ -205,7 +205,7 @@ int	b_cd(int argc, char *argv[],Shbltin_t *context)
 		dp = cdpath?cdpath->name:"";
 		cdpath = path_nextcomp(cdpath,dir,NULL);
 #if _WINIX
-		if(*stkptr(sh.stk,PATH_OFFSET+1)==':' && isalpha(*stkptr(sh.stk,PATH_OFFSET)))
+		if(*stkptr(sh.stk,PATH_OFFSET+1)==':' && isalpha((unsigned char)*stkptr(sh.stk,PATH_OFFSET)))
 		{
 			*stkptr(sh.stk,PATH_OFFSET+1) = *stkptr(sh.stk,PATH_OFFSET);
 			*stkptr(sh.stk,PATH_OFFSET)='/';

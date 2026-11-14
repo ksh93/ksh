@@ -1134,10 +1134,10 @@ collic(Celt_t* ce, char* key, char* nxt, int c, ptrdiff_t x)
 	{
 		if (collic(ce, key, nxt + 1, c, x))
 			return 1;
-		if (islower(*nxt))
-			*nxt = (char)toupper(*nxt);
-		else if (isupper(*nxt))
-			*nxt = (char)tolower(*nxt);
+		if (islower((unsigned char)*nxt))
+			*nxt = (char)toupper((unsigned char)*nxt);
+		else if (isupper((unsigned char)*nxt))
+			*nxt = (char)tolower((unsigned char)*nxt);
 		else
 			return 0;
 		nxt++;
@@ -1173,11 +1173,11 @@ collmatch(Rex_t* rex, unsigned char* s, unsigned char* e, unsigned char** p)
 	else
 	{
 		c = s[0];
-		if (ic && isupper(c))
-			c = tolower(c);
+		if (ic && isupper((unsigned char)c))
+			c = tolower((unsigned char)c);
 		key[0] = (unsigned char)c;
 		key[1] = 0;
-		if (isalpha(c))
+		if (isalpha((unsigned char)c))
 		{
 			x = e - s;
 			if (x > COLL_KEY_MAX)
@@ -1186,11 +1186,11 @@ collmatch(Rex_t* rex, unsigned char* s, unsigned char* e, unsigned char** p)
 			{
 				size_t	z;
 				c = s[w];
-				if (!isalpha(c))
+				if (!isalpha((unsigned char)c))
 					break;
 				z = ast.locale.transform((char*)elt, (const char*)key, COLL_KEY_MAX);
-				if (ic && isupper(c))
-					c = tolower(c);
+				if (ic && isupper((unsigned char)c))
+					c = tolower((unsigned char)c);
 				key[w] = (unsigned char)c;
 				key[w + 1] = 0;
 				if (ast.locale.transform((char*)elt, (const char*)key, COLL_KEY_MAX) != z)

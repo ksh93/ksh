@@ -28,7 +28,7 @@
 
 static char* sffmtint(const char* str, ptrdiff_t* v)
 {
-	for(*v = 0; isdigit(*str); ++str)
+	for(*v = 0; isdigit((unsigned char)*str); ++str)
 		*v = *v * 10 + (*str - '0');
 	*v -= 1;
 	return (char*)str;
@@ -165,7 +165,7 @@ static Fmtpos_t* sffmtpos(Sfio_t* f,const char* form,va_list args,Sffmt_t* ft,in
 		case '.' :
 			if((dot += 1) == 2)
 				base = 0; /* for %s,%c */
-			if(isdigit(*form))
+			if(isdigit((unsigned char)*form))
 			{	fmt = *form++;
 				goto dot_size;
 			}
@@ -197,7 +197,7 @@ static Fmtpos_t* sffmtpos(Sfio_t* f,const char* form,va_list args,Sffmt_t* ft,in
 		case '4' : case '5' : case '6' :
 		case '7' : case '8' : case '9' :
 		dot_size :
-			for(v = fmt - '0', fmt = *form; isdigit(fmt); fmt = *++form)
+			for(v = fmt - '0', fmt = *form; isdigit((unsigned char)fmt); fmt = *++form)
 				v = v*10 + (fmt - '0');
 			if(dot == 0)
 				width = v;
@@ -209,8 +209,8 @@ static Fmtpos_t* sffmtpos(Sfio_t* f,const char* form,va_list args,Sffmt_t* ft,in
 
 		case 'I' : /* object length */
 			size = -1; flags = (flags & ~SFFMT_TYPES) | SFFMT_IFLAG;
-			if(isdigit(*form) )
-			{	for(size = 0, n = *form; isdigit((int)n); n = *++form)
+			if(isdigit((unsigned char)*form) )
+			{	for(size = 0, n = *form; isdigit((unsigned char)n); n = *++form)
 					size = size*10 + (n - '0');
 			}
 			else if(*form == '*')

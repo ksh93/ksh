@@ -77,7 +77,7 @@ range(char* s, char** e, char* set, size_t lo, size_t hi)
 	long	i;
 	char*	t;
 
-	while (isspace(*s) || *s == '_')
+	while (isspace((unsigned char)*s) || *s == '_')
 		s++;
 	if (*s == '*')
 	{
@@ -237,7 +237,7 @@ tmxdate(const char* s, char** e, Time_t now)
 	zone = TM_LOCALZONE;
 	skip[0] = 0;
 	for (n = 1; n <= UCHAR_MAX; n++)
-		skip[n] = isspace((int)n) || strchr("_,;@=|!^()[]{}", (int)n);
+		skip[n] = isspace((unsigned char)n) || strchr("_,;@=|!^()[]{}", (int)n);
 
 	/*
 	 * get <weekday year month day hour minutes seconds ?[ds]t [ap]m>
@@ -249,7 +249,7 @@ tmxdate(const char* s, char** e, Time_t now)
 		state &= (state & HOLD) ? ~(HOLD) : ~(EXACT|LAST|NEXT|THIS);
 		if ((set|state) & (YEAR|MONTH|DAY))
 			skip['/'] = 1;
-		while (isspace(*s))
+		while (isspace((unsigned char)*s))
 			s++;
 		message((-1, "AHA#%d state=" FFMT " set=" FFMT " '%s'", __LINE__, FLAGS(state), FLAGS(set), s));
 
@@ -282,7 +282,7 @@ tmxdate(const char* s, char** e, Time_t now)
 			break;
 		if (*s == '#')
 		{
-			if (isdigit(*++s))
+			if (isdigit((unsigned char)*++s))
 			{
 				now = strtoull(s, &t, 0);
 			sns:
@@ -290,7 +290,7 @@ tmxdate(const char* s, char** e, Time_t now)
 				{
 					fix = 0;
 					m = 1000000000;
-					while (isdigit(*++s))
+					while (isdigit((unsigned char)*++s))
 						fix += (Time_t)((*s - '0') * (m /= 10));
 					now = tmxsns(now, fix);
 				}
@@ -305,7 +305,7 @@ tmxdate(const char* s, char** e, Time_t now)
 			}
 			break;
 		}
-		if ((*s == 'P' || *s == 'p') && (!isalpha(*(s + 1)) || (*(s + 1) == 'T' || *(s + 1) == 't') && !isalpha(*(s + 2))))
+		if ((*s == 'P' || *s == 'p') && (!isalpha((unsigned char)*(s + 1)) || (*(s + 1) == 'T' || *(s + 1) == 't') && !isalpha((unsigned char)*(s + 2))))
 		{
 			Tm_t	otm;
 
@@ -553,10 +553,10 @@ tmxdate(const char* s, char** e, Time_t now)
 			{
 				if (n == '*')
 					n = *++s;
-				else if (!isdigit((int)n))
+				else if (!isdigit((unsigned char)n))
 					break;
 				else
-					while ((n = *++s) == ',' || n == '-' || n == '/' || isdigit((int)n));
+					while ((n = *++s) == ',' || n == '-' || n == '/' || isdigit((unsigned char)n));
 				if (n != ' ' && n != '_' && n != ';')
 				{
 					if (!n)
@@ -713,19 +713,19 @@ tmxdate(const char* s, char** e, Time_t now)
 			s = t;
 		}
 		n = -1;
-		if (isdigit(*s))
+		if (isdigit((unsigned char)*s))
 		{
 			n = strtol(s, &t, 10);
-			if ((w = t - s) && *t == '.' && isdigit(*(t + 1)) && isdigit(*(t + 2)) && isdigit(*(t + 3)))
+			if ((w = t - s) && *t == '.' && isdigit((unsigned char)*(t + 1)) && isdigit((unsigned char)*(t + 2)) && isdigit((unsigned char)*(t + 3)))
 			{
 				now = (Time_t)n;
 				goto sns;
 			}
-			if ((*t == 'T' || *t == 't') && ((set|state) & (YEAR|MONTH)) == (YEAR|MONTH) && isdigit(*(t + 1)))
+			if ((*t == 'T' || *t == 't') && ((set|state) & (YEAR|MONTH)) == (YEAR|MONTH) && isdigit((unsigned char)*(t + 1)))
 				t++;
 			u = t + (*t == '-');
 			message((-1, "AHA#%d n=%d w=%d u='%c' f=%d t=\"%s\"", __LINE__, n, w, *u, f, t));
-			if ((w == 2 || w == 4) && (*u == 'W' || *u == 'w') && isdigit(*(u + 1)))
+			if ((w == 2 || w == 4) && (*u == 'W' || *u == 'w') && isdigit((unsigned char)*(u + 1)))
 			{
 				if (w == 4)
 				{
@@ -779,14 +779,14 @@ tmxdate(const char* s, char** e, Time_t now)
 				if (dig2(t, l) <= 0 || l > 12)
 					break;
 				flags |= MONTH;
-				if (*t != 'T' && *t != 't' || !isdigit(*++t))
+				if (*t != 'T' && *t != 't' || !isdigit((unsigned char)*++t))
 				{
 					if (w == 6)
 						goto save_yymm;
 					if (dig2(t, k) < 1 || k > 31)
 						break;
 					flags |= DAY;
-					if (*t != 'T' && *t != 't' || !isdigit(*++t))
+					if (*t != 'T' && *t != 't' || !isdigit((unsigned char)*++t))
 						goto save_yymmdd;
 				}
 				n = strtol(s = t, &t, 0);
@@ -819,7 +819,7 @@ tmxdate(const char* s, char** e, Time_t now)
 				if (*t == '.')
 				{
 					q = 1000000000;
-					while (isdigit(*++t))
+					while (isdigit((unsigned char)*++t))
 						p += ((unsigned long)*t - '0') * (q /= 10);
 					set |= NSEC;
 				}
@@ -827,7 +827,7 @@ tmxdate(const char* s, char** e, Time_t now)
 					break;
 				goto save;
 			}
-			else if ((f == -1 || f == 1) && isalpha(*t) && tmlex(t, &t, tm_info.format + TM_ORDINAL, TM_ORDINALS - TM_ORDINAL, NULL, 0) >= 0)
+			else if ((f == -1 || f == 1) && isalpha((unsigned char)*t) && tmlex(t, &t, tm_info.format + TM_ORDINAL, TM_ORDINALS - TM_ORDINAL, NULL, 0) >= 0)
 			{
 				message((-1, "AHA#%d n=%d", __LINE__, n));
  ordinal:
@@ -838,7 +838,7 @@ tmxdate(const char* s, char** e, Time_t now)
 				set &= ~(EXACT|LAST|NEXT|THIS);
 				set |= state & (EXACT|LAST|NEXT|THIS);
 				for (s = t; skip[*((unsigned char*)s)]; s++);
-				if (isdigit(*s))
+				if (isdigit((unsigned char)*s))
 				{
 					if (n = strtol(s, &t, 10))
 						n--;
@@ -853,7 +853,7 @@ tmxdate(const char* s, char** e, Time_t now)
 			}
 			else
 			{
-				for (u = t; isspace(*u); u++)
+				for (u = t; isspace((unsigned char)*u); u++)
 					;
 				message((-1, "AHA#%d n=%d u=\"%s\"", __LINE__, n, u));
 				if ((j = tmlex(u, NULL, tm_info.format, TM_NFORM, tm_info.format + TM_SUFFIXES, TM_PARTS - TM_SUFFIXES)) >= 0 && tm_data.lex[j] == TM_PARTS)
@@ -861,7 +861,7 @@ tmxdate(const char* s, char** e, Time_t now)
 				else
 				{
 					message((-1, "AHA#%d t=\"%s\"", __LINE__, t));
-					if (!(state & (LAST|NEXT|THIS)) && ((i = (int)(t - s)) == 4 && (*t == '.' && isdigit(*(t + 1)) && isdigit(*(t + 2)) && *(t + 3) != '.' || (!*t || isspace(*t) || *t == '_' || isalnum(*t)) && n >= 0 && (n % 100) < 60 && ((m = (n / 100)) < 20 || m < 24 && !((set|state) & (YEAR|MONTH|HOUR|MINUTE)))) || i > 4 && i <= 12))
+					if (!(state & (LAST|NEXT|THIS)) && ((i = (int)(t - s)) == 4 && (*t == '.' && isdigit((unsigned char)*(t + 1)) && isdigit((unsigned char)*(t + 2)) && *(t + 3) != '.' || (!*t || isspace((unsigned char)*t) || *t == '_' || isalnum((unsigned char)*t)) && n >= 0 && (n % 100) < 60 && ((m = (n / 100)) < 20 || m < 24 && !((set|state) & (YEAR|MONTH|HOUR|MINUTE)))) || i > 4 && i <= 12))
 					{
 						/*
 						 * various { date(1) touch(1) } formats
@@ -968,7 +968,7 @@ tmxdate(const char* s, char** e, Time_t now)
 								if (*t == '.')
 								{
 									q = 1000000000;
-									while (isdigit(*++t))
+									while (isdigit((unsigned char)*++t))
 										p += ((unsigned long)*t - '0') * (q /= 10);
 									set |= NSEC;
 								}
@@ -1004,32 +1004,32 @@ tmxdate(const char* s, char** e, Time_t now)
 						c = *s;
 						if ((state & HOUR) || n > 24)
 							break;
-						while (isspace(*++s) || *s == '_');
-						if (!isdigit(*s))
+						while (isspace((unsigned char)*++s) || *s == '_');
+						if (!isdigit((unsigned char)*s))
 							break;
 						i = (int)n;
 						n = strtol(s, &t, 10);
-						for (s = t; isspace(*s) || *s == '_'; s++);
+						for (s = t; isspace((unsigned char)*s) || *s == '_'; s++);
 						if (n > 59)
 							break;
 						j = (int)n;
 						m = 0;
 						if (*s == c)
 						{
-							while (isspace(*++s) || *s == '_');
-							if (!isdigit(*s))
+							while (isspace((unsigned char)*++s) || *s == '_');
+							if (!isdigit((unsigned char)*s))
 								break;
 							n = strtol(s, &t, 10);
 							s = t;
 							if (n > (59 + TM_MAXLEAP))
 								break;
 							set |= SECOND;
-							while (isspace(*s))
+							while (isspace((unsigned char)*s))
 								s++;
 							if (*s == '.')
 							{
 								q = 1000000000;
-								while (isdigit(*++s))
+								while (isdigit((unsigned char)*++s))
 									m += ((unsigned long)*s - '0') * (q /= 10);
 								set |= NSEC;
 							}
@@ -1044,7 +1044,7 @@ tmxdate(const char* s, char** e, Time_t now)
 						tm->tm_min = j;
 						tm->tm_sec = (int)n;
 						tm->tm_nsec = (uint32_t)m;
-						while (isspace(*s))
+						while (isspace((unsigned char)*s))
 							s++;
 						switch (tmlex(s, &t, tm_info.format, TM_NFORM, tm_info.format + TM_MERIDIAN, 2))
 						{
@@ -1113,30 +1113,30 @@ tmxdate(const char* s, char** e, Time_t now)
 			else
 				break;
 		}
-		if (isalpha(*s))
+		if (isalpha((unsigned char)*s))
 		{
 			if (n > 0)
 			{
 				x = s;
 				q = (unsigned long)*s++;
 				message((-1, "AHA#%d n=%d q='%c'", __LINE__, n, q));
-				if (isalpha(*s))
+				if (isalpha((unsigned char)*s))
 				{
 					q <<= 8;
 					q |= (unsigned long)*s++;
-					if (isalpha(*s))
+					if (isalpha((unsigned char)*s))
 					{
 						if (tmlex(s, &t, tm_info.format + TM_SUFFIXES, TM_PARTS - TM_SUFFIXES, NULL, 0) >= 0)
 							s = t;
-						if (isalpha(*s))
+						if (isalpha((unsigned char)*s))
 						{
 							q <<= 8;
 							q |= (unsigned long)*s++;
-							if (isalpha(*s))
+							if (isalpha((unsigned char)*s))
 							{
 								q <<= 8;
 								q |= (unsigned long)*s++;
-								if (isalpha(*s))
+								if (isalpha((unsigned char)*s))
 									q = 0;
 							}
 						}
@@ -1409,7 +1409,7 @@ tmxdate(const char* s, char** e, Time_t now)
 						 * disambiguate "last" vs. { "previous" "final" }
 						 */
 
-						while (isspace(*s))
+						while (isspace((unsigned char)*s))
 							s++;
 						message((-1, "AHA#%d disambiguate LAST s='%s'", __LINE__, s));
 						if ((k = tmlex(s, &t, tm_info.format + TM_NEXT, TM_EXACT - TM_NEXT, NULL, 0)) >= 0 || (k = tmlex(s, &t, tm_info.format + TM_PARTS + 3, 1, NULL, 0)) >= 0)
@@ -1517,9 +1517,9 @@ tmxdate(const char* s, char** e, Time_t now)
 						{
 							if (state & ORDINAL)
 							{
-								while (isspace(*s))
+								while (isspace((unsigned char)*s))
 									s++;
-								if (isdigit(*s) || tmlex(s, &t, tm_info.format, TM_DAY_ABBREV, NULL, 0) >= 0)
+								if (isdigit((unsigned char)*s) || tmlex(s, &t, tm_info.format, TM_DAY_ABBREV, NULL, 0) >= 0)
 								{
 									state &= ~(LAST|NEXT|THIS);
 									goto clear_hour;
@@ -1560,7 +1560,7 @@ tmxdate(const char* s, char** e, Time_t now)
 						{
 							while (skip[*((unsigned char*)s)])
 								s++;
-							if (isdigit(*s))
+							if (isdigit((unsigned char)*s))
 							{
 								n = strtol(s, &t, 10);
 								if (n <= 31 && *t != ':')
@@ -1643,7 +1643,7 @@ tmxdate(const char* s, char** e, Time_t now)
 			{
 				if ((state & MONTH) || n <= 0 || n > 31)
 					break;
-				if (isalpha(*++s))
+				if (isalpha((unsigned char)*++s))
 				{
 					if ((i = tmlex(s, &t, tm_info.format, TM_DAY_ABBREV, NULL, 0)) < 0)
 						break;
@@ -1658,7 +1658,7 @@ tmxdate(const char* s, char** e, Time_t now)
 					s = t;
 					if (n <= 0 || n > 31)
 						break;
-					if (*s == '/' && !isdigit(*(s + 1)))
+					if (*s == '/' && !isdigit((unsigned char)*(s + 1)))
 						break;
 				}
 				state |= DAY;

@@ -2182,7 +2182,7 @@ static void rightjust(char *str, size_t size, char fill)
 		sp--;
 		*sp = *cp--;
 	}
-	if(!isdigit(*str))
+	if(!isdigit((unsigned char)*str))
 		fill = ' ';
 	while(sp>str)
 		*--sp = fill;

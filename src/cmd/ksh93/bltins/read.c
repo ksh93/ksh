@@ -553,7 +553,7 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 				cpmax--;
 			if(cpmax>cp)
 			{
-				while((c=sh.ifstable[*--cpmax])==S_DELIM && isspace(*cpmax) || c==S_SPACE);
+				while((c=sh.ifstable[*--cpmax])==S_DELIM && isspace((unsigned char)*cpmax) || c==S_SPACE);
 				cpmax[1] = 0;
 			}
 			else
@@ -789,13 +789,13 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 		{
 			/* strip off trailing space delimiters */
 			unsigned char	*vp = (unsigned char*)val + strlen(val);
-			while(sh.ifstable[*--vp]==S_SPACE || (isspace(*vp) && sh.ifstable[*vp]==S_DELIM));
+			while(sh.ifstable[*--vp]==S_SPACE || (isspace((unsigned char)*vp) && sh.ifstable[*vp]==S_DELIM));
 			if(vp==del)
 			{
 				if(vp==(unsigned char*)val)
 					vp--;
 				else
-					while(sh.ifstable[*--vp]==S_SPACE || (isspace(*vp) && sh.ifstable[*vp]==S_DELIM));
+					while(sh.ifstable[*--vp]==S_SPACE || (isspace((unsigned char)*vp) && sh.ifstable[*vp]==S_DELIM));
 			}
 			vp[1] = 0;
 		}

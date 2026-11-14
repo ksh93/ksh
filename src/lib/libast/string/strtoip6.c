@@ -70,7 +70,7 @@ strtoip6(const char* s, char** e, unsigned char* addr, unsigned char* bits)
 		lex['.'] = DOT;
 		lex['/'] = PFX;
 	}
-	while (isspace(*s))
+	while (isspace((unsigned char)*s))
 		s++;
 	z = NULL;
 	a = 0;

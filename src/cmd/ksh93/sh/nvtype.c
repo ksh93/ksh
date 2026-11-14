@@ -1016,8 +1016,8 @@ Namval_t *nv_mktype(Namval_t **nodes, int numnodes)
 			help[k] = cp;
 			cp = strcopy(cp,np->nvmeta);
 			cc = *help[k];
-			if(islower(cc))
-				*help[k] = (char)toupper(cc);
+			if(islower((unsigned char)cc))
+				*help[k] = (char)toupper((unsigned char)cc);
 			*cp++ = 0;
 			np->nvmeta = NULL;
 		}

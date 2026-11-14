@@ -47,10 +47,10 @@ optesc(Sfio_t* sp, const char* s, int esc)
 		esc = 0;
 	while (c = *s++)
 	{
-		if (isalnum(c))
+		if (isalnum((unsigned char)c))
 		{
-			for (m = s - 1; isalnum(*s); s++);
-			if (isalpha(c) && *s == '(' && isdigit(*(s + 1)) && *(s + 2) == ')')
+			for (m = s - 1; isalnum((unsigned char)*s); s++);
+			if (isalpha((unsigned char)c) && *s == '(' && isdigit((unsigned char)*(s + 1)) && *(s + 2) == ')')
 			{
 				sfputc(sp, '\b');
 				sfwrite(sp, m, (size_t)(s - m));
@@ -68,9 +68,9 @@ optesc(Sfio_t* sp, const char* s, int esc)
 				s++;
 			else if (*s == '/')
 				s++;
-			while (isalnum(*s))
+			while (isalnum((unsigned char)*s))
 				s++;
-			if (c == '<' && *s == '>' || isspace(*s) || *s == 0 || *s == '=' || *s == ':' || *s == ';' || *s == '.' || *s == ',')
+			if (c == '<' && *s == '>' || isspace((unsigned char)*s) || *s == 0 || *s == '=' || *s == ':' || *s == ';' || *s == '.' || *s == ',')
 			{
 				sfputc(sp, '\b');
 				sfwrite(sp, m, (size_t)(s - m));

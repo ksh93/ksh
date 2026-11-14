@@ -62,7 +62,7 @@
 #   if _lib_iswdigit
 #      define digit(c)	iswdigit((wint_t)(c))
 #   else
-#      define digit(c)	((c&~STRIP)==0 && isdigit(c))
+#      define digit(c)	((c&~STRIP)==0 && isdigit((unsigned char)c))
 #   endif
     static int _isalph(int);
     static int _isblank(int);
@@ -74,11 +74,17 @@
 #   define gencpy(a,b)	strcopy((char*)(a),(char*)(b))
 #   define genncpy(a,b,n) strncopy((char*)(a),(char*)(b),n)
 #   define genlen(str)	strlen(str)
-#   define isalph(v)	((_c=virtual[v])=='_'||isalnum(_c))
+#   define isalph(v)	((_c=virtual[v])=='_'||isalnum((unsigned char)_c))
 #   undef  isblank
-#   define isblank(v)	isspace(virtual[v])
-#   define digit(c)	isdigit(c)
+#   define isblank(v)	isspace((unsigned char)virtual[v])
+#   define digit(c)	isdigit((unsigned char)c)
 #endif	/* SHOPT_MULTIBYTE */
+
+#if SHOPT_MULTIBYTE
+#   define is_punct(c)	((c) >= 0 && (c) <= UCHAR_MAX && ispunct((unsigned char)(c)))
+#else
+#   define is_punct(c)	ispunct((unsigned char)(c))
+#endif
 
 #define fold(c)	((c)&~040)	/* lower- and uppercase equivalent (ASCII) */
 
@@ -1186,7 +1192,7 @@ static void get_line(Vi_t* vp,int mode)
 		case UWERASE:		/** delete back word **/
 			if( cur_virt > first_virt &&
 				!isblank(cur_virt) &&
-				!ispunct(virtual[cur_virt]) &&
+				!is_punct(virtual[cur_virt]) &&
 				isblank(cur_virt-1) )
 			{
 				cdelete(vp,1, BAD);
@@ -2168,7 +2174,7 @@ static void sync_cursor(Vi_t *vp)
 		else if(!sh_isprint(c))
 #else
 		c = virtual[v];
-		if(!isprint(c))
+		if(!isprint((unsigned char)c))
 #endif	/* SHOPT_MULTIBYTE */
 		{
 			if( c == '\t' )
@@ -2564,10 +2570,10 @@ yankeol:
 				if((c&~STRIP)==0)
 #endif /* SHOPT_MULTIBYTE */
 				{
-					if( isupper(c) )
-						c = tolower(c);
-					else if( islower(c) )
-						c = toupper(c);
+					if( isupper((unsigned char)c) )
+						c = tolower((unsigned char)c);
+					else if( islower((unsigned char)c) )
+						c = toupper((unsigned char)c);
 				}
 				replace(vp,c, 1);
 			}
@@ -2590,7 +2596,7 @@ yankeol:
 #if _lib_iswalnum
 	return iswalnum((wint_t)v) || v=='_';
 #else
-	return (v&~STRIP) || isalnum(v) || v=='_';
+	return (v&~STRIP) || isalnum((unsigned char)v) || v=='_';
 #endif
     }
 

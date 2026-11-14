@@ -2102,7 +2102,7 @@ retry2:
 						char	*cp, *cq, *buf;
 						buf = sh_malloc((size_t)(match[1] - match[0]));
 						for (cp = v + match[0], cq = buf; cp < v + match[1]; cp++, cq++)
-							*cq = (char)(c == '^' ? toupper(*cp) : tolower(*cp));
+							*cq = (char)(c == '^' ? toupper((unsigned char)*cp) : tolower((unsigned char)*cp));
 						mac_copy(mp, buf, match[1] - match[0]);
 						free(buf);
 					}

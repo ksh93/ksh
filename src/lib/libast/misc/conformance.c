@@ -53,8 +53,8 @@ initconformance(void)
 				t = m;
 				while ((c = *m++) && c != '.')
 				{
-					if (isupper(c))
-						c = tolower(c);
+					if (isupper((unsigned char)c))
+						c = tolower((unsigned char)c);
 					sfputc(sp, c);
 				}
 				sfputc(sp, 0);
@@ -131,11 +131,11 @@ conformance(const char* s, size_t n)
 		s++;
 	do
 	{
-		while (s < e && (isspace(*s) || *s == ',' || *s == '|'))
+		while (s < e && (isspace((unsigned char)*s) || *s == ',' || *s == '|'))
 			s++;
 		if (*s == ')')
 			break;
-		for (t = s; s < e && !isspace(*s) && *s != ',' && *s != '|' && *s != ')'; s++);
+		for (t = s; s < e && !isspace((unsigned char)*s) && *s != ',' && *s != '|' && *s != ')'; s++);
 		if (s == t)
 			break;
 		q = p;

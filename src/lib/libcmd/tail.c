@@ -407,7 +407,7 @@ num(const char* s, char** e, int* f, int o)
 	else
 	{
 		*f |= COUNT;
-		if (t > s && isalpha(*(t - 1)))
+		if (t > s && isalpha((unsigned char)*(t - 1)))
 			*f &= ~LINES;
 		if (c == '-')
 			number = -number;
@@ -476,7 +476,7 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 					goto suffix;
 				}
 			}
-			else if (opt_info.arg && isalpha(*opt_info.arg))
+			else if (opt_info.arg && isalpha((unsigned char)*opt_info.arg))
 			{
 				t = opt_info.arg;
 				goto suffix;
@@ -492,7 +492,7 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 				flags &= ~(ERROR|NEGATIVE|POSITIVE);
 				s = "";
 			}
-			if (n != 'n' && s && isalpha(*s))
+			if (n != 'n' && s && isalpha((unsigned char)*s))
 			{
 				t = s;
 				goto suffix;

@@ -160,8 +160,8 @@ chrexp(const char* s, char** p, int* m, int flags)
 						c = chrexp(s - 1, &r, NULL, flags);
 						s = (const char*)r;
 					}
-					if (islower(c))
-						c = toupper(c);
+					if (c >= 0 && c <= UCHAR_MAX && islower((unsigned char)c))
+						c = toupper((unsigned char)c);
 					c ^= 0x40; /* assumes ASCII */
 				}
 				break;
