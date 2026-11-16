@@ -3301,6 +3301,14 @@ make install virtual
 			exec - compile %{<}
 		done
 
+		make ast_dup.o
+			make port/ast_dup.c
+				prev include/ast.h
+				prev include/error.h
+			done
+			exec - compile %{<}
+		done
+
 		note * include shell action for linking the library
 		incl link_ar.mam
 

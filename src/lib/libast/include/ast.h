@@ -319,6 +319,7 @@ extern void		astwinsize(int, int*, int*);
 #endif
 
 extern int		ast_close(int);
+extern int		ast_dup2(int, int);
 extern ssize_t		base64encode(const void*, size_t, void**, void*, size_t, void**);
 extern ssize_t		base64decode(const void*, size_t, void**, void*, size_t, void**);
 extern int		chresc(const char*, char**);

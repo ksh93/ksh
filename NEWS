@@ -15,6 +15,9 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   function scope failed to correctly trigger a trap set in the parent
   environment.
 
+- Fixed a file descriptor leak in "fast filescan" loops of the form
+  while <inputfile; do ...; done
+
 2026-11-13:
 
 - Fixed a crash that occurred on NetBSD when passing a command line option
