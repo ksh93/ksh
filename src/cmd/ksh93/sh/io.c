@@ -1209,7 +1209,7 @@ static void pat_handoff(Sfio_t *sp)
 	sh_close(pv[1]);
 	if(pv[0]!=fd)
 	{
-		dup2(pv[0], fd);
+		ast_dup2(pv[0], fd);
 		if(sh.fdstatus[fd] & IOCLEX)
 		{
 			/* dup2 clears the close-on-exec flag; restore it */

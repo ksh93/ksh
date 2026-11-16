@@ -343,7 +343,7 @@ void sh_comsubpipechild(int pv[2])
 {
 	sh_close(pv[0]);
 	sh_close(1);  /* close existing stdout to free the Sfio stream */
-	if(dup2(pv[1],1) < 0)
+	if(ast_dup2(pv[1],1) < 0)
 	{
 		errormsg(SH_DICT,ERROR_SYSTEM|ERROR_PANIC,e_pipestdout);
 		UNREACHABLE();
