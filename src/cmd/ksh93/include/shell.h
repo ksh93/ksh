@@ -355,6 +355,7 @@ struct Shell_s
 	struct dolnod	*arglist;
 	int16_t		fn_depth;	/* scoped ksh-style function call depth */
 	int16_t		dot_depth;	/* dot-script and POSIX function call depth */
+	void		*funtrap;	/* caller trap tables for current ksh function */
 	char		invoc_local;	/* set when inside of an invocation-local scope */
 	ssize_t		xargmin;
 	ssize_t		xargmax;

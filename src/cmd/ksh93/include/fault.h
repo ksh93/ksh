@@ -93,6 +93,14 @@ struct openlist
 	struct openlist *next;
 };
 
+/* Caller trap tables for nested ksh function and comsub scopes */
+struct funtrap
+{
+	char		**trapcom;
+	unsigned short	max;
+	struct funtrap	*prev;
+};
+
 struct checkpt
 {
 	sigjmp_buf	buff;
@@ -133,6 +141,8 @@ do { \
 
 extern noreturn void 	sh_done(int);
 extern void 	sh_fault(int);
+extern void	sh_sigqueue(int);
+extern void	sh_sigdiscard(void);
 extern void	sh_sigprocess(void);
 extern void	sh_winsize(int);
 extern void 	sh_sigclear(int);

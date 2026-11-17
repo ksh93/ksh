@@ -49,6 +49,84 @@ static volatile sig_atomic_t	sigprocessing;
 static void	sh_fault_action(int);
 
 /*
+ * Record a signal in the queue. Must be async-signal-safe: it's called
+ * from the signal handler and from normal context (e.g. sh_subshell()).
+ */
+void sh_sigqueue(int sig)
+{
+	int next;
+	if (sig <= 0 || sig >= SIGQSIZE)
+		return;
+	sh.trapnote |= SH_SIGPENDING;
+	if (sigqpend[sig])
+		return;
+	next = ((int)sigqtail+1) % SIGQSIZE;
+	if (next != (int)sigqhead)
+	{
+		sigq[sigqtail] = sig;
+		sigqtail = next;
+	}
+	sigqpend[sig] = 1;
+}
+
+/*
+ * Discard any signal that is still queued for processing. This is used in
+ * a child process that is forked from a virtual subshell: a queued signal
+ * was delivered to the parent process before the fork, so the parent will
+ * run its action once it has left the subshell. If this child ran it too,
+ * it would be terminated and the rest of the subshell's output would be
+ * lost; see sigdefer_subshell().
+ */
+void sh_sigdiscard(void)
+{
+	int sig;
+	sh.trapnote &= ~SH_SIGPENDING;
+	sigqhead = sigqtail = 0;
+	/* avoid memset below; not compatible with volatile access */
+	for (sig = 1; sig < SIGQSIZE; sig++)
+		sigqpend[sig] = 0;
+}
+
+/*
+ * Return nonzero if a caller trap table in the sh.funtrap chain has a
+ * non-empty trap for signal <sig>. Those tables can be used by ksh function
+ * and subshell scopes to check the traps the caller has set, even after
+ * resetting the traps in their own scope.
+ */
+static int sigcallertrap(int sig)
+{
+	struct funtrap	*fp;
+	char		*trap;
+	for (fp = sh.funtrap; fp; fp = fp->prev)
+		if (fp->trapcom && sig < fp->max && (trap = fp->trapcom[sig]))
+			return *trap != 0;
+	return 0;
+}
+
+/*
+ * A signal trapped in the environment that started a subshell must not
+ * interrupt that subshell; the virtual subshell must terminate before the
+ * parent's trap action is executed, otherwise its result or a discipline
+ * function's value can be lost. Neither a ksh function nor a subshell
+ * inherits the caller's traps, so also check the caller trap tables in the
+ * sh.funtrap chain. Leave the signal queued until sh_subshell() exits.
+ */
+static int sigdefer_subshell(int sig)
+{
+	char	*trap;
+	if (sig <= 0 || sig >= SH_TRAP || !sh.subshell)
+		return 0;
+	/*
+	 * A shared-state ${ ...; } subshell does not reset the traps it
+	 * inherits, so its current trap table is still the caller's.
+	 */
+	if(sh.subshare && sh.st.trapcom && (trap = sh.st.trapcom[sig]))
+		return *trap != 0;
+	/* this subshell reset the traps it inherited; look in its caller's table(s) */
+	return sigcallertrap(sig);
+}
+
+/*
  * sh_fault is the main signal handler for almost all signals in ksh.
  * Record a signal for later processing. For asynchronous signal safety,
  * only plain sig_atomic_t stores and reads are performed here, except
@@ -86,17 +164,7 @@ void	sh_fault(int sig)
 	{
 		if ((sh.sigcritical & SH_SIGDEFER) && sh.sigflag && !(sh.sigflag[sig]&SH_SIGIGNORE))
 			sh.sigcritical |= SH_SIGDEFERHIT;
-		sh.trapnote |= SH_SIGPENDING;
-		if (!sigqpend[sig])
-		{
-			int next = ((int)sigqtail+1) % SIGQSIZE;
-			if (next != (int)sigqhead)
-			{
-				sigq[sigqtail] = sig;
-				sigqtail = next;
-			}
-			sigqpend[sig] = 1;
-		}
+		sh_sigqueue(sig);
 	}
 done:
 	/*
@@ -135,6 +203,11 @@ void sh_sigprocess(void)
 					break;
 			if (sig >= SIGQSIZE)
 				break;
+		}
+		if (sigdefer_subshell(sig))
+		{
+			sh.trapnote |= SH_SIGPENDING;
+			break;
 		}
 		sigqpend[sig] = 0;
 		save_errno = errno;
@@ -209,7 +282,14 @@ static void sh_fault_action(int sig)
 			sigrelease(sig);
 			if(pp->mode != SH_JMPSUB)
 			{
-				if(pp->mode < SH_JMPSUB && !sh_isstate(SH_INTERACTIVE))
+				/*
+				 * A trap condition that the current scope does not catch terminates that scope (a ksh
+				 * function terminates) and is passed on to the caller, which runs its own trap for
+				 * it (see sh_funscope()). This applies to an interactive shell as well, but only
+				 * if a caller trap table really holds a trap for this signal; otherwise the shell
+				 * itself must execute the default signal action, which for most signals is 'exit'.
+				 */
+				if(pp->mode < SH_JMPSUB && (!sh_isstate(SH_INTERACTIVE) || (sh.fn_depth && sigcallertrap(sig))))
 					pp->mode = sh.subshell?SH_JMPSUB:SH_JMPFUN;
 				else
 					pp->mode = SH_JMPEXIT;
@@ -761,6 +841,7 @@ void sh_exit(int xno)
 	sh.mktype = NULL;
 	sh.invoc_local = 0;
 	sh.tilde_block = 0;
+	sh.funtrap = NULL;
 	if(job.in_critical)
 		job_unlock();
 	if(pp->mode == SH_JMPSCRIPT && !pp->prev)
