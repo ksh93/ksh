@@ -18,7 +18,7 @@
 ***********************************************************************/
 
 static const char usage[] =
-"[-?\n@(#)pty (ksh 93u+m) 2026-11-13\n]"
+"[-?\n@(#)pty (ksh 93u+m) 2026-11-16\n]"
 "[-author?Glenn Fowler <gsf@research.att.com>]"
 "[-author?David Korn <dgk@research.att.com>]"
 "[-author?Martijn Dekker <martijn@inlv.org>]"
@@ -1039,13 +1039,7 @@ masterline(Sfio_t* mp, Sfio_t* lp, char* prompt, char* want, int must, int timeo
 			bp->cur = bp->end = bp->buf;
 			goto done;
 		}
-		else if (must >= 0)
-			error(2, "read timeout");
-		else
-		{
-			errno = 0;
-			error(-1, "r EOF");
-		}
+		error(2, "read timeout");
 		return NULL;
 	}
 	if (!(s = sfreserve(mp, SFIO_UNBOUND, -1)))
@@ -1309,9 +1303,10 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 		case 'r':
 			if (cond->flags & SKIP)
 				continue;
-			if (!(m = masterline(mp, lp, NULL, s, s[0] == '?' && s[1] == '.' ? -1 : 1, timeout, master)))
-				goto done;
+			m = masterline(mp, lp, NULL, s, s[0] == '?' && s[1] == '.' ? -1 : 1, timeout, master);
 			match(s, m, 1);
+			if (!m)
+				goto done;
 			break;
 		case 's':
 			errno = 0;
