@@ -2,6 +2,19 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-11-18:
+
+- Signal and trap processing has been thoroughly overhauled under the hood
+  and should now be a great deal more stable.
+
+- Fixed bugs that caused a virtual subshell (including a command
+  substitution and a regular parentheess subshell) to be incorrectly
+  interrupted when a signal was sent to the parent environment.
+
+- Fixed a bug where a signal sent to the caller's environment from a ksh
+  function scope failed to correctly trigger a trap set in the parent
+  environment.
+
 2026-11-13:
 
 - Fixed a crash that occurred on NetBSD when passing a command line option

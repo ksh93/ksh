@@ -1075,8 +1075,10 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 	unsigned int savecurenv = sh.curenv;
 	int savejobpgid = job.curpgid;
 	int *saveexitval = job.exitval;
-	char **volatile savsig;
+	char **volatile savsig = NULL;
 	volatile size_t nsig = 0;
+	struct funtrap *volatile save_funtrap = sh.funtrap;
+	struct funtrap sub_trap;
 	Sfio_t *volatile iop = NULL;
 	struct checkpt checkpoint;
 	struct sh_scoped savst;
@@ -1177,6 +1179,19 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 			sh.st.otrapcom = NULL;
 		if(sh_isoption(SH_FUNCTRACE) && sh.st.trap[SH_DEBUGTRAP] && *sh.st.trap[SH_DEBUGTRAP])
 			save_debugtrap = sh_strdup(sh.st.trap[SH_DEBUGTRAP]);
+		/*
+		 * The traps of the environment that started this subshell are reset
+		 * below, so record its trap table in the sh.funtrap chain. This
+		 * allows sh_sigprocess() to defer a signal trapped by the caller
+		 * until this subshell has exited, instead of letting it interrupt
+		 * the subshell and lose its output; see sigdefer_subshell() in
+		 * fault.c. Applies to a ( ... ) subshell as well as to a command
+		 * substitution, which is the same kind of virtual subshell.
+		 */
+		sub_trap.trapcom = savsig;
+		sub_trap.max = savst.trapmax;
+		sub_trap.prev = save_funtrap;
+		sh.funtrap = &sub_trap;
 		sh_sigreset(0);
 		if(save_debugtrap)
 			sh.st.trap[SH_DEBUGTRAP] = save_debugtrap;
@@ -1439,6 +1454,7 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 			memset(&sh.st.trapcom[savst.trapmax],0,(size_t)n*sizeof(char*));
 		sh.st = savst;
 		sh.st.otrap = NULL;
+		sh.funtrap = save_funtrap;
 		if(nsig)
 			memcpy(sh.st.trapcom, savsig, nsig);
 		sh.options = sp->options;
@@ -1572,7 +1588,16 @@ Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
 	if(sh.ignsig)
 		kill(sh.current_pid,sh.ignsig);
 	if(jmpval==SH_JMPSUB && sh.lastsig)
-		kill(sh.current_pid,sh.lastsig);
+	{
+		/*
+		 * If a ksh function scope reset the traps, defer
+		 * the signal until sh_funscope() has restored them.
+		 */
+		if (sh.fn_depth && !sh.st.trapcom[sh.lastsig])
+			sh_sigqueue(sh.lastsig);
+		else
+			kill(sh.current_pid,sh.lastsig);
+	}
 	if(jmpval && sh.toomany)
 		siglongjmp(*sh.jmplist,jmpval);
 	return iop;

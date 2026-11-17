@@ -2871,10 +2871,22 @@ pid_t _sh_fork(pid_t parent,int flags,int *jobid)
 	job.toclear = 1;
 	sh_offoption(SH_LOGIN_SHELL);
 	sh_onstate(SH_FORKED);
-	/* Reset remaining signals to parent */
-	/* except for those `lost' by trap   */
-	if(!(flags&F_SUBFORK))
+	if(flags&F_SUBFORK)
+	{
+		/*
+		 * This child continues a virtual subshell as a real one. Any signal
+		 * that is still queued was delivered to the parent before the fork;
+		 * the parent runs its action after leaving the subshell, so discard
+		 * it here instead of letting it terminate this child and lose the
+		 * remainder of the subshell's (or command substitution's) output.
+		 */
+		sh_sigdiscard();
+	}
+	else
+	{
+		/* Reset remaining signals to parent except for those `lost' by trap */
 		sh_sigreset(2);
+	}
 	sh_clear_subshell_pwdfd();
 	sh.realsubshell++;		/* increase ${.sh.subshell} */
 	sh.subshell = 0;		/* zero virtual subshells */
@@ -2979,8 +2991,11 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	volatile int		r = 0;
 	int			posix_fun = 0, save_loopcnt = sh.st.loopcnt;
 	volatile char		save_invoc_local;
-	char 			**volatile savsig;
+	char 			**volatile savsig = NULL;
 	volatile size_t		nsig;
+	struct funtrap *volatile save_funtrap = sh.funtrap;
+	struct funtrap		fun_trap;
+	volatile sig_atomic_t	save_sigcritical = sh.sigcritical;
 	struct funenv		*fp = NULL;
 	struct checkpt		*buffp = stkalloc(sh.stk,sizeof(struct checkpt));
 	Namval_t		*nspace = sh.namespace;
@@ -3063,7 +3078,13 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 			savsig = memcpy(stkalloc(sh.stk, nsig), sh.st.trapcom, nsig);
 		if(!fun && sh_isoption(SH_FUNCTRACE) && sh.st.trap[SH_DEBUGTRAP] && *sh.st.trap[SH_DEBUGTRAP])
 			save_debugtrap = sh_strdup(sh.st.trap[SH_DEBUGTRAP]);
+		fun_trap.trapcom = savsig;
+		fun_trap.max = sh.st.trapmax;
+		fun_trap.prev = save_funtrap;
+		sh.funtrap = &fun_trap;
+		sh.sigcritical |= SH_SIGDEFER;
 		sh_sigreset(-1);
+		sh.sigcritical = save_sigcritical;
 		if(save_debugtrap)
 			sh.st.trap[SH_DEBUGTRAP] = save_debugtrap;
 		save_invoc_local = sh.invoc_local;
@@ -3164,6 +3185,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 			siglongjmp(*sh.jmplist,jmpval);
 		if(jmpval==SH_JMPFUN && sh.lastsig)
 			kill(sh.current_pid, sh.lastsig);  /* pass down unhandled signal that interrupted the function */
+		sh.funtrap = save_funtrap;
 		sh.st.loopcnt = save_loopcnt;
 		return r;
 	}
@@ -3172,13 +3194,19 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	 */
 	trap = sh.st.trapcom[0];
 	sh.st.trapcom[0] = NULL;
+	sh.sigcritical |= SH_SIGDEFER;
 	sh_sigreset(1);
+	/* Keep signals queued during function cleanup until the caller's traps are restored */
+	sh.sigcritical = save_sigcritical;
 	sh.st = *prevscope;
 	sh.topscope = (Shscope_t*)prevscope;
 	nv_getval(sh_scoped(IFSNOD));
 	if(nsig)
 		memcpy(sh.st.trapcom, savsig, nsig);
+	sh.funtrap = save_funtrap;
 	sh.trapnote &= SH_SIGPENDING;
+	if (jmpval != SH_JMPSUB && !sh.intrap && (sh.trapnote & SH_SIGPENDING))
+		sh_chktrap();
 	sh.options = save_options;
 	sh.last_root = last_root;
 	if(jmpval == SH_JMPSUB)
@@ -3196,7 +3224,10 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 	 * currently executing, so re-raising it would recursively re-enter it.
 	 */
 	if(jmpval==SH_JMPFUN && sh.lastsig && !sh.intrap)
+	{
 		kill(sh.current_pid, sh.lastsig);
+		sh_chktrap();
+	}
 	if(jmpval > SH_JMPFUN)
 	{
 		sh_chktrap();

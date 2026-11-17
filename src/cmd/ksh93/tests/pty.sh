@@ -34,17 +34,23 @@
 #   actually produced; make sure all of it is read back and verified in the
 #   correct order.
 # - Use a global delay (d) of 50ms; this works best with parallel testing.
+#   (Done with --delay=50 in the pty invocation itself; use d to override)
+# - Start all tests with an L (label) command for clear failure diagnostics.
 # - The trickiest part of the tests is avoiding typeahead in the pty
 #   dialogue. Strictly following the points below should help with this:
 #   * Peek (p) for *all* the prompts before typing (w).
-#   * Read back *all* the terminal typing echo (r) after each write (w) to
+#   * No need to backslash-escape regex characters in 'w' and 'c' strings;
+#     only C-style escapes like \n, plus \E and \cn, are converted there,
+#     so only the backslash itself needs escaping. The 'p' (peek) command
+#     takes literal text so no escaping is needed at all. However, the
+#     readback check commands 'r' and 'u' take a full extended regex.
+#   * Read back (r) *all* the typed command lines after each write (w) to
 #     avoid synchronisation problems. A partial regex is fine here, it's
 #     just for synching.
-#	> The PS1 prompt should not be included in the terminal echo check
-#	  regexes, because that intermittently fails on some systems.
-#	> The typing echo that is read back is what would be physically
-#	  displayed on the terminal at the end of the write; this is relevant
-#	  when writes move the cursor and insert or delete characters.
+#	> The command line that is read back is what would be physically
+#	  displayed on the terminal at the end of the write (including the
+#	  preceding prompt); this is relevant when writes move the cursor and
+#	  insert or delete characters.
 #	> If the write leaves the terminal cursor somewhere other than one
 #	  past the end of the line, then only the typing echo that is to the
 #	  left of the cursor is read back.
@@ -155,8 +161,17 @@ function chk
 	while	read -r text
 	do	if	[[ $text == *debug* ]]
 		then	print -u2 -r -- "$text"
-		else	offset=${text/*: line +([[:digit:]]):*/\1}
-			err\_exit "$lineno" "${text/: line $offset:/: line $(( lineno + offset)):}"
+		else	case $text in
+			line\ +([[:digit:]]):*)
+				# no L command in test, so no label in diagnostic
+				offset=${text/line +([[:digit:]]):*/\1}
+				err\_exit "$lineno" "${text/line $offset:/line $(( lineno + offset)):}"
+				;;
+			*)
+				offset=${text/*: line +([[:digit:]]):*/\1}
+				err\_exit "$lineno" "${text/: line $offset:/: line $(( lineno + offset)):}"
+				;;
+			esac
 		fi
 	done
 }
@@ -1929,6 +1944,110 @@ r kill -s USR1 \$\$\r?\n$
 s 100
 r ^OK\r?\n$
 p :test-3:
+!
+
+tst $LINENO <<"!"
+L trap signal during prompt discipline command substitution
+# A prompt discipline function resets traps in its function scope. Signals
+# arriving while its command substitution is running must be passed to the
+# caller after the caller's trap table has been restored, and must not prevent
+# the discipline from setting its value.
+
+p :test-1:
+w function GITBRANCH.get { .sh.value=\${ sleep .1; echo branch; }; }
+r function GITBRANCH.get .*\r?\n$
+p :test-2:
+w PS1=':test-!:[\${GITBRANCH}]# '
+r PS1=':test-!:\[\$\{GITBRANCH\}\]# '\r?\n$
+p :test-3:[branch]#
+w trap 'echo TRAPPED' USR1
+r trap 'echo TRAPPED' USR1\r?\n$
+p :test-4:[branch]#
+w (sleep 1; for((i=0;i<4;i++));do kill -s USR1 $$;done) &
+r .*for.*USR1.*\r?\n$
+r \[1\].*\r?\n$
+s 100
+r TRAPPED\r?\n$
+r TRAPPED\r?\n$
+p :test-5:[branch]#
+w echo still live
+r echo still live\r?\n$
+r ^still live\r?\n$
+p :test-6:[branch]#
+!
+
+tst $LINENO <<"!"
+L trap signal during nested prompt discipline command substitution
+# A prompt discipline can call another discipline function. Signals arriving
+# in the inner command substitution must still be deferred for the outermost
+# caller trap, or the inner function's empty caller trap table hides it.
+
+p :test-1:
+w function BRANCH.get { .sh.value=\${ sleep .1; echo nested; }; }
+r function BRANCH.get .*\r?\n$
+p :test-2:
+w function GITBRANCH.get { .sh.value=\${ echo \${BRANCH}; }; }
+r function GITBRANCH.get .*\r?\n$
+p :test-3:
+w PS1=':test-!:[\${GITBRANCH}]# '
+r PS1=':test-!:\[\$\{GITBRANCH\}\]# '\r?\n$
+p :test-4:[nested]#
+w trap 'echo TRAPPED' USR1
+r trap 'echo TRAPPED' USR1\r?\n$
+p :test-5:[nested]#
+w (sleep 1; for((i=0;i<4;i++));do kill -s USR1 $$;done) &
+r .*for.*USR1.*\r?\n$
+r \[1\].*\r?\n$
+s 100
+r TRAPPED\r?\n$
+r TRAPPED\r?\n$
+# this last 'p' must be kept; it's where the bug shows up (":test-6:[]# ")
+p :test-6:[nested]#
+!
+
+tst $LINENO <<"!"
+L ksh function sending signal to caller with trap
+# sh.1: "A trap condition that is not caught or ignored by the function
+# causes the function to terminate and the condition to be passed on to
+# the caller."
+
+p :test-1:
+w trap 'echo TRAPPED' USR1
+r ^:test-1: trap 'echo TRAPPED' USR1\r?\n$
+p :test-2:
+w function f { echo begin_fn; kill -USR1 $$; echo end_fn; }
+r ^:test-2: function f \{ echo begin_fn; kill -USR1 \$\$; echo end_fn; \}\r?\n$
+p :test-3:
+w echo begin_main; f; echo end_main
+r ^:test-3: echo begin_main; f; echo end_main\r?\n$
+r begin_main
+r begin_fn
+r TRAPPED
+r end_main
+p :test-4:
+!
+
+tst $LINENO <<"!"
+L ksh function receiving signal from another process with trap set in caller
+# sh.1: "A trap condition that is not caught or ignored by the function
+# causes the function to terminate and the condition to be passed on to
+# the caller."
+
+p :test-1:
+w trap 'echo TRAPPED' USR1
+r ^:test-1: trap 'echo TRAPPED' USR1\r?\n$
+p :test-2:
+w function f { echo begin_fn; sleep .5; echo end_fn; }
+r ^:test-2: function f \{ echo begin_fn; sleep \.5; echo end_fn; \}\r?\n$
+p :test-3:
+w (sleep .25; kill -s USR1 $$) & echo begin_main; f; echo end_main
+r ^:test-3: \(sleep \.25; kill -s USR1 \$\$\) & echo begin_main; f; echo end_main\r?\n$
+r ^\[[[:digit:]]+\]
+r begin_main
+r begin_fn
+r TRAPPED
+r end_main
+p :test-4:
 !
 
 # ^^^^^^ ADD NEW TESTS ABOVE THIS LINE ^^^^^^

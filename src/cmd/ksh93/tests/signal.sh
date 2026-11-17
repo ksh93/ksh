@@ -715,6 +715,74 @@ exp='ABCEF'
 	"(expected status $exp_e$( ((exp_e>128)) && print -n /SIG && kill -l "$exp_e") and $(printf %q "$exp")," \
 	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e") and $(printf %q "$got"))"
 
+# ======
+# A trapped signal must not be handled inside a command substitution; doing
+# so can cause the trap action's effects or the comsub's result to be lost.
+got=$("$SHELL" -c '
+	trap "((n++))" USR1
+	x=$(kill -s USR1 $$; sleep .1; print value)
+	print "x=$x n=$n"
+' 2>&1)
+exp='x=value n=1'
+[[ $got == "$exp" ]] || err_exit 'trap signal handled inside command substitution' \
+       "(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$("$SHELL" -c '
+	trap "((n++))" USR1
+	x=${ kill -s USR1 $$; sleep .1; print value; }
+	print "x=$x n=$n"
+' 2>&1)
+exp='x=value n=1'
+[[ $got == "$exp" ]] || err_exit 'trap signal handled inside shared-state command substitution' \
+       "(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# A ksh function scope resets traps, so a signal trapped by the caller must
+# still be deferred for a command substitution run by a discipline function;
+# otherwise the trap discards the discipline's .sh.value.
+got=$("$SHELL" -c '
+	trap "((n++))" USR1
+	function var.get { .sh.value=$(kill -s USR1 $$; sleep .1; print value); }
+	y=$var
+	print "y=$y n=$n"
+' 2>&1)
+exp='y=value n=1'
+[[ $got == "$exp" ]] || err_exit 'trap signal discards discipline command substitution value' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+got=$("$SHELL" -c '
+	trap "((n++))" USR1
+	function var.get { .sh.value=${ kill -s USR1 $$; sleep .1; print value; }; }
+	y=$var
+	print "y=$y n=$n"
+' 2>&1)
+exp='y=value n=1'
+[[ $got == "$exp" ]] || err_exit 'trap signal discards discipline shared-state command substitution value' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# A command substitution may turn into a real forked subshell at any point;
+# 'ulimit -c 0' forces the fork. The forked child must not run the trap action
+# that the parent still has queued, or its remaining output would be lost.
+got=$("$SHELL" -c '
+	trap "((n++))" USR1
+	x=$(kill -s USR1 $$; ulimit -c 0; print value)
+	print "x=$x n=$n"
+' 2>&1)
+exp='x=value n=1'
+[[ $got == "$exp" ]] || err_exit 'trap signal loses the output of a forked command substitution' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+# The same applies to a subshell that is not a command substitution: a signal
+# trapped by the caller must not interrupt it, so the whole subshell runs and
+# the caller's trap action runs afterwards.
+got=$("$SHELL" -c '
+	trap "((n++))" USR1
+	(print one; kill -s USR1 $$; print two)
+	print "n=$n"
+' 2>&1)
+exp='one
+two
+n=1'
+[[ $got == "$exp" ]] || err_exit 'trap signal interrupts a subshell' \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
 wait "$parallel_1"; r=$(< parallel_1.err) || exit 125; eval "$r"
