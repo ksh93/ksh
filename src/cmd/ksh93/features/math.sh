@@ -17,8 +17,8 @@
 #            Johnothan King <johnothanking@protonmail.com>             #
 #                                                                      #
 ########################################################################
-: generate the ksh math builtin table
-: include math.tab
+# generate the ksh math builtin table
+# include math.tab
 
 # @(#)math.sh (ksh 93u+m) 2026-11-18
 
@@ -38,32 +38,29 @@ eval $1
 shift
 table=$1
 
-: check long double
+# iffe(1) detects long double only if sizeof(long double) > sizeof(double).
+eval $(iffe $iffeflags -c "$cc" - typ long.double 2>&$stderr)
 
-eval `iffe $iffeflags -c "$cc" - typ long.double 2>&$stderr`
-
-: check ast_standards.h
-
-eval `iffe $iffeflags -F ast_standards.h -c "$cc" - tst use_ast_standards -lm 'note{' 'math.h needs ast_standards.h' '}end' 'link{' '#include <math.h>' '#ifndef isgreater' '#define isgreater(a,b) 0' '#endif' 'int main(void) { return isgreater(0.0,1.0); }' '}end'`
-case $_use_ast_standards in
-1)	iffeflags="$iffeflags -F ast_standards.h" ;;
-esac
-eval `iffe $iffeflags -c "$cc" - tst use_ieeefp -lm 'note{' 'ieeefp.h plays nice' '}end' 'link{' '#include <math.h>' '#include <ieeefp.h>' 'int main(void) { return 0; }' '}end'`
+eval $(iffe $iffeflags -c "$cc" - tst use_ieeefp -lm 'note{' 'ieeefp.h plays nice' '}end' \
+	'link{' \
+		'#include <math.h>' \
+		'#include <ieeefp.h>' \
+		'int main(void) { return 0; }' \
+	'}end')
 case $_use_ieeefp in
 1)	iffehdrs="$iffehdrs ieeefp.h" ;;
 esac
 
-: C90 standard math functions need no probing: they are guaranteed to exist
-: and to be declared in math.h, and they are functions rather than macros.
-: Their long double variants are C99 and are probed as usual, since some C99
-: libraries, such as Solaris 9, do not declare those in math.h.
+# C90 standard math functions need no probing; they are guaranteed to exist and
+# to be declared in math.h as functions. Their long double variants are C99 and
+# are probed as usual; we do not assume a C99-compliant system library yet.
 
 c90='acos asin atan atan2 ceil cos cosh exp fabs floor fmod ldexp log log10 pow sin sinh sqrt tan tanh'
 for name in $c90
 do	eval _lib_$name=1 _mac_$name= _npt_$name=
 done
 
-: read the table
+# read the table
 
 exec < $table
 ifs=$IFS
@@ -119,7 +116,7 @@ do	case $type in
 	esac
 done
 
-: check the math library
+# Check the math library.
 
 # Testing each name separately means compiling and linking a test program for
 # each one. So test the existence of all ordinary floating-point functions in
@@ -162,12 +159,11 @@ pragmas='#if	defined(__clang__)
 #elif	defined(__GNUC__)
 #pragma GCC diagnostic ignored "-Wpragmas"
 #pragma GCC diagnostic ignored "-Wbuiltin-declaration-mismatch"
-#endif
-'
+#endif'
 
-# The array is read through a volatile pointer so that the compiler cannot
-# optimise away entries it thinks are unused: every name must actually be
-# referenced at link time, or a missing function would go unnoticed.
+# Each function is probed through a volatile pointer so that the compiler
+# cannot optimise away entries it thinks are unused: every name must actually
+# be referenced at link time, or a missing function would go unnoticed.
 
 linkmath()	# [ name ... ]
 {
@@ -178,12 +174,14 @@ linkmath()	# [ name ... ]
 		_init="$_init,$_name"
 	done
 	_mathlib=
-	eval `iffe $iffeflags -c "$cc" - tst mathlib 'note{' 'bisecting math functions grouped link probe' '}end' \
+	eval $(iffe $iffeflags -c "$cc" - tst mathlib 'note{' 'bisecting math functions grouped link probe' '}end' \
 		'link{' \
 			"${pragmas}" \
-			"typedef int (*_iffe_math_fun)();$_decl static _iffe_math_fun _f[] = { 0$_init };" \
+			"typedef int (*_iffe_math_fun)();" \
+			"$_decl" \
+			"static _iffe_math_fun _f[] = { 0$_init };" \
 			"int main(void) { return *(volatile _iffe_math_fun *)_f == 0; }" \
-		'}end' $iffelibs 2>&$stderr`
+		'}end' $iffelibs 2>&$stderr)
 	if	test "$_mathlib" = 1
 	then	for _name
 		do	eval _lib_$_name=1
@@ -211,7 +209,7 @@ do	eval t='$'_lib_$name
 	test "$t" = 1 || libs="$libs,$name"
 done
 
-eval `iffe $iffeflags -c "$cc" - lib $libs $iffehdrs $iffelibs 2>&$stderr`
+eval $(iffe $iffeflags -c "$cc" - lib $libs $iffehdrs $iffelibs 2>&$stderr)
 lib=
 for name in $names
 do	eval x='$'_lib_${name}l y='$'_lib_${name}
@@ -229,8 +227,8 @@ do	eval x='$'_lib_${name}l y='$'_lib_${name}
 		;;
 	esac
 done
-eval `iffe $iffeflags -c "$cc" - npt,mac $lib $iffehdrs $iffelibs 2>&$stderr`
-eval `iffe $iffeflags -c "$cc" - num $nums $iffehdrs $iffelibs 2>&$stderr`
+eval $(iffe $iffeflags -c "$cc" - npt,mac $lib $iffehdrs $iffelibs 2>&$stderr)
+eval $(iffe $iffeflags -c "$cc" - num $nums $iffehdrs $iffelibs 2>&$stderr)
 
 # for privacy and brevity, strip leading $PACKAGEROOT/ from header comment
 cat <<!
@@ -264,7 +262,7 @@ cat <<!
 !
 echo
 
-: generate the intercept functions and table entries
+# generate the intercept functions and table entries
 
 nl='
 '
@@ -365,7 +363,10 @@ do	eval x='$'_lib_${name}l y='$'_lib_${name} r='$'TYPE_${name} a='$'ARGS_${name}
 				sep=","
 			done
 			_it_links_=0
-			eval `iffe $iffeflags -c "$cc" - tst it_links_ note{ $F function links }end link{ "static $L $F($ta)$td${body}int main(void){return $F($tc)!=0;}" }end sfio.h $iffehdrs $iffelibs 2>&$stderr`
+			eval $(iffe $iffeflags -c "$cc" - tst it_links_ 'note{' "$F function links" '}end' \
+				'link{' \
+					"static $L $F($ta)$td${body}int main(void){return $F($tc)!=0;}" \
+				'}end' sfio.h $iffehdrs $iffelibs 2>&$stderr)
 			case $_it_links_ in
 			1)	code="$code)$body"
 				echo "$code"
@@ -424,7 +425,8 @@ do	eval x='$'_lib_${name}l y='$'_lib_${name} r='$'TYPE_${name} a='$'ARGS_${name}
 
 		case $f in
 		float)	code="$code{return $args;}" ;;
-		int)	code="$code{return ($args < LDBL_LLONG_MIN || $args > LDBL_ULLONG_MAX) ? (Sfdouble_t)0 : ($args < 0) ? (Sfdouble_t)((Sflong_t)$args) : (Sfdouble_t)((Sfulong_t)$args);}" ;;
+		int)	code="$code{return ($args < LDBL_LLONG_MIN || $args > LDBL_ULLONG_MAX) ? (Sfdouble_t)0 : "
+			code="$code($args < 0) ? (Sfdouble_t)((Sflong_t)$args) : (Sfdouble_t)((Sfulong_t)$args);}" ;;
 		*)	code="$code{return $f($args);}" ;;
 		esac
 		echo "$code"
