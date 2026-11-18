@@ -18,7 +18,7 @@
 ***********************************************************************/
 
 static const char usage[] =
-"[-?\n@(#)pty (ksh 93u+m) 2026-11-16\n]"
+"[-?\n@(#)pty (ksh 93u+m) 2026-11-18\n]"
 "[-author?Glenn Fowler <gsf@research.att.com>]"
 "[-author?David Korn <dgk@research.att.com>]"
 "[-author?Martijn Dekker <martijn@inlv.org>]"
@@ -1292,13 +1292,11 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
 		case 'p':
 			if (cond->flags & SKIP)
 				continue;
-			if (!(m = masterline(mp, lp, s, NULL, 1, timeout, master)))
+			m = masterline(mp, lp, s, NULL, 1, timeout, master);
+			if (!m || !strneq(m, s, strlen(s)))
+				error(2, "expected \"%s\", got \"%s\"", s, m ? fmtesq(m, "\"") : "EOF");
+			if (!m)
 				goto done;
-			if (!strneq(m, s, strlen(s)))
-			{
-				error(2, "expected \"%s\", got \"%s\"", s, fmtesq(m, "\""));
-				goto done;
-			}
 			break;
 		case 'r':
 			if (cond->flags & SKIP)
