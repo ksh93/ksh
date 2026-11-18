@@ -33,7 +33,7 @@ esac
 set -o noglob
 
 command=iffe
-version=2026-10-10
+version=2026-11-18
 
 # DEFPATH should be inherited from package(1), but just in case...
 case $DEFPATH in
@@ -2380,8 +2380,13 @@ int x;
 					lib="$p $lib"
 					;;
 				*)	rm -f $tmp.exe
-					is LIB $p
-					if	compile $cc -o $tmp.exe $tmp.c $p $lib <&$nullin >&$nullout
+					# POSIX has required -lm since antiquity, so assume it and skip the probe
+					case $p in
+					-lm)	;;
+					*)	is LIB $p
+						;;
+					esac
+					if      test "$p" = -lm || compile $cc -o $tmp.exe $tmp.c $p $lib <&$nullin >&$nullout
 					then	success
 						gotlib="$gotlib + $p"
 						lib="$p $lib"
