@@ -2,7 +2,7 @@
 #                                                                      #
 #               This software is part of the ast package               #
 #          Copyright (c) 1982-2013 AT&T Intellectual Property          #
-#          Copyright (c) 2020-2024 Contributors to ksh 93u+m           #
+#          Copyright (c) 2020-2026 Contributors to ksh 93u+m           #
 #                      and is licensed under the                       #
 #                 Eclipse Public License, Version 2.0                  #
 #                                                                      #
@@ -20,7 +20,7 @@
 : generate the ksh math builtin table
 : include math.tab
 
-# @(#)math.sh (ksh 93u+m) 2024-12-23
+# @(#)math.sh (ksh 93u+m) 2026-11-18
 
 case $ZSH_VERSION in
 ?*)	emulate ksh ;;
@@ -53,6 +53,16 @@ case $_use_ieeefp in
 1)	iffehdrs="$iffehdrs ieeefp.h" ;;
 esac
 
+: C90 standard math functions need no probing: they are guaranteed to exist
+: and to be declared in math.h, and they are functions rather than macros.
+: Their long double variants are C99 and are probed as usual, since some C99
+: libraries, such as Solaris 9, do not declare those in math.h.
+
+c90='acos asin atan atan2 ceil cos cosh exp fabs floor fmod ldexp log log10 pow sin sinh sqrt tan tanh'
+for name in $c90
+do	eval _lib_$name=1 _mac_$name= _npt_$name=
+done
+
 : read the table
 
 exec < $table
@@ -63,7 +73,11 @@ nums=
 while	read type args name aka
 do	case $type in
 	[fix])	names="$names $name"
-		libs="$libs,$name"
+		case " $c90 " in
+		*" $name "*)
+			;;  # C90, see above
+		*)	libs="$libs,$name" ;;
+		esac
 		case $_typ_long_double in
 		1)	libs="$libs,${name}l" ;;
 		esac
@@ -77,7 +91,10 @@ do	case $type in
 				case ",$libs" in
 				*,$1,*)	;;
 				*)	names="$names $1"
-					libs="$libs,$1"
+					case " $c90 " in
+					*" $1 "*)	;;
+					*)		libs="$libs,$1"
+					esac
 					case $_typ_long_double in
 					1)	libs="$libs,${1}l" ;;
 					esac
@@ -104,6 +121,96 @@ done
 
 : check the math library
 
+# Testing each name separately means compiling and linking a test program for
+# each one. So test the existence of all ordinary floating-point functions in
+# one link test instead: if that succeeds they all exist, and the results can
+# simply be set. If it fails, split the list in half and test each half, and
+# so on recursively, until the failures are pinned down to a small group; the
+# names in that group are then probed one by one below. A system that has them
+# all thus needs one test, and one that lacks a few needs a few tests more,
+# instead of one per function.
+
+batch=
+librest=
+for name in $names
+do	eval t='$'TYPE_$name
+	case $t in
+	f|x)	case $name in
+		float|int)	continue ;;	# ksh pseudo-functions, not library symbols
+		esac
+		case ",$libs," in
+		*,$name,*)	batch="$batch $name" ;;
+		*,$name"l",*)	batch="$batch ${name}l" ;;
+		esac
+		;;
+	*)	case ",$libs," in
+		*,$name,*)	librest="$librest,$name" ;;
+		*,$name"l",*)	librest="$librest,${name}l" ;;
+		esac
+		;;
+	esac
+done
+
+# Each name is declared as an old-style function returning int so that it can
+# simply be named in the test program and resolved by the linker. A declaration
+# without a parameter list is valid C and is all that is needed here, as the
+# functions are never called; but compilers that know these names as builtins
+# warn about the mismatched declaration, which is pure noise, so silence that.
+
+pragmas='#if	defined(__clang__)
+#pragma clang diagnostic ignored "-Wincompatible-library-redeclaration"
+#elif	defined(__GNUC__)
+#pragma GCC diagnostic ignored "-Wpragmas"
+#pragma GCC diagnostic ignored "-Wbuiltin-declaration-mismatch"
+#endif
+'
+
+# The array is read through a volatile pointer so that the compiler cannot
+# optimise away entries it thinks are unused: every name must actually be
+# referenced at link time, or a missing function would go unnoticed.
+
+linkmath()	# [ name ... ]
+{
+	test $# -gt 0 || return 1
+	_decl= _init=
+	for _name
+	do	_decl="$_decl extern int $_name();"
+		_init="$_init,$_name"
+	done
+	_mathlib=
+	eval `iffe $iffeflags -c "$cc" - tst mathlib 'note{' 'bisecting math functions grouped link probe' '}end' \
+		'link{' \
+			"${pragmas}" \
+			"typedef int (*_iffe_math_fun)();$_decl static _iffe_math_fun _f[] = { 0$_init };" \
+			"int main(void) { return *(volatile _iffe_math_fun *)_f == 0; }" \
+		'}end' $iffelibs 2>&$stderr`
+	if	test "$_mathlib" = 1
+	then	for _name
+		do	eval _lib_$_name=1
+		done
+		return 0
+	fi
+	test $# -gt 8 || return 1	# too few to be worth splitting; probed individually below
+	_half=$(($# / 2))
+	_a= _b=
+	for _name
+	do	if	test $_half -gt 0
+		then	_a="$_a $_name"
+			_half=$((_half - 1))
+		else	_b="$_b $_name"
+		fi
+	done
+	linkmath $_a
+	linkmath $_b
+}
+
+linkmath $batch
+libs=$librest
+for name in $batch
+do	eval t='$'_lib_$name
+	test "$t" = 1 || libs="$libs,$name"
+done
+
 eval `iffe $iffeflags -c "$cc" - lib $libs $iffehdrs $iffelibs 2>&$stderr`
 lib=
 for name in $names
@@ -113,12 +220,16 @@ do	eval x='$'_lib_${name}l y='$'_lib_${name}
 	esac
 	case $y in
 	1)	case $x in
-		'')	lib="$lib,${name}" ;;
+		'')	case " $c90 " in
+			*" $name "*)	;;	# C90: declared in math.h, not a macro
+			*)		lib="$lib,$name" ;;
+			esac
+			;;
 		esac
 		;;
 	esac
 done
-eval `iffe $iffeflags -c "$cc" - dat,npt,mac $lib $iffehdrs $iffelibs 2>&$stderr`
+eval `iffe $iffeflags -c "$cc" - npt,mac $lib $iffehdrs $iffelibs 2>&$stderr`
 eval `iffe $iffeflags -c "$cc" - num $nums $iffehdrs $iffelibs 2>&$stderr`
 
 # for privacy and brevity, strip leading $PACKAGEROOT/ from header comment
