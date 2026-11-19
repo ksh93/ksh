@@ -135,13 +135,19 @@ do	eval t='$'TYPE_$name
 	f|x)	case $name in
 		float|int)	continue ;;	# ksh pseudo-functions, not library symbols
 		esac
+		# NOTE: the separate 'case ",$libs," in' statements cannot be combined;
+		# they are needed to add both the double and long double variants
 		case ",$libs," in
 		*,$name,*)	batch="$batch $name" ;;
+		esac
+		case ",$libs," in
 		*,$name"l",*)	batch="$batch ${name}l" ;;
 		esac
 		;;
 	*)	case ",$libs," in
 		*,$name,*)	librest="$librest,$name" ;;
+		esac
+		case ",$libs," in
 		*,$name"l",*)	librest="$librest,${name}l" ;;
 		esac
 		;;
