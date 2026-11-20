@@ -18,7 +18,7 @@
 ***********************************************************************/
 
 static const char usage[] =
-"[-?\n@(#)pty (ksh 93u+m) 2026-11-18\n]"
+"[-?\n@(#)pty (ksh 93u+m) 2026-11-20\n]"
 "[-author?Glenn Fowler <gsf@research.att.com>]"
 "[-author?David Korn <dgk@research.att.com>]"
 "[-author?Martijn Dekker <martijn@inlv.org>]"
@@ -1154,8 +1154,40 @@ struct Cond_s
 	int	flags;
 };
 
+/*
+ * After the master is closed, which hangs up the command's terminal,
+ * wait for the command to exit and kill it if it hangs. This avoids
+ * our procclose() call waiting forever for it to terminate.
+ */
+static void
+waitminion(pid_t pid, char *cmd)
+{
+	int	i;
+	char	*cp;
+
+	for (i = 0; i < 5; i++)
+	{
+		if (waitpid(pid, NULL, WNOHANG) == pid)
+			return;
+		usleep(100 * 1000);
+	}
+	/* use only command name in error message (directory path will be long) */
+	while ((cp = strchr(cmd, '/')) && *++cp)
+		cmd = cp;
+	error(2, "%s ignored terminal hangup; issuing SIGTERM", cmd);
+	kill(pid, SIGTERM);
+	for (i = 0; i < 5; i++)
+	{
+		if (waitpid(pid, NULL, WNOHANG) == pid)
+			return;
+		usleep(100 * 1000);
+	}
+	error(2, "%s ignored SIGTERM; issuing SIGKILL", cmd);
+	kill(pid, SIGKILL);
+}
+
 static int
-dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
+dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout, pid_t pid, char *cmd)
 {
 	unsigned long long	ull;
 	useconds_t		ud;
@@ -1398,6 +1430,7 @@ dialogue(Sfio_t* mp, Sfio_t* lp, useconds_t delay, int timeout)
  done:
 	if (mp)
 		sfclose(mp);
+	waitminion(pid, cmd);
 	error_info.id = id;
 	error_info.line = line;
 	vmclose(vm);
@@ -1561,7 +1594,10 @@ b_pty(int argc, char** argv, Shbltin_t* context)
 		if (drop)
 			ast_close(fd);
 	}
-	minion_status = (run_dialogue ? dialogue : process)(mp, lp, delay, timeout);
+	if (run_dialogue)
+		minion_status = dialogue(mp, lp, delay, timeout, proc->pid, argv[0]);
+	else
+		minion_status = process(mp, lp, delay, timeout);
 	master_status = procclose(proc);
 	if (lp && sfclose(lp))
 	{

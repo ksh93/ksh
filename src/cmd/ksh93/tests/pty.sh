@@ -43,7 +43,8 @@
 #     only C-style escapes like \n, plus \E and \cn, are converted there,
 #     so only the backslash itself needs escaping. The 'p' (peek) command
 #     takes literal text so no escaping is needed at all. However, the
-#     readback check commands 'r' and 'u' take a full extended regex.
+#     readback check commands 'r' and 'u' take a full extended regular
+#     expression (ERE) with additional processing of C-style escapes.
 #   * Read back (r) *all* the typed command lines after each write (w) to
 #     avoid synchronisation problems. A partial regex is fine here, it's
 #     just for synching.
@@ -2105,6 +2106,42 @@ r begin_fn
 r TRAPPED
 r end_main
 p :test-4:
+!
+
+# A built-in from libcmd must react to Ctrl+C like an external command does:
+# the built-in is interrupted, a trap set for SIGINT runs, and the rest of the
+# command line is only discarded if no trap is set.
+(builtin tail) 2>/dev/null && tst $LINENO <<"!"
+L a Ctrl+C interrupts a libcmd built-in and runs a SIGINT trap
+
+p :test-1:
+w builtin tail
+r builtin tail\r?\n$
+p :test-2:
+w trap 'print TRAPPED' INT
+r trap 'print TRAPPED' INT\r?\n$
+p :test-3:
+w tail -f /dev/null; print after
+r tail -f /dev/null; print after\r?\n$
+s 100
+c \cC
+s 100
+r \^CTRAPPED\r?\n$
+r after\r?\n$
+p :test-4:
+w trap - INT
+r trap - INT\r?\n$
+p :test-5:
+w tail -f /dev/null; print after
+r tail -f /dev/null; print after\r?\n$
+s 100
+c \cC
+s 100
+p ^C:test-6:
+w print CORRECT
+r ^\^C:test-6: print CORRECT\r?\n$
+r CORRECT\r?\n$
+p :test-7:
 !
 
 # ^^^^^^ ADD NEW TESTS ABOVE THIS LINE ^^^^^^
