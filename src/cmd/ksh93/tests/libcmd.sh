@@ -1045,4 +1045,60 @@ then	exp='0'
 fi
 
 # ======
+# A signal with a trap must not interrupt a built-in from libcmd any more than
+# it interrupts an external command: the signal is queued and the trap action
+# runs after the built-in has terminated.
+if builtin tail 2> /dev/null; then
+	# A signal without a trap interrupts a built-in like it interrupts an
+	# external command: here the shell is terminated by the default action.
+	: > "$tmp/tail_in"
+	{ got=$("$SHELL" -c '
+		builtin tail || exit
+		( sleep .1; kill -s USR1 $$ ) &
+		tail -f -s -t 1 "$1"
+		print NOT INTERRUPTED
+	' ksh "$tmp/tail_in" 2>&1); } 2> /dev/null
+	e=$?
+	exp_e=$(( 256 + $(kill -l USR1) ))
+	exp=''
+	[[ $got == "$exp" && e -eq exp_e ]] || err_exit 'untrapped signal does not interrupt a built-in' \
+		"(expected status $exp_e$( ((exp_e>128)) && print -n /SIG && kill -l "$exp_e") and $(printf %q "$exp")," \
+		"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e") and $(printf %q "$got"))"
+
+	# The built-in keeps working after a trapped signal is received. 'tail -f'
+	# polls Shbltin_t.sigset with sh_checksig(), so it would stop early if the
+	# signal wrongly interrupted it, and then never print the appended line.
+	: > "$tmp/tail_in"
+	{ got=$("$SHELL" -c '
+		builtin tail || exit
+		trap "print TRAPPED" USR1
+		( sleep .1; kill -s USR1 $$; sleep .1; print hello >> "$1" ) &
+		# the guard makes a regression fail the test instead of hanging it
+		( sleep 2; kill -s KILL $$ ) & guard=$!
+		tail -f -s -t 1 "$1"
+		kill "$guard" 2> /dev/null
+	' ksh "$tmp/tail_in" 2>&1); } 2> /dev/null
+	exp=$'hello\nTRAPPED'
+	[[ $got == "$exp" ]] || err_exit 'trapped signal interrupts a built-in' \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
+	# The same applies when the built-in is reading from a shell stream, where
+	# the trap action must not run before the built-in is done.
+	rm -f "$tmp/tail_fifo"
+	mkfifo "$tmp/tail_fifo" || err_exit 'mkfifo failed'
+	{ got=$("$SHELL" -c '
+		builtin tail || exit
+		trap "print TRAPPED" USR1
+		( print one; sleep .2; print two ) > "$1" &
+		( sleep .1; kill -s USR1 $$ ) &
+		( sleep 1; kill -s KILL $$ ) & guard=$!
+		tail < "$1"
+		kill "$guard" 2> /dev/null
+	' ksh "$tmp/tail_fifo" 2>&1); } 2> /dev/null
+	exp=$'one\ntwo\nTRAPPED'
+	[[ $got == "$exp" ]] || err_exit 'trapped signal aborts a built-in reading a shell stream' \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+fi
+
+# ======
 exit $((Errors<125?Errors:125))

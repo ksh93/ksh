@@ -2,6 +2,15 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-11-21:
+
+- Fixed a bug, introduced on 2026-11-18, that prevented libcmd (path-bound)
+  built-ins from being interrupted by any signal, including SIGINT/Ctrl+C.
+
+- Fixed a longstanding bug, once again exposed after the previous fix, that
+  caused libcmd builtins to be incorrectly interrupted by a signal for which
+  a trap was set in the invoking shell environment.
+
 2026-11-18:
 
 - Signal and trap processing has been thoroughly overhauled under the hood

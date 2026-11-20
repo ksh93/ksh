@@ -127,6 +127,48 @@ static int sigdefer_subshell(int sig)
 }
 
 /*
+ * Return nonzero if the libcmd built-in that is currently running asked
+ * to be notified of signals (Shbltin_t.notify, set by cmdinit(3) for
+ * ERROR_NOTIFY) and signal <sig> would interrupt it. These built-ins
+ * simply poll the Shbltin_t.sigset flag via the sh_checksig() macro, so
+ * the sigset flag must be set from the isgnal handler.
+ *
+ * Assumes: sig > 0 && sig < SIGQSIZE
+ */
+static int siginterrupt_builtin(int sig)
+{
+	char	*trap;
+	int	flag;
+	if (!sh.bltinfun || !sh.bltindata.notify)
+		return 0;
+	/* Ctrl+C interrupts the built-in even if SIGINT is trapped */
+	if (sig==SIGINT && sh_isstate(SH_INTERACTIVE) && !sh_isstate(SH_FORKED))
+		return 1;
+	if (sh.st.trapcom && (trap = sh.st.trapcom[sig]) && *trap)
+		return 0;
+	if (!sh.sigflag || sig > sh.sigmax)
+		return 0;
+	flag = sh.sigflag[sig] & ~SH_SIGOFF;
+	return !(flag & (SH_SIGIGNORE | SH_SIGDONE));
+}
+
+/*
+ * Return nonzero if signal <sig> has to be held back until the running
+ * notified built-in terminates, so that its trap action does not run inside it.
+ *
+ * Assumes: sig > 0 && sig < SIGQSIZE
+ */
+static int sigdefer_builtin(int sig)
+{
+	char	*trap;
+	if (!sh.bltinfun || !sh.bltindata.notify)
+		return 0;
+	if (siginterrupt_builtin(sig))
+		return 0;
+	return sh.st.trapcom && (trap = sh.st.trapcom[sig]) && *trap;
+}
+
+/*
  * sh_fault is the main signal handler for almost all signals in ksh.
  * Record a signal for later processing. For asynchronous signal safety,
  * only plain sig_atomic_t stores and reads are performed here, except
@@ -162,6 +204,8 @@ void	sh_fault(int sig)
 	}
 	if (sig > 0 && sig < SIGQSIZE)
 	{
+		if (siginterrupt_builtin(sig))
+			sh.bltindata.sigset = 1;
 		if ((sh.sigcritical & SH_SIGDEFER) && sh.sigflag && !(sh.sigflag[sig]&SH_SIGIGNORE))
 			sh.sigcritical |= SH_SIGDEFERHIT;
 		sh_sigqueue(sig);
@@ -204,7 +248,7 @@ void sh_sigprocess(void)
 			if (sig >= SIGQSIZE)
 				break;
 		}
-		if (sigdefer_subshell(sig))
+		if (sigdefer_builtin(sig) || sigdefer_subshell(sig))
 		{
 			sh.trapnote |= SH_SIGPENDING;
 			break;
@@ -221,8 +265,8 @@ void sh_sigprocess(void)
 }
 
 /*
- * The old signal handler body.  This is now only called from normal context
- * (sh_sigprocess), except for fatal signals handled by sh_fault() and for
+ * The old sh_fault signal handler. This is now only called from normal context
+ * (sh_sigprocess), except for fatal signals handled by new sh_fault() and for
  * SIGFPE, which are synchronous and would be retried if the handler returned.
  */
 static void sh_fault_action(int sig)
@@ -343,6 +387,7 @@ static void sh_fault_action(int sig)
 #endif
 	if(sh.bltinfun && sh.bltindata.notify)
 	{
+		/* fallback sigset for any signal that was already queued before the built-in started */
 		sh.bltindata.sigset = 1;
 		goto done;
 	}
