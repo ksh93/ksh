@@ -158,7 +158,7 @@ b_rev(int argc, char** argv, Shbltin_t* context)
 		else
 			line = rev_char(fp,sfstdout);
 		if(fp!=sfstdin)
-			sfclose(fp);
+			sfclose_batch(fp, AST_QUEUE);
 		if(line < 0)
 		{
 			error(ERROR_system(1),"write failed");
@@ -166,5 +166,6 @@ b_rev(int argc, char** argv, Shbltin_t* context)
 		}
 	}
 	while(cp= *argv++);
+	ast_close_batch(-1, AST_ENACT);
 	return n;
 }

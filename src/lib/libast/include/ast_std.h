@@ -262,6 +262,16 @@ typedef struct
 /* ast is defined as _ast_info in ast.h */
 extern _Ast_info_t	_ast_info;
 
+/* valid modes for ast_close_batch() and sfclose_batch() */
+typedef enum
+{
+	AST_AUXILIARY,
+	AST_ENACT,
+	AST_NOW,
+	AST_QUEUE,
+	AST_LIMIT,
+} close_mode_t;
+
 /* direct macro access for bsd crossover */
 
 #if !defined(memzero) && !defined(_lib_memzero)

@@ -318,8 +318,10 @@ extern void		astwinsize(int, int*, int*);
 #define astconf_ulong(x)	strtoul(astconf(x,NULL,NULL),NULL,0)
 #endif
 
+extern int		ast_close_batch(int, close_mode_t);
 extern int		ast_close(int);
 extern int		ast_dup2(int, int);
+extern int		ast_dup3(int, int, int);
 extern ssize_t		base64encode(const void*, size_t, void**, void*, size_t, void**);
 extern ssize_t		base64decode(const void*, size_t, void**, void*, size_t, void**);
 extern int		chresc(const char*, char**);

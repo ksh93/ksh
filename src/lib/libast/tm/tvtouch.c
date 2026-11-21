@@ -242,22 +242,31 @@ tvtouch(const char* path, const Tv_t* av, const Tv_t* mv, const Tv_t* cv, int fl
 			{
 				if (c = (lseek(fd, 0L, 0) == 0L && write(fd, &c, 1) == 1))
 					errno = oerrno;
-				ast_close(fd);
+				ast_close_batch(fd, AST_QUEUE);
 				if (c)
+				{
+					ast_close_batch(-1, AST_ENACT);
 					return 0;
+				}
 			}
 			else
-				ast_close(fd);
+				ast_close_batch(fd, AST_QUEUE);
 		}
 	}
 #endif /* _lib_utimets */
 	if (errno != ENOENT || !(flags & TV_TOUCH_CREATE))
+	{
+		ast_close_batch(-1, AST_ENACT);
 		return -1;
+	}
 	umask(mode = umask(0));
 	mode = (~mode) & (S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
 	if ((fd = open(path, O_WRONLY|O_CREAT|O_TRUNC|O_cloexec, mode)) < 0)
+	{
+		ast_close_batch(-1, AST_ENACT);
 		return -1;
-	ast_close(fd);
+	}
+	ast_close_batch(fd, AST_ENACT);
 	errno = oerrno;
 	if (av == (const Tv_t*)&now && mv == (const Tv_t*)&now)
 		return 0;

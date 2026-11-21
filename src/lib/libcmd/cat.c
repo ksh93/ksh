@@ -446,8 +446,6 @@ b_cat(int argc, char** argv, Shbltin_t* context)
 			n = 0;
 		else
 			n = -1;
-		if (fp != sfstdin)
-			sfclose(fp);
 		if (n < 0 && !ERROR_PIPE(errno) && errno != EINTR)
 		{
 			if (cp)
@@ -455,9 +453,12 @@ b_cat(int argc, char** argv, Shbltin_t* context)
 			else
 				error(ERROR_system(0), "read error");
 		}
+		if (fp != sfstdin)
+			sfclose_batch(fp, AST_QUEUE);
 		if (sferror(sfstdout))
 			break;
 	} while (cp = *argv++);
+	ast_close_batch(-1, AST_ENACT);
 	if (sfsync(sfstdout))
 		error(ERROR_system(0), "write error");
 	if (flags&d_FLAG)
