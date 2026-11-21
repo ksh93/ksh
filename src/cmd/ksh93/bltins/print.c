@@ -657,7 +657,7 @@ static ssize_t fmtbase64(Sfio_t *iop, char *string, int alt)
 			return n?(ssize_t)n:ret;
 		}
 	}
-	else if(nv_isarray(np) && (ap=nv_arrayptr(np)) && array_elem(ap) && (ap->nelem&(ARRAY_UNDEF|ARRAY_SCAN)))
+	else if(nv_isarray(np) && (ap=nv_arrayptr(np)) && array_elem(ap) && (ap->flags&(ARRAY_UNDEF|ARRAY_SCAN)))
 	{
 		nv_outnode(np,iop,(alt?-1:0),0);
 		if(sfputc(iop,')') < 0)

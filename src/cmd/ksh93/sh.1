@@ -1535,7 +1535,10 @@ To assign values to an indexed array, use
 The value of all non-negative
 subscripts must be in the
 range of
-0 through 4,194,303.
+0 through 2,147,483,647.
+An indexed array is stored as a contiguous vector, so assigning a
+subscript also allocates storage for all lower subscripts; in practice,
+available memory is therefore the limiting factor.
 A negative subscript is treated as an offset from the maximum
 current index +1 so that \-1 refers to the last element.
 Indexed arrays can be declared with the

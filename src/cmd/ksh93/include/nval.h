@@ -125,7 +125,8 @@ struct Nambfun
 struct Namarray
 {
 	Namfun_t	hdr;
-	long		nelem;				/* number of elements */
+	int		nelem;			/* number of elements */
+	int		flags;			/* ARRAY_* flags */
 	void	*(*fun)(Namval_t*,const char*,nvflag_t);/* associative arrays */
 	void		*fixed;			/* for fixed-size arrays */
 	Dt_t		*table;			/* for subscripts */
@@ -271,12 +272,10 @@ struct Namval
 #define NV_POP		3
 #define NV_CLONE	4
 
-/* The following are operations for nv_putsub() */
-#define ARRAY_BITS	22
-#define ARRAY_ADD	(1L<<ARRAY_BITS)	/* add subscript if not found */
-#define ARRAY_SCAN	(2L<<ARRAY_BITS)	/* For ${array[@]} */
-#define ARRAY_UNDEF	(4L<<ARRAY_BITS)	/* For ${array} */
-
+/* The following are flags for nv_putsub() */
+#define ARRAY_ADD	1	/* add subscript if not found */
+#define ARRAY_SCAN	2	/* For ${array[@]} */
+#define ARRAY_UNDEF	4	/* For ${array} */
 
 /* These are disciplines provided by the library for use with nv_discfun */
 #define NV_DCADD	0	/* used to add named disciplines */
@@ -289,7 +288,7 @@ extern void	*nv_associative(Namval_t*,const char*,nvflag_t);
 extern int	nv_aindex(Namval_t*);
 extern int	nv_nextsub(Namval_t*);
 extern char	*nv_getsub(Namval_t*);
-extern Namval_t	*nv_putsub(Namval_t*, char*, long);
+extern Namval_t	*nv_putsub(Namval_t*, char*, int, int);
 extern Namval_t	*nv_opensub(Namval_t*);
 
 /* name-value pair function prototypes */

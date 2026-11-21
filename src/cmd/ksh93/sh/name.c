@@ -490,13 +490,13 @@ void nv_setlist(struct argnod *arg,nvflag_t flags, Namval_t *typ)
 					if(!(arg->argflag&ARG_APPEND))
 					{
 #if SHOPT_FIXEDARRAY
-						if(!nv_isarray(np) || ((ap=nv_arrayptr(np)) && !ap->fixed && (ap->nelem&ARRAY_MASK)))
+						if(!nv_isarray(np) || ((ap=nv_arrayptr(np)) && !ap->fixed && ap->nelem))
 #else
-						if(!nv_isarray(np) || ((ap=nv_arrayptr(np)) && (ap->nelem&ARRAY_MASK)))
+						if(!nv_isarray(np) || ((ap=nv_arrayptr(np)) && ap->nelem))
 #endif /* SHOPT_FIXEDARRAY */
 						{
 							if(ap)
-								ap->nelem |= ARRAY_UNDEF;
+								ap->flags |= ARRAY_UNDEF;
 							nv_unset(np,NV_EXPORT);
 						}
 					}
@@ -529,8 +529,8 @@ void nv_setlist(struct argnod *arg,nvflag_t flags, Namval_t *typ)
 					{
 						if(ap && array_elem(ap)>0)
 						{
-							nv_putsub(np, NULL, ARRAY_SCAN);
-							if(!ap->fun && !(ap->nelem&ARRAY_TREE) && !np->nvfun->next && !nv_type(np))
+							nv_putsub(np, NULL, 0, ARRAY_SCAN);
+							if(!ap->fun && !(ap->flags&ARRAY_TREE) && !np->nvfun->next && !nv_type(np))
 							{
 								nvflag_t nvflag = np->nvflag;
 								size_t nvsize = np->nvsize;
@@ -543,9 +543,9 @@ void nv_setlist(struct argnod *arg,nvflag_t flags, Namval_t *typ)
 								ap->nelem++;
 								while(1)
 								{
-									ap->nelem &= ~ARRAY_SCAN;
+									ap->flags &= ~ARRAY_SCAN;
 									nv_unset(np,NV_EXPORT);
-									ap->nelem |= ARRAY_SCAN;
+									ap->flags |= ARRAY_SCAN;
 									if(!nv_nextsub(np))
 										break;
 								}
@@ -650,7 +650,7 @@ void nv_setlist(struct argnod *arg,nvflag_t flags, Namval_t *typ)
 					{
 						sfprintf(sh.stk,"%s[%jd]",prefix?nv_name(np):cp,(intmax_t)sub);
 						sh.prefix = stkfreeze(sh.stk,1);
-						nv_putsub(np,NULL,ARRAY_ADD|ARRAY_FILL|sub);
+						nv_putsub(np,NULL,(int)sub,ARRAY_ADD|ARRAY_FILL);
 					}
 				}
 				else if(prefix)
@@ -1072,12 +1072,12 @@ Namval_t *nv_create(const char *name,  Dt_t *root, nvflag_t flags, Namfun_t *dp)
 					{
 						ap = nv_arrayptr(np);
 						ap->nelem = dim;
-						nv_putsub(np,NULL,n);
+						nv_putsub(np,NULL,(int)(n&~ARRAY_FIXED),(n&ARRAY_FIXED)?ARRAY_FIXED:0);
 					}
 					else
 #endif /* SHOPT_FIXEDARRAY */
 					if(sub && c!='.')
-						nv_putsub(np,sub,0L);
+						nv_putsub(np,sub,0,0);
 					flags |= NV_NOSCOPE;
 					noscope = 1;
 				}
@@ -1277,7 +1277,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, nvflag_t flags, Namfun_t *dp)
 						}
 					}
 					else if(c==0 && mode && (idx=nv_aindex(np))>0)
-						nv_putsub(np,NULL,idx);
+						nv_putsub(np,NULL,idx,0);
 #if SHOPT_FIXEDARRAY
 					else if((nvflags==0 || idx==0) && !fixed && (c==0 || (c=='[' && !nv_isarray(np))))
 #else
@@ -1297,7 +1297,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, nvflag_t flags, Namfun_t *dp)
 						if(idx)
 							return NULL;
 						if(nv_isarray(np))
-							nv_putsub(np,"0",ARRAY_FILL);
+							nv_putsub(np,"0",0,ARRAY_FILL);
 						if(c)
 							sp = cp;
 					}
@@ -1314,7 +1314,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, nvflag_t flags, Namfun_t *dp)
 							nvflags = mode|((flags&NV_NOADD)?0:NV_ADD);
 							if(!ap && (nvflags&NV_ADD))
 							{
-								nv_putsub(np,sub,ARRAY_FILL);
+								nv_putsub(np,sub,0,ARRAY_FILL);
 								ap = nv_arrayptr(np);
 							}
 							if(nvflags && ap && !ap->table)
@@ -1354,7 +1354,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, nvflag_t flags, Namfun_t *dp)
 				{
 					if(c==0 && (flags&NV_MOVE))
 						return np;
-					nv_putsub(np,NULL,ARRAY_UNDEF);
+					nv_putsub(np,NULL,0,ARRAY_UNDEF);
 				}
 				nv_onattr(np,nofree);
 				nofree = 0;
@@ -1378,7 +1378,7 @@ Namval_t *nv_create(const char *name,  Dt_t *root, nvflag_t flags, Namfun_t *dp)
 							if((c = *(sp=cp=dp->last=fp->last))==0)
 							{
 								if(nv_isarray(np) && sp[-1]!=']')
-									nv_putsub(np,NULL,ARRAY_UNDEF);
+									nv_putsub(np,NULL,0,ARRAY_UNDEF);
 								return np;
 							}
 						}
@@ -1572,7 +1572,7 @@ Namval_t *nv_open(const char *name, Dt_t *root, nvflag_t flags)
 			np = xp->np;
 			cp = (char*)name+xp->len;
 			if(nv_isarray(np) && !(flags&NV_MOVE))
-				 nv_putsub(np,NULL,ARRAY_UNDEF);
+				 nv_putsub(np,NULL,0,ARRAY_UNDEF);
 			sh.last_table = xp->last_table;
 			sh.last_root = xp->last_root;
 			goto nocache;
@@ -1679,10 +1679,10 @@ skip:
 						np = mp;
 					else if(!array_assoc(ap) && (mp = nv_open(cp,sh.var_tree,NV_NOFAIL|NV_VARNAME|NV_NOARRAY|NV_NOADD)) && nv_isvtree(np))
 					{
-						ap->nelem |= ARRAY_TREE;
-						nv_putsub(np,NULL,ARRAY_ADD|nv_aindex(np));
+						ap->flags |= ARRAY_TREE;
+						nv_putsub(np,NULL,nv_aindex(np),ARRAY_ADD);
 						np = nv_opensub(np);
-						ap->nelem &= ~ARRAY_TREE;
+						ap->flags &= ~ARRAY_TREE;
 						ap->nelem -= 1;
 					}
 				}
@@ -2389,7 +2389,7 @@ static int scanfilter(Namval_t *np, struct scan *sp)
 		if(sp->scanfn)
 		{
 			if(nv_isarray(np))
-				nv_putsub(np,NULL,0L);
+				nv_putsub(np,NULL,0,0);
 			(*sp->scanfn)(np,sp->scandata);
 		}
 		sp->scancount++;
@@ -2507,7 +2507,7 @@ static void table_unset(Dt_t *root, nvflag_t flags, Dt_t *oroot)
 		}
 		npnext = (Namval_t*)dtnext(root,np);
 		if(nv_arrayptr(np))
-			nv_putsub(np,NULL,ARRAY_SCAN);
+			nv_putsub(np,NULL,0,ARRAY_SCAN);
 		nv_unset(np,flags);
 		nv_delete(np,root,NV_TABLE);
 	}
@@ -2946,7 +2946,7 @@ Sfdouble_t nv_getnum(Namval_t *np)
 		str = nv_refsub(np);
 		np = nv_refnode(np);
 		if(str)
-			nv_putsub(np,str,0L);
+			nv_putsub(np,str,0,0);
 	}
 	if(nv_isattr(np,NV_INTEGER))
 	{
@@ -3045,7 +3045,7 @@ void nv_newattr(Namval_t *np, nvflag_t newatts, ssize_t size)
 		size = 0;
 	/* for an array, change all the elements */
 	if((ap=nv_arrayptr(np)) && ap->nelem>0)
-		nv_putsub(np,NULL,ARRAY_SCAN);
+		nv_putsub(np,NULL,0,ARRAY_SCAN);
 	oldsize = nv_size(np);
 	oldatts = np->nvflag;
 	if(fp)
@@ -3092,11 +3092,11 @@ void nv_newattr(Namval_t *np, nvflag_t newatts, ssize_t size)
 			if(!mp)
 			{
 				if(ap)
-					ap->nelem &= ~ARRAY_SCAN;
+					ap->flags &= ~ARRAY_SCAN;
 				if(!trans)
 					nv_unset(np,NV_RDONLY|NV_EXPORT);
 				if(ap)
-					ap->nelem |= ARRAY_SCAN;
+					ap->flags |= ARRAY_SCAN;
 			}
 			if(size==0 && !(newatts&NV_INTEGER) && (newatts&NV_HOST)!=NV_HOST && (newatts&(NV_LJUST|NV_RJUST|NV_ZFILL)))
 			{	/*
@@ -3274,7 +3274,8 @@ int nv_rename(Namval_t *np, nvflag_t flags)
 {
 	Namval_t		*mp = NULL, *nr = NULL;
 	char			*cp;
-	int			arraynp=0,arraynr,index= -1;
+	int			arraynp=0,arraynr;
+	int			index= -1;
 	Namval_t		*last_table = sh.last_table;
 	Dt_t			*last_root = sh.last_root;
 	Dt_t			*hp = NULL;
@@ -3332,7 +3333,7 @@ int nv_rename(Namval_t *np, nvflag_t flags)
 	}
 	if(!mp && index>=0 && nv_isvtree(nr))
 	{
-		sfprintf(sh.strbuf,"%s[%d]",nv_name(np),index);
+		sfprintf(sh.strbuf,"%s[%jd]",nv_name(np),(intmax_t)index);
 		/* create a virtual node */
 		if(mp = nv_open(sh_struse(sh.strbuf),sh.var_tree,NV_VARNAME|NV_ADD|NV_ARRAY))
 		{
@@ -3356,7 +3357,7 @@ int nv_rename(Namval_t *np, nvflag_t flags)
 	nv_unset(np,NV_EXPORT);
 	if(nr==np)
 	{
-		nv_putsub(np,NULL, index);
+		nv_putsub(np,NULL,index,0);
 		nv_putval(np,cp,0);
 		free(cp);
 		return 1;
@@ -3410,7 +3411,7 @@ int nv_rename(Namval_t *np, nvflag_t flags)
 		{
 			if(arraynr && !nv_isattr(nr,NV_MINIMAL) && (mp = nr->nvmeta) && (ap = nv_arrayptr(mp)))
 			{
-				nv_putsub(mp,nr->nvname,0);
+				nv_putsub(mp,nr->nvname,0,0);
 				nv_unset(mp,0);
 			}
 			nv_delete(nr,NULL,NV_NOFREE);
@@ -3484,7 +3485,7 @@ void nv_setref(Namval_t *np, Dt_t *hp, nvflag_t flags)
 			UNREACHABLE();
 		}
 		if(nv_isarray(nq))
-			nv_putsub(nq,NULL,ARRAY_UNDEF);
+			nv_putsub(nq,NULL,0,ARRAY_UNDEF);
 	}
 #if SHOPT_FIXEDARRAY
 	if(nq && ep && nv_isarray(nq) && !((ap=nv_arrayptr(nq)) && ap->fixed) && !nv_getsub(nq))
@@ -3494,7 +3495,7 @@ void nv_setref(Namval_t *np, Dt_t *hp, nvflag_t flags)
 	{
 		if(!nv_arrayptr(nq))
 		{
-			nv_putsub(nq,"1",ARRAY_FILL);
+			nv_putsub(nq,"1",0,ARRAY_FILL);
 			nv_unset(nq,NV_RDONLY);
 		}
 		nv_endsubscript(nq,ep-1,NV_ARRAY);
@@ -3514,7 +3515,7 @@ void nv_setref(Namval_t *np, Dt_t *hp, nvflag_t flags)
 		UNREACHABLE();
 	}
 	sh.instance = 1;
-	if(nq && !ep && (ap=nv_arrayptr(nq)) && !(ap->nelem&(ARRAY_UNDEF|ARRAY_SCAN)))
+	if(nq && !ep && (ap=nv_arrayptr(nq)) && !(ap->flags&(ARRAY_UNDEF|ARRAY_SCAN)))
 		ep =  nv_getsub(nq);
 #if SHOPT_FIXEDARRAY
 	if(ep && !(ap && ap->fixed))
@@ -3529,7 +3530,7 @@ void nv_setref(Namval_t *np, Dt_t *hp, nvflag_t flags)
 		{
 			size_t n;
 			ep[n=strlen(ep)-1] = 0;
-			nv_putsub(nr, ep, ARRAY_FILL);
+			nv_putsub(nr, ep, 0, ARRAY_FILL);
 			ep[n] = ']';
 			if(nq = nv_opensub(nr))
 				ep = NULL;
@@ -3754,7 +3755,7 @@ char *nv_name(Namval_t *np)
 	if(!(table=sh.last_table) || np->nvname && *np->nvname=='.' || table==sh.namespace || np==table)
 	{
 #if SHOPT_FIXEDARRAY
-		if(!ap || !ap->fixed || (ap->nelem&ARRAY_UNDEF))
+		if(!ap || !ap->fixed || (ap->flags&ARRAY_UNDEF))
 			return np->nvname;
 		table = NULL;
 #else

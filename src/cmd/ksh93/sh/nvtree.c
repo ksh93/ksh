@@ -269,7 +269,7 @@ char *nv_dirnext(void *dir)
 		while(np=dp->hp)
 		{
 			if(nv_isarray(np))
-				nv_putsub(np,NULL, ARRAY_UNDEF);
+				nv_putsub(np,NULL, 0, ARRAY_UNDEF);
 			dp->hp = nextnode(dp);
 			if(nv_isnull(np) && !nv_isarray(np) && !nv_isattr(np,NV_INTEGER))
 				continue;
@@ -279,7 +279,7 @@ char *nv_dirnext(void *dir)
 			if(dp->nextnode && !dp->hp && (nq = (Namval_t*)dp->table))
 			{
 				Namarr_t  *ap = nv_arrayptr(nq);
-				if(ap && (ap->nelem&ARRAY_SCAN) && nv_nextsub(nq))
+				if(ap && (ap->flags&ARRAY_SCAN) && nv_nextsub(nq))
 					dp->hp = (*dp->nextnode)(np,NULL,dp->fun);
 			}
 			sh.last_table = last_table;
@@ -461,7 +461,7 @@ void nv_attribute(Namval_t *np,Sfio_t *out,char *prefix,int noname)
 					}
 					else if(tp->sh_name[1]=='A')
 						continue;
-					if((ap && (ap->nelem&ARRAY_TREE)) || (!ap && nv_isattr(np,NV_NOFREE)))
+					if((ap && (ap->flags&ARRAY_TREE)) || (!ap && nv_isattr(np,NV_NOFREE)))
 					{
 						if(prefix && *prefix)
 							sfwrite(out,"-C ",3);
@@ -554,8 +554,8 @@ void nv_outnode(Namval_t *np, Sfio_t* out, int indent, int special)
 		sfputc(out,'(');
 		if(array_elem(ap)==0)
 			return;
-		if(!(ap->nelem&ARRAY_SCAN))
-			nv_putsub(np,NULL,ARRAY_SCAN);
+		if(!(ap->flags&ARRAY_SCAN))
+			nv_putsub(np,NULL,0,ARRAY_SCAN);
 		if(indent>=0)
 		{
 			sfputc(out,'\n');
@@ -594,7 +594,7 @@ void nv_outnode(Namval_t *np, Sfio_t* out, int indent, int special)
 			sfputc(out,'=');
 		}
 		if(ap && !array_assoc(ap))
-			scan = ap->nelem&ARRAY_SCAN;
+			scan = ap->flags&ARRAY_SCAN;
 		if(mp && nv_isarray(mp))
 		{
 			if(nv_arrayptr(mp) || nv_isvtree(mp))
@@ -610,7 +610,7 @@ void nv_outnode(Namval_t *np, Sfio_t* out, int indent, int special)
 			sfputc(out,')');
 			sfputc(out,indent>=0?'\n':' ');
 			if(ap && !array_assoc(ap))
-				ap->nelem |= scan;
+				ap->flags |= scan;
 			more = nv_nextsub(np);
 			goto skip;
 		}
@@ -650,7 +650,7 @@ void nv_outnode(Namval_t *np, Sfio_t* out, int indent, int special)
 			}
 		}
 		if(ap && !array_assoc(ap))
-			ap->nelem |= scan;
+			ap->flags |= scan;
 		more = nv_nextsub(np);
 		c = '\n';
 		if(indent<0)
@@ -730,7 +730,7 @@ static void outval(char *name, const char *vname, struct Walk *wp)
 		if(array_elem(nv_arrayptr(np))==0)
 			isarray=2;
 		else
-			nq = nv_putsub(np,NULL,ARRAY_SCAN|(wp->out?ARRAY_NOCHILD:0));
+			nq = nv_putsub(np,NULL,0,ARRAY_SCAN|(wp->out?ARRAY_NOCHILD:0));
 	}
 	if(!wp->out)
 	{
@@ -978,7 +978,7 @@ static char *walk_tree(Namval_t *np, Namval_t *xp, nvflag_t flags)
 	if(sh.last_root)
 		sh.var_tree = sh.last_root;
 	sfputr(sh.stk,nv_name(np),-1);
-	if(arp && !(arp->nelem&ARRAY_SCAN) && (subscript = nv_getsub(np)))
+	if(arp && !(arp->flags&ARRAY_SCAN) && (subscript = nv_getsub(np)))
 	{
 		mp = nv_opensub(np);
 		sfprintf(sh.stk,"[%s].",nv_subesc(subscript));

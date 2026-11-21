@@ -1306,7 +1306,7 @@ static void ed_unset(Namval_t *np)
 	if(!np->nvalue && !np->nvfun)
 		return;
 	if(nv_arrayptr(np))
-		nv_putsub(np,NULL,ARRAY_SCAN);
+		nv_putsub(np,NULL,0,ARRAY_SCAN);
 	nv_unset(np,NV_RDONLY);
 }
 

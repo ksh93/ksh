@@ -212,7 +212,7 @@ static void block_done(struct blocked *bp)
 {
 	blist = bp = bp->next;
 	if(bp && (bp->isub>=0 || bp->sub))
-		nv_putsub(bp->np, bp->sub,(bp->isub<0?0:bp->isub)|ARRAY_SETSUB);
+		nv_putsub(bp->np, bp->sub, bp->isub<0?0:bp->isub, ARRAY_SETSUB);
 }
 
 /*
@@ -264,7 +264,7 @@ static void	assign(Namval_t *np,const char* val,nvflag_t nvflags,Namfun_t *handl
 		nv_unset(np,0);
 		if(sub)
 		{
-			nv_putsub(np, sub, ARRAY_ADD);
+			nv_putsub(np, sub, 0, ARRAY_ADD);
 			nv_putval(np,nv_getval(nr), 0);
 		}
 		else
@@ -599,7 +599,7 @@ char *nv_setdisc(Namval_t* np,const char *event,Namval_t *action,Namfun_t *fp)
 		dp->dsize = sizeof(struct vardisc) + sizeof(Namdisc_t);
 		dp->putval = assign;
 		if(nv_isarray(np) && !nv_arrayptr(np))
-			nv_putsub(np,NULL, 1);
+			nv_putsub(np,NULL, 1, 0);
 		nv_stack(np, (Namfun_t*)vp);
 	}
 	if(action==np)

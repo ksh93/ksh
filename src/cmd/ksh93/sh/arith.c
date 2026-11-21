@@ -122,12 +122,12 @@ static Namval_t *scope(Namval_t *np,struct lval *lvalue,nvflag_t assign)
 		{
 			Namarr_t *ap = nv_arrayptr(np);
 			ap->nelem = dim;
-			nv_putsub(np,NULL,n);
+			nv_putsub(np,NULL,(int)(n&~ARRAY_FIXED),(n&ARRAY_FIXED)?ARRAY_FIXED:0);
 		}
 		else
 #endif /* SHOPT_FIXEDARRAY */
 		if(sub)
-			nv_putsub(np,sub,assign==NV_ASSIGN?ARRAY_ADD:0);
+			nv_putsub(np,sub,0,assign==NV_ASSIGN?ARRAY_ADD:0);
 	}
 	if(!nosub && sub_idx)
 	{
@@ -198,7 +198,7 @@ static Namval_t *scope(Namval_t *np,struct lval *lvalue,nvflag_t assign)
 		}
 	}
 	else if(nosub>0)
-		nv_putsub(np,NULL,nosub-1);
+		nv_putsub(np,NULL,nosub-1,0);
 	return np;
 }
 
@@ -239,7 +239,7 @@ static Sfdouble_t arith(const char **ptr, struct lval *lvalue, int type, Sfdoubl
 		if (lvalue->sub_np && lvalue->nosub > 0) /* indexed array ARITH_ASSIGNOP */
 		{
 			np = lvalue->sub_np; /* use saved subscript reference instead of last worked value */
-			nv_putsub(np, NULL, lvalue->nosub-1);
+			nv_putsub(np, NULL, lvalue->nosub-1, 0);
 			/* reset nosub and sub for next assignment in a compound arithmetic expression */
 			lvalue->nosub = 0;
 			lvalue->sub_np = NULL;

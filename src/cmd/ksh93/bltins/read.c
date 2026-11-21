@@ -228,7 +228,7 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 	volatile ssize_t	size = _size;
 	int			wrd;
 	ptrdiff_t		rel;
-	long			array_index = 0;
+	int			array_index = 0;
 	void			*volatile timeslot = NULL;
 	int			jmpval=0;
 	int			binary;
@@ -272,7 +272,7 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 			nv_unset(np,0);
 			if((ap=nv_arrayptr(np)) && !ap->fun)
 				ap->nelem--;
-			nv_putsub(np,NULL,0L);
+			nv_putsub(np,NULL,0,0);
 		}
 		else if(flags&C_FLAG)
 		{
@@ -815,7 +815,7 @@ int sh_readline(char **_names, volatile int fd, int _flags, int _delim, ssize_t 
 		}
 		if(array_index)
 		{
-			nv_putsub(np, NULL, array_index++);
+			nv_putsub(np, NULL, array_index++, 0);
 			if(c!=S_NL)
 				continue;
 			name = *++names;

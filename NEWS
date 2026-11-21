@@ -4,6 +4,12 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
 2026-11-21:
 
+- The maximum subscript of an indexed array has been increased from
+  4,194,303 (2^22-1) to 2,147,483,647 (INT_MAX).
+
+- Fixed ${#array[@]} yielding an incorrect number for associative arrays
+  containing more than 4,194,303 elements.
+
 - Fixed a bug, introduced on 2026-11-18, that prevented libcmd (path-bound)
   built-ins from being interrupted by any signal, including SIGINT/Ctrl+C.
 

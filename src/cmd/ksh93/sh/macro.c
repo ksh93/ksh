@@ -1078,7 +1078,7 @@ static char *prefix(char *id)
 				sub = nv_refsub(np);
 				np = nv_refnode(np);
 				if(sub)
-					nv_putsub(np,sub,0L);
+					nv_putsub(np,sub,0,0);
 			}
 			id = (char*)sh_malloc(strlen(cp)+1+(n=strlen(sp=nv_name(np)))+ (sub?strlen(sub)+3:1));
 			memcpy(id,sp,n);
@@ -1498,7 +1498,7 @@ retry1:
 				}
 				if(ap)
 				{
-					np = nv_putsub(np,v,ARRAY_SCAN);
+					np = nv_putsub(np,v,0,ARRAY_SCAN);
 					v = stkptr(stkp,mp->dotdot);
 					dolmax =1;
 					ap = nv_arrayptr(np_orig); /* update */
@@ -1515,8 +1515,8 @@ retry1:
 						np = NULL;
 				}
 			}
-			else if(ap && (isastchar(mode)||type==M_TREE)  && !(ap->nelem&ARRAY_SCAN) && type!=M_SIZE)
-				nv_putsub(np,NULL,ARRAY_SCAN);
+			else if(ap && (isastchar(mode)||type==M_TREE)  && !(ap->flags&ARRAY_SCAN) && type!=M_SIZE)
+				nv_putsub(np,NULL,0,ARRAY_SCAN);
 			if(!isbracechar(c))
 				goto nosub;
 			else
@@ -1562,7 +1562,7 @@ retry1:
 				if(ap && !mp->dotdot)
 				{
 					ap = nv_arrayptr(np_orig); /* update */
-					if(!(ap->nelem&ARRAY_UNDEF))
+					if(!(ap->flags&ARRAY_UNDEF))
 						addsub = 1;
 				}
 			}
@@ -1630,7 +1630,7 @@ retry1:
 				dolg = -1;
 			else
 			{
-				ap->nelem &= ~ARRAY_SCAN;
+				ap->flags &= ~ARRAY_SCAN;
 				dolg = 0;
 			}
 		}
@@ -1842,13 +1842,13 @@ retry1:
 				}
 				if(array_assoc(ap))
 				{
-					nv_putsub(np, NULL, ap->nelem&ARRAY_SCAN ? 0 : ARRAY_SCAN);
+					nv_putsub(np, NULL, 0, ap->flags&ARRAY_SCAN ? 0 : ARRAY_SCAN);
 					while(sliceoffset-- > 0 && (v=NULL,nv_nextsub(np)))
 						v = nv_getval(np);
 				}
 				else if(sliceoffset >= 0)
 				{
-					if(nv_putsub(np, NULL, sliceoffset|ARRAY_SCAN))
+					if(nv_putsub(np, NULL, (int)sliceoffset, ARRAY_SCAN))
 						v = nv_getval(np);
 					else
 						v = NULL;
@@ -2103,14 +2103,14 @@ retry2:
 			{
 				if(dolmax &&  --dolmax <=0)
 				{
-					nv_putsub(np,NULL,ARRAY_UNDEF);
+					nv_putsub(np,NULL,0,ARRAY_UNDEF);
 					break;
 				}
 				if(ap)
 				{
 					ap = nv_arrayptr(np); /* update */
 					if(ap)
-						ap->nelem |= ARRAY_SCAN;
+						ap->flags |= ARRAY_SCAN;
 				}
 				if(nv_nextsub(np) == 0)
 					break;
@@ -2185,7 +2185,7 @@ retry2:
 			{
 				if(defval_subscript)
 				{
-					nv_putsub(np,defval_subscript,0);
+					nv_putsub(np,defval_subscript,0,0);
 					defval_subscript = NULL;
 				}
 				if(sh.subshell)

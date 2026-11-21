@@ -1166,4 +1166,37 @@ done
 unset foo sub subesc
 
 # ======
+# The maximum subscript of an indexed array used to be 4194303 (2^22-1)
+# because the element count and the array flags shared the same struct
+# member. The count is now kept separately, so the limit is INT_MAX.
+# https://github.com/ksh93/ksh/issues/1068
+unset a
+if	! eval 'a[4194304]=x' 2>out  # on ksh, 'eval' stops script from exiting on error
+then	err_exit "assignment to array element 4194304 failed (got $(printf %q "$(<out)"))"
+else	got=${a[4194304]}
+	[[ $got == x ]] || err_exit "assignment to array element 4194304 lost value (got $(printf %q "$got"))"
+	(( ${#a[@]} == 1 )) || err_exit "\${#a[@]} is ${#a[@]}, expected 1"
+	[[ ${!a[@]} == 4194304 ]] || err_exit "\${!a[@]} is ${!a[@]}, expected 4194304"
+	[[ ${a[@]} == x ]] || err_exit "\${a[@]} is ${a[@]}, expected x"
+	[[ ${a[-1]} == x ]] || err_exit 'a[-1] does not refer to the last element'
+	unset 'a[4194304]'
+	(( ${#a[@]} == 0 )) || err_exit "\${#a[@]} is ${#a[@]} after unset, expected 0"
+	unset a
+	exp=': subscript out of range'
+	# Subscripts beyond INT_MAX must be rejected without integer overflow.
+	# Assigning to INT_MAX itself is not tested as this would allocate a
+	# vector of 2^31 elements (17+ GB on a 64-bit system).
+	for sub in 2147483648 4294967296 4294967297
+	do	got=$("$SHELL" -c "a[$sub]=x; print reached" 2>&1)
+		[[ $got == *"$exp" && $got != *reached* ]] || err_exit "subscript $sub was not rejected" \
+			"(expected match of *$(printf %q "$exp") without 'reached', got $(printf %q "$got"))"
+	done
+	# A negative subscript is an offset from the end. Any subscript
+	# that is still negative after that adjustment must be rejected.
+	got=$("$SHELL" -c 'unset a; a[-2147483648]=x; print reached' 2>&1)
+	[[ $got == *"$exp" && $got != *reached* ]] || err_exit 'out-of-range negative subscript was not rejected' \
+		"(expected match of *$(printf %q "$exp") without 'reached', got $(printf %q "$got"))"
+fi
+
+# ======
 exit $((Errors<125?Errors:125))
