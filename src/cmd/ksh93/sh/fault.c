@@ -139,10 +139,10 @@ static int siginterrupt_builtin(int sig)
 {
 	char	*trap;
 	int	flag;
-	if (!sh.bltinfun || !sh.bltindata.notify)
+	if (!sh.bltinfun)
 		return 0;
 	/* Ctrl+C interrupts the built-in even if SIGINT is trapped */
-	if (sig==SIGINT && sh_isstate(SH_INTERACTIVE) && !sh_isstate(SH_FORKED))
+	if (sig==SIGINT && !sh_isstate(SH_FORKED))
 		return 1;
 	if (sh.st.trapcom && (trap = sh.st.trapcom[sig]) && *trap)
 		return 0;
@@ -161,7 +161,7 @@ static int siginterrupt_builtin(int sig)
 static int sigdefer_builtin(int sig)
 {
 	char	*trap;
-	if (!sh.bltinfun || !sh.bltindata.notify)
+	if (!sh.bltinfun)
 		return 0;
 	if (siginterrupt_builtin(sig))
 		return 0;
@@ -224,11 +224,13 @@ done:
 /*
  * Process signals recorded by sh_fault(). This runs in normal (non-signal)
  * context, so it is safe to call the heavyweight machinery below.
+ *
+ * Assumes: sh.trapnote & SH_SIGPENDING
  */
 void sh_sigprocess(void)
 {
 	int sig, save_errno;
-	if (!(sh.trapnote & SH_SIGPENDING) || sigprocessing || (sh.sigcritical & SH_SIGDEFER))
+	if (sigprocessing || (sh.sigcritical & SH_SIGDEFER))
 		return;
 	/* consume the flag before processing; a new signal makes it sticky */
 	sigprocessing = 1;
