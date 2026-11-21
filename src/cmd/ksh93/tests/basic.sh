@@ -718,7 +718,11 @@ then	if	[[ ! $(uname -s) =~ ^SunOS$ ]] &&
 		echo 'sleep 10; exit 0' >atest
 		chmod 755 atest
 		./atest 1 2 &
-		getCmdline "$!"
+		for ((i=0; i<100; i++))
+		do	getCmdline "$!"
+			[[ $actual == "$expect" ]] && break
+			sleep .01
+		done
 		kill "$!"
 		[[ $actual == "$expect" ]] || err_exit "ksh didn't rewrite argv correctly" \
 			"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
