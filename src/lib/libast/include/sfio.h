@@ -205,6 +205,7 @@ extern ssize_t		sfread(Sfio_t*, void*, size_t);
 extern ssize_t		sfwrite(Sfio_t*, const void*, size_t);
 extern Sfoff_t		sfmove(Sfio_t*, Sfio_t*, Sfoff_t, int);
 extern int		sfclose(Sfio_t*);
+extern int		sfclose_batch(Sfio_t*, close_mode_t);
 extern Sfoff_t		sftell(Sfio_t*);
 extern Sfoff_t		sfseek(Sfio_t*, Sfoff_t, int);
 extern ptrdiff_t	sfputr(Sfio_t*, const char*, int);

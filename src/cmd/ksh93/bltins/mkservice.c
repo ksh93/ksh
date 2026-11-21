@@ -284,7 +284,7 @@ static int Accept(Service_t *sp, int accept_fd)
 	fd = fcntl(accept_fd, F_DUPFD, 10);
 	if (fd >= 0)
 	{
-		ast_close(accept_fd);
+		ast_close_batch(accept_fd,AST_QUEUE);
 		if (nq)
 		{
 			char*	av[3];
@@ -295,11 +295,12 @@ static int Accept(Service_t *sp, int accept_fd)
 			sfsprintf(buff, sizeof(buff), "%d", fd);
 			if (sh_fun(nq, sp->node, av))
 			{
-				ast_close(fd);
+				ast_close_batch(fd,AST_ENACT);
 				return -1;
 			}
 		}
 	}
+	ast_close_batch(-1,AST_ENACT);
 	sfsync(NULL);
 	return fd;
 }
