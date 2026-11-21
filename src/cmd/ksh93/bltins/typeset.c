@@ -798,7 +798,7 @@ static int     setall(char **argv,nvflag_t flag,Dt_t *troot,struct tdata *tp)
 			}
 			if(nv_isnull(np) && !nv_isarray(np) && nv_isattr(np,NV_NOFREE))
 				nv_offattr(np,NV_NOFREE);
-			else if(tp->tp && !nv_isattr(np,NV_MINIMAL|NV_EXPORT) && (mp = np->nvmeta) && (ap = nv_arrayptr(mp)) && (ap->nelem & ARRAY_TREE))
+			else if(tp->tp && !nv_isattr(np,NV_MINIMAL|NV_EXPORT) && (mp = np->nvmeta) && (ap = nv_arrayptr(mp)) && (ap->flags & ARRAY_TREE))
 			{
 				errormsg(SH_DICT,ERROR_exit(1),e_typecompat,nv_name(np));
 				UNREACHABLE();
@@ -856,8 +856,8 @@ static int     setall(char **argv,nvflag_t flag,Dt_t *troot,struct tdata *tp)
 					else
 					{
 						if(ap && comvar)
-							ap->nelem |= ARRAY_TREE;
-						nv_putsub(np, NULL, 0);
+							ap->flags |= ARRAY_TREE;
+						nv_putsub(np, NULL, 0, 0);
 					}
 				}
 				else if(nvflags&NV_ARRAY)
@@ -866,7 +866,7 @@ static int     setall(char **argv,nvflag_t flag,Dt_t *troot,struct tdata *tp)
 					{
 						Namarr_t *ap=nv_arrayptr(np);
 						if(ap)
-							ap->nelem |= ARRAY_TREE;
+							ap->flags |= ARRAY_TREE;
 						else
 						{
 							nv_unset(np,NV_RDONLY);

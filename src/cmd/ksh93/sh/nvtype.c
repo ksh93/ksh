@@ -175,7 +175,7 @@ static char *name_chtype(Namval_t *np, Namfun_t *fp)
 	if(nv_isattr(np,NV_REF|NV_TAGGED)==(NV_REF|NV_TAGGED))
 		sh.last_table = NULL;
 	cp = nv_name(nq);
-	if((ap = nv_arrayptr(nq)) && !(ap->nelem&ARRAY_UNDEF) && (sub= nv_getsub(nq)))
+	if((ap = nv_arrayptr(nq)) && !(ap->flags&ARRAY_UNDEF) && (sub= nv_getsub(nq)))
 		sfprintf(sh.strbuf,"%s[%s].%s",cp,sub,np->nvname);
 	else
 		sfprintf(sh.strbuf,"%s.%s",cp,np->nvname);
@@ -401,14 +401,14 @@ static Namfun_t *clone_type(Namval_t* np, Namval_t *mp, nvflag_t flags, Namfun_t
 					memcpy(nq->nvalue,nr->nvalue,size);
 				else if(ap=nv_arrayptr(nr))
 				{
-					nv_putsub(nr,NULL,ARRAY_SCAN|ARRAY_NOSCOPE);
+					nv_putsub(nr,NULL,0,ARRAY_SCAN|ARRAY_NOSCOPE);
 					do
 					{
 						if(array_assoc(ap))
 							cp = (char*)((*ap->fun)(nr,NULL,NV_ANAME));
 						else
 							cp = nv_getsub(nr);
-						nv_putsub(nq,cp,ARRAY_ADD|ARRAY_NOSCOPE);
+						nv_putsub(nq,cp,0,ARRAY_ADD|ARRAY_NOSCOPE);
 						if(array_assoc(ap))
 						{
 							Namval_t *mr = (Namval_t*)((*ap->fun)(nr,NULL,NV_ACURRENT));
@@ -534,7 +534,7 @@ static void put_type(Namval_t* np, const char* val, nvflag_t flag, Namfun_t* fp)
 		{
 			nq = nv_namptr(dp->nodes,i);
 			if(ap=nv_arrayptr(nq))
-				ap->nelem |= ARRAY_UNDEF;
+				ap->flags |= ARRAY_UNDEF;
 			if(!nv_hasdisc(nq,&type_disc))
 				nv_unset(nq,flag|NV_TYPE|nv_isattr(nq,NV_RDONLY));
 		}
@@ -550,8 +550,8 @@ static Namval_t *next_type(Namval_t* np, Dt_t *root,Namfun_t *fp)
 	if(!root)
 	{
 		Namarr_t	*ap = nv_arrayptr(np);
-		if(ap && (ap->nelem&ARRAY_UNDEF))
-			nv_putsub(np,NULL,ARRAY_SCAN);
+		if(ap && (ap->flags&ARRAY_UNDEF))
+			nv_putsub(np,NULL,0,ARRAY_SCAN);
 		dp->current = 0;
 	}
 	else if((ssize_t)++dp->current>=dp->numnodes)
@@ -1275,7 +1275,7 @@ int nv_settype(Namval_t* np, Namval_t *tp, nvflag_t flags)
 		sh_subfork();
 	if((ap=nv_arrayptr(np)) && ap->nelem>0)
 	{
-		nv_putsub(np,NULL,ARRAY_SCAN);
+		nv_putsub(np,NULL,0,ARRAY_SCAN);
 		ap->hdr.type = tp;
 		do
 		{
@@ -1288,7 +1288,7 @@ int nv_settype(Namval_t* np, Namval_t *tp, nvflag_t flags)
 		flags &= ~NV_APPEND;
 		if(!ap)
 		{
-			nv_putsub(np,"0",ARRAY_FILL);
+			nv_putsub(np,"0",0,ARRAY_FILL);
 			ap = nv_arrayptr(np);
 			nelem = 1;
 			nv_arraysettype(np,tp,"0",flags);
@@ -1326,7 +1326,7 @@ int nv_settype(Namval_t* np, Namval_t *tp, nvflag_t flags)
 		if(nelem)
 		{
 			ap->nelem++;
-			nv_putsub(np,"0",0);
+			nv_putsub(np,"0",0,0);
 			nv_unset(np,NV_RDONLY|NV_TYPE);
 			ap->nelem--;
 		}

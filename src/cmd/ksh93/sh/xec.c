@@ -523,7 +523,7 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	if(np->nvalue || np->nvfun)
 	{
 		if(nv_arrayptr(np))
-			nv_putsub(np,NULL,ARRAY_SCAN);
+			nv_putsub(np,NULL,0,ARRAY_SCAN);
 		nv_unset(np,NV_RDONLY);
 	}
 	np->nvalue = stkfreeze(sh.stk,1);
@@ -547,7 +547,7 @@ int sh_debug(const char *trap, const char *name, const char *subscript, char *co
 	/* restore state */
 	nv_onattr(SH_LEVELNOD,NV_RDONLY);
 	if(nv_arrayptr(np))
-		nv_putsub(np,NULL,ARRAY_SCAN);
+		nv_putsub(np,NULL,0,ARRAY_SCAN);
 	nv_unset(np,NV_RDONLY);
 	sh.indebug = 0;
 	nv_onattr(SH_PATHNAMENOD,NV_NOFREE);
@@ -679,7 +679,7 @@ static void free_list(struct openlist *olist)
  * set ${.sh.name} and ${.sh.subscript}
  * set _ to reference for ${.sh.name}[${.sh.subscript}]
  */
-static long set_instance(Namval_t *nq, Namval_t *node, struct Namref *nr)
+static int set_instance(Namval_t *nq, Namval_t *node, struct Namref *nr)
 {
 	char		*sp=NULL,*cp;
 	Namarr_t	*ap;
@@ -718,19 +718,19 @@ static long set_instance(Namval_t *nq, Namval_t *node, struct Namref *nr)
 	if(sp)
 	{
 		nv_putval(SH_SUBSCRNOD,nr->sub=sp,NV_NOFREE);
-		return ap->nelem&ARRAY_SCAN;
+		return ap->flags&ARRAY_SCAN;
 	}
 	return 0;
 }
 
-static void unset_instance(Namval_t *node, struct Namref *nr, long mode)
+static void unset_instance(Namval_t *node, struct Namref *nr, int mode)
 {
 	L_ARGNOD->nvalue = node->nvalue;
 	L_ARGNOD->nvflag = node->nvflag;
 	L_ARGNOD->nvfun = node->nvfun;
 	if(nr->sub)
 	{
-		nv_putsub(nr->np, nr->sub, mode);
+		nv_putsub(nr->np, nr->sub, 0, mode);
 		free(nr->sub);
 	}
 	nv_unset(SH_NAMENOD,0);
@@ -1369,7 +1369,7 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 #endif /* SHOPT_NAMESPACE */
 					Namval_t	*volatile nodep;
 					struct Namref	*volatile nrp;
-					long		mode = 0;
+					int		mode = 0;
 					struct slnod *slp;
 					if(!np->nvalue)
 					{
@@ -2119,7 +2119,7 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 				if(nameref)
 					nv_offattr(np,NV_REF|NV_NOOPTIMIZE);
 				else if(nv_isattr(np, NV_ARRAY))
-					nv_putsub(np,NULL,0L);
+					nv_putsub(np,NULL,0,0);
 				nv_putval(np,cp,0);
 				if(nameref)
 				{
@@ -3351,7 +3351,7 @@ int sh_fun(Namval_t *np, Namval_t *nq, char *_argv[])
 	char		*volatile base;
 	Namval_t	node;
 	struct Namref	nr;
-	volatile long	mode = 0;
+	volatile int	mode = 0;
 	char		*prefix = sh.prefix;
 	volatile int	n=0;
 	char		*av[3], **volatile argv = _argv;

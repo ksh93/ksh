@@ -812,15 +812,15 @@ static void match2d(struct match *mp)
 			}
 			else
 				*np->nvname = (char)('0' + i);
-			nv_putsub(np, NULL, 1);
-			nv_putsub(np, NULL, 0);
-			nv_putsub(SH_MATCHNOD, NULL, i);
+			nv_putsub(np, NULL, 1, 0);
+			nv_putsub(np, NULL, 0, 0);
+			nv_putsub(SH_MATCHNOD, NULL, (int)i, 0);
 			nv_arraychild(SH_MATCHNOD, np, 0);
 			np = nv_namptr(np + 1, 0);
 		}
 	}
 	if(ap = nv_arrayptr(SH_MATCHNOD))
-		ap->nelem = mp->nmatch;
+		ap->nelem = (int)mp->nmatch;
 }
 
 /*
@@ -856,16 +856,16 @@ void sh_setmatch(const char *v, ptrdiff_t vsize, ssize_t nmatch, ssize_t match[]
 			{
 				long x;
 				nv_disc(np,&mp->hdr,NV_LAST);
-				nv_putsub(np,NULL,mp->index);
+				nv_putsub(np,NULL,mp->index,0);
 				for(x=mp->index; x >=0; x--)
 				{
 					n = i + x*mp->nmatch;
 					if(mp->match[2*n+1]>mp->match[2*n])
-						nv_putsub(np,Empty,ARRAY_ADD|x);
+						nv_putsub(np,Empty,(int)x,ARRAY_ADD);
 				}
 				if((ap=nv_arrayptr(np)) && array_elem(ap)==0)
 				{
-					nv_putsub(SH_MATCHNOD,NULL,i);
+					nv_putsub(SH_MATCHNOD,NULL,(int)i,0);
 					nv_unset(SH_MATCHNOD,NV_RDONLY);
 				}
 				np = nv_namptr(np+1,0);
@@ -909,7 +909,7 @@ void sh_setmatch(const char *v, ptrdiff_t vsize, ssize_t nmatch, ssize_t match[]
 		for(i=nmatch; --i>=0;)
 		{
 			if(match[2*i]>=0)
-				nv_putsub(SH_MATCHNOD,Empty,ARRAY_ADD|i);
+				nv_putsub(SH_MATCHNOD,Empty,(int)i,ARRAY_ADD);
 		}
 		mp->v = v;
 		mp->first = match[0];
@@ -1516,7 +1516,7 @@ void sh_reinit(void)
 		if(nv_isref(np))
 			nv_unref(np);
 		if(nv_isarray(np))
-			nv_putsub(np,NULL,ARRAY_UNDEF);
+			nv_putsub(np,NULL,0,ARRAY_UNDEF);
 		nofree = nv_isattr(np,NV_NOFREE);	/* note: returns bitmask, not boolean */
 		nv_unset(np,NV_RDONLY);			/* also clears NV_NOFREE attr, if any */
 		nv_setattr(np,nofree);
@@ -1802,7 +1802,7 @@ static Init_t *nv_init(void)
 	sh_invalidate_rand_seed();
 	nv_stack(LINENO, &ip->LINENO_init);
 	SH_MATCHNOD->nvfun =  &ip->SH_MATCH_init.hdr;
-	nv_putsub(SH_MATCHNOD,NULL,10);
+	nv_putsub(SH_MATCHNOD,NULL,10,0);
 	nv_stack(SH_MATHNOD, &ip->SH_MATH_init);
 	nv_stack(SH_VERSIONNOD, &ip->SH_VERSION_init);
 	nv_stack(LCTYPENOD, &ip->LC_TYPE_init);

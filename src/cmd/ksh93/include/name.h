@@ -28,21 +28,26 @@
 
 /* used for arrays */
 
-#define ARRAY_MAX 	(1L<<ARRAY_BITS) /* maximum number of elements in an array */
-#define ARRAY_MASK	(ARRAY_MAX-1)	/* For index values */
+#define ARRAY_MAX	INT_MAX		/* maximum value of an array subscript */
 
 #define ARRAY_INCR	32	/* number of elements to grow when array
 				   bound exceeded.  Must be a power of 2 */
-#define ARRAY_FILL	(8L<<ARRAY_BITS)	/* used with nv_putsub() */
-#define ARRAY_NOCLONE	(16L<<ARRAY_BITS)	/* do not clone array disc */
-#define ARRAY_NOCHILD   (32L<<ARRAY_BITS)	/* skip compound arrays */
-#define ARRAY_SETSUB	(64L<<ARRAY_BITS)	/* set subscript */
-#define ARRAY_NOSCOPE	(128L<<ARRAY_BITS)	/* top level scope only */
-#define ARRAY_TREE	(256L<<ARRAY_BITS)	/* arrays of compound vars */
+
+/*
+ * Additional ARRAY_* bit flags for nv_putsub() and Namarr_t.flags.
+ * These must not conflict with the public nv_putsub() flags declared in nval.h.
+ */
+#define ARRAY_FILL	0x8		/* used with nv_putsub() */
+#define ARRAY_NOCLONE	0x10		/* do not clone array disc */
+#define ARRAY_NOCHILD	0x20		/* skip compound arrays */
+#define ARRAY_SETSUB	0x40		/* set subscript */
+#define ARRAY_NOSCOPE	0x80		/* top level scope only */
+#define ARRAY_TREE	0x100		/* arrays of compound vars */
 #if SHOPT_FIXEDARRAY
-#   define ARRAY_FIXED	ARRAY_NOCLONE		/* For index values */
+#   define ARRAY_FIXED	0x200		/* For index values */
 #endif /* SHOPT_FIXEDARRAY */
-#define NV_ASETSUB	8			/* set subscript */
+
+#define NV_ASETSUB	8		/* set subscript */
 
 /* These flags are used as options to array_get() */
 #define ARRAY_ASSIGN	0
@@ -140,7 +145,7 @@ struct Ufunction
 
 /* ...	for arrays */
 
-#define array_elem(ap)	((ap)->nelem&ARRAY_MASK)
+#define array_elem(ap)	((ap)->nelem)
 #define array_assoc(ap)	((ap)->fun)
 
 extern ssize_t		array_maxindex(Namval_t*);

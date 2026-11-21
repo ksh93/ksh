@@ -811,7 +811,7 @@ static void nv_restore(struct subshell *sp)
 		if(nv_isarray(mp))
 		{
 			Namarr_t	*ap;
-			nv_putsub(mp,NULL,ARRAY_SCAN);
+			nv_putsub(mp,NULL,0,ARRAY_SCAN);
 			/*
 			 * nv_putsub() clears ARRAY_SCAN again when the scan finds no
 			 * elements, but array_putval() -- which nv_unset() calls below to
@@ -820,7 +820,7 @@ static void nv_restore(struct subshell *sp)
 			 * is fully scanned by definition, so flag it as such.
 			 */
 			if ((ap = nv_arrayptr(mp)) && array_elem(ap)==0)
-				ap->nelem |= ARRAY_SCAN;
+				ap->flags |= ARRAY_SCAN;
 		}
 		if(np->nvalue==Empty)
 		{

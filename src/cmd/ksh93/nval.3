@@ -1,5 +1,5 @@
 .fp 5 CW
-.TH NVAL 3 "12 Feb 2003"
+.TH NVAL 3 "21 Nov 2026"
 .SH NAME
 \fBnval\fR \- the \f3ksh\fP name/value library
 .SH SYNOPSIS
@@ -18,6 +18,8 @@ Namval_t;
 Namfun_t;
 Namarr_t;
 Namdisc_t;
+Namdecl_t;
+Nambfun_t;
 .ft R
 .fi
 .SS "OPENING/CLOSING"
@@ -25,6 +27,7 @@ Namdisc_t;
 .ft 5
 Namval_t 	*nv_open(const char *\fIname\fP, Dt_t *\fIdict\fP, nvflag_t \fIflags\fP);
 Namval_t	*nv_create(const char *\fIname\fP,  Dt_t *\fIdict\fP, nvflag_t \fIflags\fP, Namfun_t *\fIfp\fP);
+Namval_t	*nv_search(const char *\fIname\fP, Dt_t *\fIdict\fP, nvflag_t \fImode\fP);
 Namval_t	*nv_namptr(void *\fIptr\fP, size_t \fIindx\fP);
 void		nv_delete(Namval_t *\fInp\fP, Dt_t *\fIdict\fP, nvflag_t \fInofree\fP);
 .ft R
@@ -46,10 +49,10 @@ int		nv_clone(Namval_t *\fIsrc\fP, Namval_t *\fIdest\fP, nvflag_t \fIflags\fP);
 int		nv_isnull(Namval_t *\fInp\fP);
 size_t		nv_setsize(Namval_t *\fInp\fP, size_t \fIsize\fP);
 size_t		nv_size(Namval_t *\fInp\fP);
-unsigned	nv_isattr(Namval_t *\fInp\fP, nvflag_t \fIflags\fP);
+nvflag_t	nv_isattr(Namval_t *\fInp\fP, nvflag_t \fIflags\fP);
 Namfun_t	*nv_isvtree(Namval_t *\fInp\fP);
-unsigned	nv_onattr(Namval_t *\fInp\fP, nvflag_t \fIflags\fP);
-unsigned	nv_offattr(Namval_t *\fInp\fP, nvflag_t \fIflags\fP);
+nvflag_t	nv_onattr(Namval_t *\fInp\fP, nvflag_t \fIflags\fP);
+nvflag_t	nv_offattr(Namval_t *\fInp\fP, nvflag_t \fIflags\fP);
 void		nv_newattr(Namval_t *\fInp\fP, nvflag_t \fIflags\fP, ssize_t \fIsize\fP);
 .ft R
 .fi
@@ -57,10 +60,11 @@ void		nv_newattr(Namval_t *\fInp\fP, nvflag_t \fIflags\fP, ssize_t \fIsize\fP);
 .SS "ARRAY HANDLING"
 .nf
 .ft 5
-unsigned	nv_isarray(Namval_t *\fInp\fP);
+nvflag_t	nv_isarray(Namval_t *\fInp\fP);
 Namarr_t	*nv_setarray(Namval_t *\fInp\fP, void*(*\fIfun\fP)(Namval_t*, const char*, nvflag_t));
+void		*nv_associative(Namval_t *\fInp\fP, const char *\fIsub\fP, nvflag_t \fImode\fP);
 Namarr_t	*nv_arrayptr(Namval_t *\fInp\fP);
-Namval_t	*nv_putsub(Namval_t *\fInp\fP, char *\fIname\fP, long \fImode\fP);
+Namval_t	*nv_putsub(Namval_t *\fInp\fP, char *\fIname\fP, int \fIsize\fP, int \fIflags\fP);
 Namval_t	*nv_opensub(Namval_t *\fInp\fP);
 void		nv_setvec(Namval_t *\fInp\fP, int \fIappend\fP, int \fIargc\fP, char *\fIargv\fP[]);
 char		*nv_getsub(Namval_t *\fInp\fP);
@@ -77,7 +81,7 @@ char		*nv_getv(Namval_t *\fInp\fP, Namfun_t *\fIfp\fP);
 Sfdouble_t	nv_getn(Namval_t *\fInp\fP, Namfun_t *\fIfp\fP);
 void		nv_putv(Namval_t *\fInp\fP, const char *\fIval\fP, nvflag_t \fIflags\fP, Namfun_t *\fIfp\fP);
 char		*nv_setdisc(Namval_t *\fInp\fP, const char *\fIa\fP, Namval_t *\fIf\fP, Namfun_t *\fIfp\fP);
-char		*nv_adddisc(Namval_t *\fInp\fP, const char **\fInames\fP, Namval_t **\fPfuns\fP);
+int		nv_adddisc(Namval_t *\fInp\fP, const char **\fInames\fP, Namval_t **\fPfuns\fP);
 const Namdisc_t	*nv_discfun(int \fIwhich\fP);
 .ft R
 .fi
@@ -85,9 +89,10 @@ const Namdisc_t	*nv_discfun(int \fIwhich\fP);
 .nf
 .ft 5
 Namval_t	*nv_type(Namval_t  *\fInp\fP);
-int		*nv_settype(Namval_t  *\fInp\fP, Namval_t *\fItp\fP, nvflag_t \fIflags\fP);
+int		nv_settype(Namval_t  *\fInp\fP, Namval_t *\fItp\fP, nvflag_t \fIflags\fP);
 Namval_t	*nv_mkinttype(char *\fIname\fP, size_t \fIsz\fP, int \fIus\fP, const char *\fIstr\fP, Namdisc_t *\fIdp\fP);
-void		nv_addtype(Namval_t *\fInp\fP, const char *\fIstr\fP, Optdisc_t* *\fIop\fP, size_t \fIsz\fP);
+void		nv_addtype(Namval_t *\fInp\fP, const char *\fIstr\fP, Optdisc_t *\fIop\fP, size_t \fIsz\fP);
+void		nv_newtype(Namval_t *\fInp\fP);
 .ft R
 .fi
 .SS "MISCELLANEOUS FUNCTIONS"
@@ -98,6 +103,9 @@ Dt_t		*nv_dict(Namval_t *\fInp\fP);
 void		nv_setvtree(Namval_t *\fInp\fP);
 void		nv_setref(Namval_t *\fInp\fP, Dt_t *\fIdp\fP, nvflag_t \fIflags\fP);
 Namval_t	*nv_lastdict(void);
+int		nv_rename(Namval_t *\fInp\fP, nvflag_t \fIflags\fP);
+void		nv_rehash(Namval_t *\fInp\fP, void *\fIdata\fP);
+void		*nv_context(Namval_t *\fInp\fP);
 .ft R
 .fi
 .SH DESCRIPTION
@@ -127,7 +135,7 @@ of the attributes listed later and zero or more of the following:
 \f3NV_VARNAME\fP:
 An invalid variable name causes an error.
 .IP
-\f3NV_IDENTIFIER\fP:
+\f3NV_IDENT\fP:
 A variable name that is not an identifier causes an error.
 .IP
 \f3NV_ASSIGN\fP:
@@ -150,10 +158,25 @@ Only the top level scope is used.
 Just return \f3NULL\fP when an error occurs.
 By default an error message is displayed and the current command
 is aborted.
+.IP
+\f3NV_ADD\fP:
+Add the name-value pair if it does not already exist.
+This is the default; it is cancelled by \f3NV_NOADD\fP.
+.IP
+\f3NV_APPEND\fP:
+Append the assigned value to the current value instead of replacing it.
+.IP
+\f3NV_UNATTR\fP:
+Before assigning, unset the value and attributes of an existing
+name-value pair that has no discipline.
+.IP
+\f3NV_GLOBAL\fP:
+Create the variable in the global scope, even if a variable of the
+same name exists in the current local scope.
 .PP
 If a name-value pair by this name does not already exist, it is
 created unless \fIflags\fP contains the \f3NV_NOADD\fP flag.
-If \f3NV_VARNAME\fP, \f3NV_IDENTIFIER\fP and \f3NV_ASSIGN\fP are
+If \f3NV_VARNAME\fP, \f3NV_IDENT\fP and \f3NV_ASSIGN\fP are
 all not specified, then no validity check is performed on the \fIname\fP
 argument and no further processing is performed.
 Otherwise, if \f3NV_ASSIGN\fP is specified, then the characters up
@@ -176,6 +199,23 @@ and a value that will be assigned to the name-value pair.
 Any attributes appearing in the \fIflags\fP argument
 will be applied to the name-value pair after any value is assigned.
 .PP
+The remaining \f3NV_*\fP flags declared in \f3nval.h\fP
+(\f3NV_STATIC\fP, \f3NV_IARRAY\fP, \f3NV_FARRAY\fP, \f3NV_TYPE\fP,
+\f3NV_COMVAR\fP, \f3NV_FUNCT\fP and \f3NV_BLTINOPT\fP) are used
+internally by the shell and its built-in commands.
+.PP
+The \f3nv_search()\fP function is a low-level lookup function that
+searches \fIdict\fP for \fIname\fP and returns the corresponding
+name-value pair, without evaluating subscripts or assignments.
+The \fImode\fP argument may contain \f3NV_ADD\fP to add the
+name-value pair if it is not found, \f3NV_NOSCOPE\fP to search only
+the dictionary itself and not any dictionaries it has a view to, and
+\f3NV_REF\fP to treat \fIname\fP as a pointer to a name-value pair
+whose name is used.
+Unlike the \fIflags\fP of \f3nv_open()\fP, the \fImode\fP bits are
+not compatible with \f3NV_NOADD\fP and the other \f3nv_open()\fP
+flags.
+.PP
 It is possible for an application to create additional dictionaries
 with the cdt library and associate them with name-value pairs.
 The \f3nv_dict()\fP function returns the dictionary associated with
@@ -184,16 +224,33 @@ the specified name-value pair, or if no dictionary was specified,
 The \f3nv_lastdict()\fP function returns a pointer to the
 name-value pair that contains
 the last dictionary searched on the previous \f3nv_open()\fP.
+The \f3nv_context()\fP function returns the context pointer that is
+associated with the built-in command node \fInp\fP.
 .PP
 Name-value pairs can also be allocated without belonging to
 a dictionary.  They will typically be looked up by a \fIcreate\fP
 discipline associated with a parent node.  In this case the
 node size will be \f3NV_MINSZ\fP and \fIn\fP nodes can be allocated
-via \f3calloc(5NV_MINSZ,\fP\fIn\fP\f3)\fP(3).
+via \f3calloc(\fP\fIn\fP\f3,NV_MINSZ)\fP(3).
 The \f3nv_namptr\fP function can be used on the pointer returned by
 \f3calloc\fP along with the element number to return the
 corresponding node.
-Each of these nodes must be given the \f3NV_MINIMAL\fP attributes.
+Each of these nodes must be given the \f3NV_MINIMAL\fP attribute.
+The \f3nv_alignof()\fP macro returns the alignment that is required
+for a given type when such nodes are embedded in a larger structure.
+.PP
+\f3Namdecl_t\fP is the context structure that describes a declaration
+built-in command, such as \f3typeset\fP; \f3nv_context()\fP returns
+it for such nodes.
+Its \f3tp\fP member points to the type node of the declaration,
+\f3optstring\fP is the option string used by \f3optget\fP(3), and
+\f3optinfof\fP is the callback discipline given to \f3optget\fP(3).
+.PP
+\f3Nambfun_t\fP is the discipline structure that associates a list of
+names with their name-value pairs, as used by \f3nv_adddisc()\fP.
+Its \f3num\fP member holds the number of names, \f3bnames\fP points
+to the array of names, and \f3bltins\fP to the array of
+corresponding name-value pairs.
 .PP
 The \f3nv_delete()\fP function will remove the node \fInp\fP from
 the dictionary \fIdict\fP.  Unless \fInofree\fP is non-zero, the
@@ -204,10 +261,11 @@ pair \fInp\fP.
 The \f3nv_setsize()\fP function returns the size of the field for
 justified variables, the arithmetic base for integer variables,
 and the precision or number of places after the decimal point
-for floating point variables.  If \fIsize\fP is greater than or
-equal to zero, the current size is changed to this value.
-The \f3nv_setsize()\fP function is equivalent to \f3nv_size()\fP
-when the second argument is equal to -1.
+for floating point variables.
+Unless \fIsize\fP is \f3(size_t)-1\fP, the current size is changed
+to this value.
+The \f3nv_size()\fP macro is equivalent to
+\f3nv_setsize(\fP\fInp\fP\f3,(size_t)-1)\fP.
 .PP
 The \f3nv_getval()\fP function returns the value of the given
 name-value pair as a string.  A \f3NULL\fP return value indicates
@@ -219,19 +277,27 @@ For name-value pairs without the \f3NV_INTEGER\fP attribute,
 the string value is evaluated as an arithmetic expression to
 arrive at a numerical value.
 .PP
+The \f3nv_isnull()\fP function returns a non-zero value if the given
+name-value pair has no value and no \f3getval()\fP or \f3getnum()\fP
+discipline; otherwise it returns zero.
+.PP
 The \f3nv_putval()\fP function is used to assign a \fIvalue\fP to
 the name-value pair \fInp\fP.
-The \fIflags\fP argument consists zero or more of the bitwise-or
-of \f3NV_LONG\fP, \f3NV_SHORT\fP, \f3NV_DOUBLE\fP, \f3NV_INTEGER\fP,
-\f3NV_RDONLY\fP, \f3NV_REF\fP, \f3NV_BINARY\fP, and \f3NV_NOFREE\fP.
+The \fIflags\fP argument consists of the bitwise-or of zero or more
+of \f3NV_LONG\fP, \f3NV_SHORT\fP, \f3NV_UNSIGN\fP, \f3NV_DOUBLE\fP,
+\f3NV_INTEGER\fP, \f3NV_APPEND\fP, \f3NV_RDONLY\fP, \f3NV_EXPORT\fP,
+\f3NV_REF\fP, \f3NV_BINARY\fP, \f3NV_RAW\fP and \f3NV_NOFREE\fP.
 The presence of \f3NV_RDONLY\fP allows the assignment to occur
 even if the name-value pair has the \f3NV_RDONLY\fP attribute.
 The presence of \f3NV_INTEGER\fP indicates that the \fIvalue\fP
 argument is actually a pointer to a numerical type.
-By default this type is \f3long\fP, but can be modified with
-\f3NV_LONG\fP, \f3NV_SHORT\fP, and \f3NV_DOUBLE\fP
-to represent \f3long long\fP, \f3short\fP, \f3double\fP, \f3long double\fP,
-and \f3float\fP.
+By default this type is a 32-bit integer, but \f3NV_LONG\fP and
+\f3NV_SHORT\fP select a 64-bit (\f3Sflong_t\fP) or 16-bit
+(\f3int16_t\fP) integer, and \f3NV_UNSIGN\fP selects the
+corresponding unsigned type.
+Together with \f3NV_DOUBLE\fP, \f3NV_INTEGER\fP indicates a
+\f3double\fP, or a \f3Sfdouble_t\fP (long double) with \f3NV_LONG\fP,
+or a \f3float\fP with \f3NV_SHORT\fP.
 The presence of \f3NV_REF\fP indicates that the \fIvalue\fP
 argument is actually a pointer to a name-value pair
 and \f3np\fP should become a reference to this name-value pair.
@@ -239,14 +305,22 @@ If \f3NV_NOFREE\fP is specified, \fIvalue\fP itself becomes
 the value of the name-value pair \fInp\fP.
 Otherwise, a copy of the value is stored
 as the value for \fInp\fP.
+If \f3NV_APPEND\fP is specified, the value is appended to the current
+value instead of replacing it.
 .PP
 The \f3nv_unset()\fP function clears out the value and attributes
 of the given name-value function but does not free the name-value
 pair.
-If called from the \f3putval\fP discipline function, use the \fIflags\fP
-argument as the \fIflags\fP to \f3nv_unset()\fP.  Otherwise, use 0.
+The \fIflags\fP argument may contain \f3NV_RDONLY\fP to allow a
+readonly name-value pair to be unset, and \f3NV_EXPORT\fP to only
+unset the name-value pair if it is exported.
+If called from the \f3putval\fP discipline function, pass on the
+\fIflags\fP argument that the discipline received.
 .PP
-The following attributes can be associated with a name-value pair:
+The following attributes can be associated with a name-value pair.
+Attributes are values of the type \f3nvflag_t\fP, which is a 64-bit
+unsigned integer; \f3NV_DEFAULT\fP, which is zero, indicates that no
+attributes are set.
 .IP
 \f3NV_EXPORT\fP:
 The export attribute.
@@ -272,8 +346,7 @@ string length of the value.
 .IP
 \f3NV_ZFILL\fP:
 Without \f3NV_LJUST\fP, right justifies and fills with leading zeros.
-With \f3NV_LJUST\fP, left justify and strip leading zeros.
-Left justify and blank fill.
+With \f3NV_LJUST\fP, left justifies and strips leading zeros.
 This attribute has an associated size that defines the
 string length of the value.
 .IP
@@ -291,6 +364,8 @@ to be stored as a double precision floating point number.
 This attribute has an associated number that defines the
 number of places after the decimal point to be used when
 the value is expanded as a string.
+A size of \f3NV_FLTSIZEZERO\fP (\-1) represents zero places
+after the decimal point.
 .IP
 \f3NV_EXPNOTE\fP:
 Used in conjunction with \f3NV_INTEGER\fP and \f3NV_DOUBLE\fP to
@@ -310,6 +385,8 @@ is the number of bytes for this data.  By default the value
 will be represented by the base64 encoding of the buffer.
 The \f3NV_LJUST\fP flag may also be specified and causes the buffer
 size to be fixed and data either truncated or filled with \f30\fP bytes.
+If \f3NV_RAW\fP is specified, the data is stored and returned as-is
+instead of being base64 encoded.
 .IP
 \f3NV_REF\fP:
 The name-value pair is a name reference variable.
@@ -321,12 +398,40 @@ and is minimal size, \f3NV_MINSZ\fP.
 \f3NV_NODISC\fP:
 All discipline functions are ignored when performing assignments
 and lookups.
+.IP
+\f3NV_NOFREE\fP:
+The value or the discipline structure was not allocated by the library
+and must not be freed by it.
+.IP
+\f3NV_ARRAY\fP:
+The name-value pair is an array; use \f3nv_isarray()\fP to test this.
+.IP
+\f3NV_TABLE\fP:
+The name-value pair is a dictionary table.
+.IP
+\f3NV_HOST\fP:
+The value is a host (operating system) file name.
+It is translated to and from the UNIX file name as needed.
+.IP
+\f3NV_SHORT\fP:
+Used with \f3NV_INTEGER\fP to represent a 16-bit integer.
+.IP
+\f3NV_LONG\fP:
+Used with \f3NV_INTEGER\fP to represent a 64-bit integer or a
+long double.
+.IP
+\f3NV_UNSIGN\fP:
+Used with \f3NV_INTEGER\fP to represent an unsigned integer.
 .PP
 The \f3nv_isattr()\fP function can test whether or not any of
 the attributes given by \fIflags\fP is set.
+The \f3NV_PUBLIC\fP mask contains the attribute bits that are not
+also lookup options of \f3nv_open()\fP, so that the user-visible
+attributes of a node can be copied.
 The \f3nv_onattr()\fP and \f3nv_offattr()\fP functions turn attributes
-on or off respectively.  Only attributes that do not affect the
-value can be set in this way.
+on or off respectively.
+Only attributes that do not affect the value can be set in this way;
+use \f3nv_newattr()\fP to change the attributes of a value.
 The \f3nv_newattr()\fP function can be used to change the
 attributes and size of the given name-value pair which may result
 in the value being changed to conform to the new attributes and size.
@@ -337,12 +442,24 @@ to agree with the new attributes.
 For an array variable, the values for each of the
 subscripts will be changed.
 .PP
+The \f3nv_isnum()\fP macro returns the bits of \f3NV_INTEGER\fP,
+\f3NV_DOUBLE\fP, \f3NV_SHORT\fP, \f3NV_LONG\fP, \f3NV_UNSIGN\fP
+and \f3NV_LJUST\fP that are set if the name-value pair has the
+\f3NV_INTEGER\fP attribute, and zero otherwise, so that the numeric
+type of a value can be determined.
+The macros \f3NV_INT16\fP, \f3NV_UINT16\fP, \f3NV_INT32\fP,
+\f3NV_UINT32\fP, \f3NV_INT64\fP, \f3NV_UINT64\fP, \f3NV_FLOAT\fP
+and \f3NV_LDOUBLE\fP combine these attributes to define the standard
+numeric types.
+.PP
 The \f3nv_isvtree()\fP function returns a pointer to the compound
 variable discipline if the node \fInp\fP is a compound variable
 or \f3NULL\fP otherwise.
 .PP
 The \f3nv_isarray()\fP function returns a non-zero value if the specified
 name-value pair is an array.
+The \f3nv_close()\fP macro is a no-op that is retained for compatibility
+with earlier versions of the name-value library.
 .PP
 The \f3nv_scan()\fP function is used to walk through
 all name-value pairs in the dictionary given by \fIdict\fP.
@@ -359,8 +476,20 @@ The arguments to \fIfn\fP will be a pointer to the name-value pair
 and the \fIdata\fP pointer passed to \f3nv_scan()\fP.
 The number of elements visited will be returned.
 .PP
-The \f3nv_clone()\fP function is used make a copy of the contents of
-name-value pair \fIsrc\fP to another name-value pair \fIdest\fP.
+The \f3nv_rehash()\fP function is a traversal function for
+\f3nv_scan()\fP that invalidates the cached path name binding of the
+name-value pair \fInp\fP; its \fIdata\fP argument is ignored.
+.PP
+The \f3nv_clone()\fP function is used to make a copy of the contents
+and attributes of the name-value pair \fIsrc\fP to another name-value
+pair \fIdest\fP.
+The \fIflags\fP argument may contain \f3NV_APPEND\fP, causing the
+value to be appended instead of replacing the destination value;
+\f3NV_MOVE\fP, causing \fIsrc\fP to be unset after the copy;
+\f3NV_COMVAR\fP, for moving a compound variable between scopes; and
+\f3NV_NODISC\fP, preventing disciplines that have functions from
+being copied.
+The function returns 1.
 .PP
 Disciplines provide a way to
 intercept the lookup and assignment operations,
@@ -373,23 +502,29 @@ A discipline is defined by the types
 \f3Namfun_t\fP and \f3Namdisc_t\fP.
 The \f3Namdisc_t\fP is not modified by any of these functions and
 can therefore be shared by several name-value pairs.
-It contains following public fields in the order listed:
+It contains the following public fields in the order listed:
 .nf
       \f3size_t	dsize;\fP
       \f3void	(*putval)(Namval_t*,const char*,nvflag_t,Namfun_t*);\fP
       \f3char	*(*getval)(Namval_t*,Namfun_t*);\fP
-      \f3double	(*getnum)(Namval_t*,Namfun_t*);\fP
+      \f3Sfdouble_t	(*getnum)(Namval_t*,Namfun_t*);\fP
       \f3char	*(*setdisc)(Namval_t*,const char*,Namval_t*,Namfun_t*);\fP
       \f3Namval_t	*(*createf)(Namval_t*,const char*,nvflag_t,Namfun_t*);\fP
       \f3Namfun_t	*(*clonef)(Namval_t*,Namval_t*,nvflag_t,Namfun_t*);\fP
       \f3char	*(*namef)(Namval_t*,Namfun_t*);\fP
       \f3Namval_t	*(*nextf)(Namval_t*,Dt_t*,Namfun_t*);\fP
       \f3Namval_t	*(*typef)(Namval_t*,Namfun_t*);\fP
-      \f3Namval_t	*(*readf)(Namval_t*,Sfio_t*,int,Namfun_t*);\fP
-      \f3Namval_t	*(*writef)(Namval_t*,Sfio_t*,nvflag_t,Namfun_t*);\fP
+      \f3int	(*readf)(Namval_t*,Sfio_t*,int,Namfun_t*);\fP
+      \f3int	(*writef)(Namval_t*,Sfio_t*,nvflag_t,Namfun_t*);\fP
 .fi
 The \f3Namfun_t\fP type contains a member named
 \f3disc\fP which points to a \f3Namdisc_t\fP structure.
+It also contains a \f3namflags\fP member, which may have the
+following bits set: \f3NAMFUN_NOFREE\fP, meaning that the structure
+itself must not be freed by the library; \f3NAMFUN_IGN\fP, meaning
+that the discipline is not copied when the \f3NV_NODISC\fP flag is
+used; and \f3NAMFUN_PREDEF\fP, meaning that this is one of the
+predefined readonly disciplines of the shell, which are never copied.
 To create a discipline with additional user data,
 define a structure with an instance of \f3Namfun_t\fP
 as the first element.
@@ -400,9 +535,10 @@ The \f3dsize\fP field of the \f3Namdisc_t\fP structure must be
 the size of this structure.  A value of 0,
 indicates that there are no additional fields and is equivalent
 to \f3sizeof(Namfun_t)\fP.
-If different instances of this structure uses different sizes, then
-the \f3size\fP field in the \f3Namfun_t\fP can must be set to
-this size and overrides the value in the \f3Namdisc_t\fP structure.
+If different instances of this structure use different sizes, then
+the \f3dsize\fP member of the \f3Namfun_t\fP structure must be set to
+the size of the instance, overriding the value in the
+\f3Namdisc_t\fP structure.
 .PP
 When a variable is referenced by calling the \f3nv_getval()\fP function,
 and the \f3NV_NODISC\fP attribute is not set,
@@ -448,6 +584,19 @@ the \f3createf()\fP discipline function
 to perform the action that would have occurred
 by an earlier \f3nv_open()\fP function.
 .PP
+The \f3nv_setdisc()\fP function installs, removes or queries a shell
+level discipline function.
+The \fIevent\fP argument is the name of the discipline action, such as
+\f3get\fP, \f3set\fP or \f3unset\fP; \fIaction\fP is the
+name-value pair of the function to run, or \f3NULL\fP to remove the
+discipline; and \fIfp\fP is the discipline to operate on.
+If \fIaction\fP is \fInp\fP itself, the current discipline function
+is returned.
+If \fIevent\fP is \f3NULL\fP, the name of the action that follows
+\fIaction\fP is returned, or the name of the first action if
+\fIaction\fP is also \f3NULL\fP.
+A \f3NULL\fP return value means that the action is not known.
+.PP
 The \f3setdisc()\fP discipline function is used
 to extend the set of available shell level discipline functions
 associated with a name-value pair by allowing
@@ -487,9 +636,11 @@ in \f3names\fP.
 .PP
 The \f3nv_discfun()\fP function can be used to get a pointer to
 discipline functions that are provided by the library.
-Currently, the only one that is provided is the ones used to
-implement \f3nv_adddisc()\fP which can be returned with an
-argument of \f3NV_DCADD\fP.
+An argument of \f3NV_DCADD\fP returns the discipline used to
+implement \f3nv_adddisc()\fP, and \f3NV_DCRESTRICT\fP returns the
+discipline that prevents a restricted shell from changing the
+\f3PATH\fP, \f3FPATH\fP, \f3SHELL\fP and \f3ENV\fP variables.
+\f3NULL\fP is returned for any other argument.
 .PP
 The \f3clonef()\fP discipline function is called by \f3nv_clone()\fP
 when making a copy of the \f3Namfun_t\fP discipline to the new node.
@@ -497,9 +648,9 @@ The first argument is the original node, the second argument is
 the new node, and the third argument is the flags that were passed
 down to \f3nv_clone()\fP.
 It must return a new instance of the \f3Namfun_t*\fP \f3fp\fP.
-If omitted, then memory whose size is determined by the \f3size\fP
-field of \f3fp\fP, if non-zero, or \f3fp->disc\fP, will be allocated
-and copied from \f3fp\fP.
+If omitted, then memory whose size is determined by the \f3dsize\fP
+member of \f3fp\fP, if non-zero, or of \f3fp->disc\fP, will be
+allocated and copied from \f3fp\fP.
 .PP
 The \f3namef()\fP discipline function returns the name for this name-value pair.
 .PP
@@ -537,7 +688,8 @@ and returned.
 \f3NV_CLONE\fP:
 If \fIfp\fP is non-\f3NULL\fP and it is on the stack,
 it is replaced by a copy created by \f3malloc\fP(3).
-The \f3nofree\fP field is set to \f30\fP.
+The \f3NAMFUN_NOFREE\fP bit is cleared in the \f3namflags\fP member
+of the copy.
 The new discipline is returned.
 Otherwise, \f3NULL\fP is returned.
 .IP
@@ -545,25 +697,35 @@ Otherwise, \f3NULL\fP is returned.
 If \fIfp\fP is non-\f3NULL\fP then it is equivalent to \f3NV_FIRST\fP.
 Otherwise, it is equivalent to \f3NV_POP\fP.
 .PP
+The \f3nv_stack(\fP\fInp\fP\f3,\fP\fIfp\fP\f3)\fP macro is
+equivalent to \f3nv_disc(\fP\fInp\fP\f3,\fP\fIfp\fP\f3,0)\fP.
+.PP
 The
-\f3nv_hasdisc()\fP function can be used to tell whether a discipline
-whose discipline functions are those defined in \fIdp\fP.
-A pointer to this discipline is returned.
+\f3nv_hasdisc()\fP function can be used to tell whether the
+name-value pair \fInp\fP is using the discipline whose functions are
+defined in \fIdp\fP.
+A pointer to that discipline is returned, or \f3NULL\fP if it is not
+on the stack.
 .PP
 The \f3nv_aindex()\fP function returns
-the current index for
+the current subscript number for
 the indexed array given by the name-value pair pointer \fInp\fP.
-The return value is negative if \fInp\fP refers to
-an associative array.
+The return value is \-1 if \fInp\fP refers to an associative array,
+and 0 if it does not refer to an array at all.
 .PP
 The \f3nv_setarray()\fP function is used to create an associative array
 from a name-value pair node.
+If \fInp\fP is already an indexed array, it is converted to an
+associative array.
 The function \fIfun\fP defines the semantics of the associative
 array.
 Using \fIfun\fP equal to \f3nv_associative()\fP implements the default
 associative array semantics
 that are used with \f3typeset\ -A\fP.
-The function \fIfun\fP will be called with third argument as follows:
+A pointer to the array discipline structure is returned, or
+\f3NULL\fP if the array could not be created.
+The function \fIfun\fP will be called with its third argument set to
+one of the following values:
 .IP
 \f3NV_AINIT\fP:
 This will be called at initialization.
@@ -586,35 +748,65 @@ no more subscripts.
 \f3NV_ANAME\fP:
 The name of the current subscript must be returned.
 .IP
+\f3NV_AADD\fP:
+Add the subscript if it does not exist.
+.IP
 \f3NV_ACURRENT\fP:
 Returns a pointer to a name-value pair corresponding to the
-current subscript, or \f3NULL\fP if this array type doesn't
-create represent each element as a name-value pair.
+current subscript, or \f3NULL\fP if this array type does not
+represent each element as a name-value pair.
 .IP
 \f3NV_ASETSUB\fP:
 Set the current subscript to the name-value pair passed in
 as the second argument.
 .PP
+The \f3nv_associative()\fP function is the discipline function that
+implements the default associative array semantics of
+\f3typeset\ -A\fP variables.
+It is normally passed as the \fIfun\fP argument to
+\f3nv_setarray()\fP, but it can also be called directly with a
+subscript string in \fIsub\fP and one of the \f3NV_A*\fP operations
+in \fImode\fP.
+.PP
 If \fInp\fP refers to an array,
 \f3nv_arrayptr()\fP returns a pointer to
 the array discipline structure \f3Namarr_t\fP.
 Otherwise \f3nv_arrayptr()\fP returns \f3NULL\fP.
+The \f3Namarr_t\fP structure starts with a \f3Namfun_t\fP member
+named \f3hdr\fP.
+Its \f3nelem\fP member contains the number of elements,
+\f3fun\fP points to the associative array discipline function,
+\f3fixed\fP holds the data of a fixed-size array, \f3table\fP
+contains the associative array subscripts, \f3scope\fP is non-zero
+when the array is scoped, and \f3flags\fP contains the internal
+\f3ARRAY_*\fP flags.
 .PP
 If \fInp\fP refers to an array,
-the \f3nv_getsub()\fP returns a pointer to
+the \f3nv_getsub()\fP function returns a pointer to
 the name of the current subscript.
+For an indexed array this points to a static buffer that is reused by
+later calls.
 Otherwise, \f3nv_getsub()\fP
 returns \f3NULL\fP.
 .PP
 The \f3nv_opensub()\fP function returns
 a pointer to the name-value pair corresponding
-to the current subscript in an associative array.
+to the current subscript, or \f3NULL\fP if there is none.
+For an indexed array this is only possible when the element is a
+compound variable.
 .PP
 The \f3nv_putsub()\fP function is used to
-set the subscript for the next reference to \f3np\fP.
-If the \f3name\fP argument is not \f3NULL\fP,
-it defines the value of the next subscript.
-The \f3mode\fP argument can contain one or more of the following flags:
+set the subscript for the next reference to \fInp\fP.
+If the \fIname\fP argument is not \f3NULL\fP,
+it defines the value of the next subscript: for an indexed array it is
+evaluated as an arithmetic expression, and for an associative array it
+is used as the string subscript.
+Otherwise, \fIsize\fP is the number of the subscript to select,
+counting from zero.
+A negative \fIsize\fP is an offset from the highest current subscript
+plus one, so that \-1 refers to the last element.
+The \fIflags\fP argument can contain the bitwise-or of zero or more of
+the following flags:
 .IP
 \f3ARRAY_ADD\fP:
 Add the subscript if not found.
@@ -633,6 +825,20 @@ subscript in an undefined state.
 If \f3ARRAY_ADD\fP is not given and the subscript
 does not exist, a \f3NULL\fP value is returned.
 .PP
+An indexed array is stored as a contiguous vector, so setting a high
+subscript also allocates storage for all lower subscripts.
+The subscript must therefore be in the range of \f30\fP through
+\f32,147,483,647\fP (\f3INT_MAX\fP); in practice, available memory
+is the limiting factor.
+.PP
+The \f3nv_setvec()\fP function assigns the \fIargc\fP strings in
+\fIargv\fP to consecutive elements of the array \fInp\fP.
+If \fIappend\fP is non-zero, the values are appended after the last
+existing element; otherwise, assignment starts at element 0.
+If \fInp\fP is not yet an array, an existing scalar value is moved
+to element 0.
+If \fInp\fP is an associative array, an error occurs.
+.PP
 The \f3nv_nextsub()\fP function is used to advance to the
 next subscript.
 It returns 0 if there are no more subscripts or if called
@@ -645,18 +851,31 @@ called with this name, the dictionary given by \f3dp\fP,
 and the \f3flags\fP argument.
 A \f3NULL\fP value causes the shell global variable dictionary to be searched.
 .PP
+The \f3nv_rename()\fP function moves the name-value pair \fInp\fP to
+the name given by its value; it implements \f3typeset\ -m\fP.
+The \fIflags\fP are passed on to \f3nv_open()\fP.
+It returns 1 on success and 0 on failure.
+.PP
 The \f3nv_setvtree()\fP function makes the name-value pair \f3np\fP
 into a tree structured variable so that \f3nv_getval()\fP
 will return a string containing all the names and values of
 children nodes in a format that can be used in
 a shell compound assignment.
 .PP
-The \f3nv_type()\fP function returns a name_value pair pointer
+The \f3nv_type()\fP function returns a name-value pair pointer
 that contains the type definition for the specified name-value pair.
 The \fInvname\fP field contains the name for the type.
+The special variable name \f3NV_CLASS\fP is the name of the
+namespace that holds the type definitions, and \f3NV_DATA\fP is the
+name of the special member variable that holds the data of an instance.
 .PP
 The \f3nv_settype()\fP function converts the name-value pair
 given by \fInp\fP into the type given by \fItp\fP.
+The \fIflags\fP are passed on to the assignment conversions.
+.PP
+The \f3nv_newtype()\fP function registers the type defined by the
+name-value pair \fInp\fP, as created with \f3typeset\ -T\fP, so that
+its name can be used as a declaration built-in.
 .PP
 The \f3nv_addtype()\fP function adds the name of the type given by
 \fInp\fP to the list of declaration built-ins.  The \fIstr\fP

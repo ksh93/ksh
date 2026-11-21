@@ -72,7 +72,6 @@ struct slnod 	/* struct for linked list of stacks */
 struct dolnod
 {
 	int		dolrefcnt;	/* reference count */
-	int		dolmax;		/* size of dolval array */
 	int		dolnum;		/* number of elements */
 	int		dolbot;		/* current first element */
 	struct dolnod	*dolnxt;	/* used when lists are chained */

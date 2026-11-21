@@ -29,7 +29,7 @@
  * unless _BLD_ksh is defined as nonzero
  */
 
-#define SH_VERSION	20220719
+#define SH_VERSION	20261121
 
 #include	<ast.h>
 #include	<cdt.h>
@@ -459,7 +459,7 @@ extern Sfio_t		*sh_iogetiop(int,int);
 extern noreturn void	sh_main(int, char*[], Shinit_f);
 extern int		sh_run(int, char*[]);
 extern void		sh_menu(Sfio_t*, int, char*[]);
-extern Namval_t		*sh_addbuiltin(const char*, int(*)(int, char*[],Shbltin_t*), void*);
+extern Namval_t		*sh_addbuiltin(const char*, Shbltin_f, void*);
 extern char		*sh_fmtq(const char*);
 extern char		*sh_fmtqf(const char*, int, int);
 extern Sfdouble_t	sh_strnum(const char*, char**, int);
