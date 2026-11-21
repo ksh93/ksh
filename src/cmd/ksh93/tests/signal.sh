@@ -288,6 +288,37 @@ parallel_2=$!
 parallel_3=$!
 
 # ======
+# regular builtins such as sleep(1) should defer trapped signals like their external command equivalents do
+(
+	typeset -F3 s=SECONDS
+	(
+		trap : USR2
+		(
+			sleep .1
+			kill -s USR2 "${.sh.ppid}"
+		) &
+		sleep 1
+	)
+	(( SECONDS - s >= 1.0 ))
+) &
+parallel_4=$!
+
+# ...but of course the -s option (stop sleeping if a signal is received) should continue to work
+(
+	typeset -F3 s=SECONDS
+	(
+		trap : USR2
+		(
+			sleep .1
+			kill -s USR2 "${.sh.ppid}"
+		) &
+		sleep -s 1
+	)
+	(( SECONDS - s < 1.0 ))
+) &
+parallel_5=$!
+
+# ======
 unset n s t
 typeset -A SIG
 for s in $(kill -l)
@@ -788,5 +819,7 @@ n=1'
 wait "$parallel_1"; r=$(< parallel_1.err) || exit 125; eval "$r"
 wait "$parallel_2" || err_exit "'trap - INT' causing trap to not be ignored"
 wait "$parallel_3"; r=$(< parallel_3.err) || exit 125; eval "$r"
+wait "$parallel_4" || err_exit "sleep builtin fails to defer trapped signal"
+wait "$parallel_5" || err_exit "'sleep -s' incorrectly defers trapped signal"
 
 exit $((Errors<125?Errors:125))

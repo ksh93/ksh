@@ -8,8 +8,8 @@ Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
   built-ins from being interrupted by any signal, including SIGINT/Ctrl+C.
 
 - Fixed a longstanding bug, once again exposed after the previous fix, that
-  caused libcmd builtins to be incorrectly interrupted by a signal for which
-  a trap was set in the invoking shell environment.
+  caused builtins to be incorrectly interrupted by a signal for which a trap
+  was set in the invoking shell environment.
 
 2026-11-18:
 
