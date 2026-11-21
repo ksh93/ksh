@@ -505,29 +505,29 @@ EOF
 )
 [[ $x == $'1\nS1\nGNAW\n2' ]] || err_exit 'signal ignored in subshell not propagated to parent'
 
-if	[[ ${SIG[RTMIN]} ]]
-then	{
-	$SHELL <<- \EOF
-		trap : RTMIN
+for sig in TERM ${SIG[RTMIN]:+RTMIN}
+do	{
+	"$SHELL" <<-EOF
+		trap : $sig
 		for ((i=0 ; i < 3 ; i++))
 		do	sleep .1
-			kill -RTMIN $$ 2> /dev/null
+			kill -s $sig \$\$ 2> /dev/null
 		done &
 		wait
 	EOF
 	} 2> /dev/null
-	[[ $? == 0 ]] && err_exit 'wait interrupted by caught signal should have non-zero exit status'
+	[[ $? == 0 ]] && err_exit "wait interrupted by caught SIG$sig should have non-zero exit status"
 	{
-	$SHELL <<- \EOF
+	"$SHELL" <<-EOF
 		for ((i=0 ; i < 3 ; i++))
 		do	sleep .1
-			kill -RTMIN $$ 2> /dev/null
+			kill -s $sig \$\$ 2> /dev/null
 		done &
 		wait
 	EOF
 	} 2> /dev/null
-	[[ $(kill -l $?) == RTMIN ]] || err_exit 'wait interrupted by signal not caught should exit with the value of that signal+256'
-fi
+	[[ $(kill -l $?) == $sig ]] || err_exit "wait interrupted by SIG$sig not caught should exit with the value of that signal+256"
+done
 
 # sh.1: "A trap condition that is not caught or ignored by the function causes
 # the function to terminate and the condition to be passed on to the caller."

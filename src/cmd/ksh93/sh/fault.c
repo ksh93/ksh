@@ -161,7 +161,7 @@ static int siginterrupt_builtin(int sig)
 static int sigdefer_builtin(int sig)
 {
 	char	*trap;
-	if (!sh.bltinfun)
+	if (!sh.bltinfun || sh.bltinfun==b_wait)
 		return 0;
 	if (siginterrupt_builtin(sig))
 		return 0;
