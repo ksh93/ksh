@@ -78,7 +78,7 @@ Sfoff_t sfsize(Sfio_t* f)
 		f->next = f->endb = f->endr = f->endw = f->data;
 	}
 
-	if(f->here < 0)
+	if(f->here < 0 || f->extent < 0)
 		f->extent = -1;
 	else if(f->extent < f->here)
 		f->extent = f->here;
