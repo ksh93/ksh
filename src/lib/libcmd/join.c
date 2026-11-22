@@ -852,7 +852,7 @@ sfprintf(sfstdout, "[X#%d:%d,%p,%p,%d,%02o,%02o%s]", __LINE__, n, cp1, cp2, cmp,
 #endif
 	if (!cp1 || !(jp->outmode & (1<<n)))
 	{
-		if (cp1 && jp->file[n].iop == sfstdin)
+		if (cp1 && jp->file[n].iop == sfstdin && sfsize(sfstdin) >= 0)
 			sfseek(sfstdin, 0, SEEK_END);
 		return 0;
 	}
@@ -1008,7 +1008,7 @@ b_join(int argc, char** argv, Shbltin_t* context)
 			UNREACHABLE();
 		}
 		/* attempt to make non-seekable input seekable */
-		if (sfseek(jp->file[n].iop,0,SEEK_CUR) < 0)
+		if (sfsize(jp->file[n].iop) < 0)
 		{
 			if (sfdcseekable(jp->file[n].iop))
 				error(ERROR_warn(0),"%s: seek may fail",cp);
@@ -1030,7 +1030,7 @@ b_join(int argc, char** argv, Shbltin_t* context)
 		error(ERROR_system(1),"write error");
 		UNREACHABLE();
 	}
-	else if (jp->file[0].iop==sfstdin || jp->file[1].iop==sfstdin)
+	else if ((jp->file[0].iop==sfstdin || jp->file[1].iop==sfstdin) && sfsize(sfstdin) >= 0)
 		sfseek(sfstdin,0,SEEK_END);
 	done(jp);
 	return error_info.errors;
