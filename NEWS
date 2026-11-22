@@ -2,6 +2,11 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-11-22:
+
+- Fixed a bug on NetBSD where libcmd's tail(1) pathbound builtin command
+  would hang indefinitely when reading from a FIFO (named pipe).
+
 2026-11-21:
 
 - The maximum subscript of an indexed array has been increased from
