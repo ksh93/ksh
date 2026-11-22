@@ -168,10 +168,22 @@ static int skexcept(Sfio_t* f, int type, void* data, Sfdisc_t* disc)
 
 int sfdcseekable(Sfio_t* f)
 {
-	Seek_t*	sk;
+	Seek_t*		sk;
+	Sfdisc_t*	dc;
 
 	/* see if already seekable */
-	if(sfseek(f,0,SEEK_CUR) >= 0)
+	if(sfsize(f) >= 0)
+		return 0;
+	/*
+	 * Sfio marks a stream as unseekable by setting extent < 0. Do not attempt
+	 * a seek on such a stream unless a discipline implements seekf: otherwise
+	 * the seek falls through to lseek(2), which is not guaranteed to fail (this
+	 * varies by system and device) but still would not make the stream seekable.
+	 */
+	dc = f->disc;
+	while(dc && !dc->seekf)
+		dc = dc->disc;
+	if(dc && sfseek(f,0,SEEK_CUR) >= 0)
 		return 0;
 
 	if(!(sk = (Seek_t*)malloc(sizeof(Seek_t))) )

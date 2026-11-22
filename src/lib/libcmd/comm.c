@@ -123,7 +123,7 @@ static int comm(Sfio_t *in1, Sfio_t *in2, Sfio_t *out,int mode)
 		mode &= C_FILE1;
 	if(!mode || !cp1)
 	{
-		if(cp1 && in1==sfstdin)
+		if(cp1 && in1==sfstdin && sfsize(in1) >= 0)
 			sfseek(in1,0,SEEK_END);
 		return 0;
 	}
@@ -201,7 +201,7 @@ b_comm(int argc, char *argv[], Shbltin_t* context)
 			UNREACHABLE();
 		}
 	}
-	else if(f1==sfstdin || f2==sfstdin)
+	else if((f1==sfstdin || f2==sfstdin) && sfsize(sfstdin) >= 0)
 		sfseek(sfstdin,0,SEEK_END);
 	if(f1!=sfstdin)
 		sfclose(f1);

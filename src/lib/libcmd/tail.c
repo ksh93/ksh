@@ -783,7 +783,8 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 				if (number < -1 && (moved = sfmove(ip, NULL, -(number + 1), delim)) >= 0 && delim >= 0 && moved < -(number + 1))
 					(void)sfgetr(ip, delim, SFIO_LASTR);
 				if (flags & REVERSE)
-					rev_line(ip, sfstdout, sfseek(ip, 0, SEEK_CUR));
+					/* rev_line() handles unseekable input itself; do not seek it */
+					rev_line(ip, sfstdout, sfsize(ip) < 0 ? 0 : sfseek(ip, 0, SEEK_CUR));
 				else
 					sfmove(ip, sfstdout, SFIO_UNBOUND, -1);
 			}
