@@ -26,7 +26,7 @@
  */
 
 static const char usage[] =
-"+[-?\n@(#)$Id: tail (ksh 93u+m) 2024-07-31 $\n]"
+"+[-?\n@(#)$Id: tail (ksh 93u+m) 2024-11-22 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?tail - output trailing portion of one or more files ]"
 "[+DESCRIPTION?\btail\b copies one or more input files to standard output "
@@ -165,8 +165,8 @@ tailpos(Sfio_t* fp, Sfoff_t number, int delim)
 	struct stat	st;
 
 	last = sfsize(fp);
-	if ((first = sfseek(fp, 0, SEEK_CUR)) < 0)
-		return last || fstat(sffileno(fp), &st) || st.st_size || FIFO(st.st_mode) ? -1 : 0;
+	if (last < 0 || (first = sfseek(fp, 0, SEEK_CUR)) < 0)
+		return last > 0 || fstat(sffileno(fp), &st) || st.st_size || FIFO(st.st_mode) ? -1 : 0;
 	if (delim < 0)
 	{
 		if ((offset = last - number) < first)
