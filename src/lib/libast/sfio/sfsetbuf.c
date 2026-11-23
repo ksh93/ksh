@@ -226,7 +226,7 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 			if(S_ISDIR(st.st_mode) || (Sfoff_t)st.st_size < (Sfoff_t)SFIO_GRAIN)
 				okmmap = 0;
 #endif
-			if(S_ISREG(st.st_mode) || S_ISDIR(st.st_mode))
+			if(S_ISREG(st.st_mode) || S_ISDIR(st.st_mode) || S_ISBLK(st.st_mode))
 				f->here = SFSK(f,0,SEEK_CUR,f->disc);
 			else	f->here = -1;
 
@@ -255,6 +255,15 @@ void* sfsetbuf(Sfio_t*	f,	/* stream to be buffered */
 
 		if(f->here >= 0)
 		{	f->extent = (Sfoff_t)st.st_size;
+#if _sys_stat
+			if(S_ISBLK(st.st_mode))
+			{	Sfoff_t e;
+				/* st_size won't give the size of a block device, so ask the device */
+				if((e = SFSK(f,0,SEEK_END,f->disc)) >= 0)
+					f->extent = e > f->here ? e : f->here;
+				(void)SFSK(f,f->here,SEEK_SET,f->disc);
+			}
+#endif
 
 			/* seekable std-devices are share-public by default */
 			if(f == sfstdin || f == sfstdout || f == sfstderr)

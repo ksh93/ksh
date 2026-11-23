@@ -688,6 +688,8 @@ an \f3SFIO_WRITE\fP exception shall be raised.
 .SS "  Sfoff_t sfseek(Sfio_t* f, Sfoff_t offset, int type)"
 This function sets a new I/O position for \f3f\fP.
 It returns the new position or \f3-1\fP on failure.
+If \f3f\fP is unseekable (see \f3sfsize()\fP), it fails and sets
+\f3errno\fP to \f3ESPIPE\fP.
 
 If the stream is a \f3SFIO_STRING\fP stream and the new
 address is beyond the current buffer extent,

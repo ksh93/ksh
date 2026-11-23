@@ -48,7 +48,14 @@ Sfoff_t sfseek(Sfio_t*	f,	/* seek to a new location in this stream */
 	int		mode, local, hardseek, mustsync;
 
 	if(!f)
+	{	errno = EINVAL;
 		return (Sfoff_t)(-1);
+	}
+
+	if(f->extent < 0)
+	{	errno = ESPIPE;
+		return (Sfoff_t)(-1);
+	}
 
 	GETLOCAL(f,local);
 
@@ -81,11 +88,6 @@ Sfoff_t sfseek(Sfio_t*	f,	/* seek to a new location in this stream */
 	   type != SEEK_CUR && type != SEEK_END )
 	{	errno = EINVAL;
 		return (Sfoff_t)(-1);
-	}
-
-	if(f->extent < 0)
-	{	/* not seekable with sfio: let the system call either set errno or succeed */
-		return SFSK(f,p,type,f->disc);
 	}
 
 	/* throw away ungetc data */

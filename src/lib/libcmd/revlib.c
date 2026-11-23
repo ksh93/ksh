@@ -37,7 +37,7 @@ int rev_line(Sfio_t *in, Sfio_t *out, Sfoff_t start)
 	char buff[BUFSIZE];
 	Sfoff_t offset;
 	/* if unseekable, buffer the rest of the stream in a temp file instead */
-	if(sfsize(in) < 0)
+	if(sfseek(in,0,SEEK_CUR) < 0)
 	{
 		Sfio_t *tmp = sftmp(4*SFIO_BUFSIZE);
 		if(!tmp)
