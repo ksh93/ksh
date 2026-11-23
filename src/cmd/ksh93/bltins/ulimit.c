@@ -76,7 +76,7 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 #endif /* _lib_getrlimit */
 	const Limit_t* tp;
 	char* conf;
-	int nosupport, ret=0;
+	int nosupport, ret=0, nofile=0;
 	rlim_t i=0, unit;
 	char tmp[41];
 	Optdisc_t disc = {
@@ -109,6 +109,9 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 			return optselfdoc();
 	}
 	opt_info.disc = NULL;
+#if RLIMIT_NOFILE != RLIMIT_UNKNOWN
+	ast_close_batch(-1,AST_ENACT);  /* Clear the queue in case OPEN_MAX changes */
+#endif
 	/* default to -f */
 	limit = argv[opt_info.index];
 	if(hit==0)
@@ -190,6 +193,10 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 					UNREACHABLE();
 				}
 #endif /* _lib_getrlimit */
+#if RLIMIT_NOFILE != RLIMIT_UNKNOWN
+				else if(n==RLIMIT_NOFILE)
+					nofile = 1;
+#endif
 			}
 		}
 		else
@@ -203,6 +210,10 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 					ret++;
 					continue;
 				}
+#if RLIMIT_NOFILE != RLIMIT_UNKNOWN
+				else if(n==RLIMIT_NOFILE)
+					nofile = 1;
+#endif
 				if(mode&HARD)
 					i = rlp.rlim_max;
 				if(mode&SOFT)
@@ -218,6 +229,10 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 					ret++;
 					continue;
 				}
+#if RLIMIT_NOFILE != RLIMIT_UNKNOWN
+				else if(n==RLIMIT_NOFILE)
+					nofile = 1;
+#endif
 #endif /* _lib_getrlimit */
 			}
 			if(label)
@@ -243,6 +258,10 @@ int	b_ulimit(int argc,char *argv[],Shbltin_t *context)
 				sfputr(sfstdout,e_unlimited,'\n');
 		}
 	}
+#if RLIMIT_NOFILE != RLIMIT_UNKNOWN
+	if(nofile)
+		ast_close_batch((int)astconf_long(CONF_OPEN_MAX),AST_LIMIT);
+#endif
 	return ret;
 }
 #endif /* _no_ulimit */

@@ -169,12 +169,13 @@ b_wc(int argc,char **argv, Shbltin_t* context)
 		else
 			wc_count(wp, fp, cp);
 		if (fp!=sfstdin)
-			sfclose(fp);
+			sfclose_batch(fp, AST_QUEUE);
 		tchars += wp->chars;
 		twords += wp->words;
 		tlines += wp->lines;
 		printout(wp,cp,mode);
 	} while (cp= *argv++);
+	ast_close_batch(-1, AST_ENACT);
 	if (n > 1)
 	{
 		wp->lines = tlines;

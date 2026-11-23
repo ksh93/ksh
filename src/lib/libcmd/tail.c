@@ -120,7 +120,7 @@ static const char usage[] =
 #define TIMEOUT		(1<<10)
 #define VERBOSE		(1<<11)
 
-#define NOW		(unsigned long)time(NULL)
+#define TNOW		(unsigned long)time(NULL)
 
 #define DEFAULT		10
 
@@ -258,8 +258,8 @@ pipetail(Sfio_t* infile, Sfio_t* outfile, Sfoff_t number, int delim)
 	else
 		fno = !fno;
 	sfmove(tmp[fno], outfile, offset[fno], -1);
-	sfclose(tmp[0]);
-	sfclose(tmp[1]);
+	sfclose_batch(tmp[0], AST_QUEUE);
+	sfclose_batch(tmp[1], AST_ENACT);
 }
 
 /*
@@ -647,7 +647,7 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 			fp->sp = NULL;
 			if (!init(fp, number, delim, flags, &format))
 			{
-				fp->expire = timeout ? (NOW + timeout + 1) : 0;
+				fp->expire = timeout ? (TNOW + timeout + 1) : 0;
 				if (files)
 					pp->next = fp;
 				else
@@ -681,7 +681,7 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 				{
 					n = 1;
 					if (timeout)
-						fp->expire = NOW + timeout;
+						fp->expire = TNOW + timeout;
 					z = fp->fifo ? SFIO_UNBOUND : (ssize_t)(st.st_size - fp->cur);
 					i = 0;
 					if ((s = sfreserve(fp->sp, z, SFIO_LOCKR)) || (z = sfvalue(fp->sp)) && (s = sfreserve(fp->sp, z, SFIO_LOCKR)) && (i = 1))
@@ -707,7 +707,7 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 					}
 					goto next;
 				}
-				else if (!timeout || fp->expire > NOW)
+				else if (!timeout || fp->expire > TNOW)
 					goto next;
 				else
 				{
@@ -726,7 +726,7 @@ b_tail(int argc, char** argv, Shbltin_t* context)
 						{
 							if (!(flags & SILENT))
 								error(ERROR_warn(0), "%s: log file change", fp->name);
-							fp->expire = NOW + timeout;
+							fp->expire = TNOW + timeout;
 							goto next;
 						}
 					}

@@ -17,7 +17,7 @@
 #include <error.h>
 
 /*
- * Wrapper for handling EINTR when calling dup2.
+ * Wrappers for handling EINTR when calling dup2 and dup3.
  */
 
 int ast_dup2(int fd1, int fd2)
@@ -27,3 +27,23 @@ int ast_dup2(int fd1, int fd2)
 		errno = err;
 	return r;
 }
+
+#if _lib_dup3
+
+int ast_dup3(int fd1, int fd2, int flags)
+{
+	int	r, err = errno;
+	while((r = dup3(fd1, fd2, flags)) < 0 && errno == EINTR)
+		errno = err;
+	return r;
+}
+
+#else
+
+int ast_dup3(int fd1, int fd2, int flags)
+{
+	errno = ENOSYS;
+	return -1;
+}
+
+#endif

@@ -212,8 +212,9 @@ int main(int argc, char *argv[])
 	if(!sfeof(in))
 		sfmove(in,out,SFIO_UNBOUND,-1);
 	if(in!=sfstdin)
-		sfclose(in);
+		sfclose_batch(in,AST_QUEUE);
 	if(out!=sfstdout)
-		sfclose(out);
+		sfclose_batch(out,AST_QUEUE);
+	ast_close_batch(-1,AST_ENACT);
 	return 0;
 }
