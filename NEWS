@@ -2,6 +2,16 @@ This documents significant changes in the 1.0 branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh/tree/1.0
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-11-23:
+
+- Fixed: the captured output of a command substitution could be truncated or
+  corrupted if more than one process invoked from within it was redirected
+  to write to it at the same time.
+
+- Fixed an bug causing a false positive for 'set -C' (set -o noclobber) in
+  command substitutions with redirections to /dev/fd/N or /dev/stderr.
+  Example reproducer: v=$(set -C; { echo ok >/dev/fd/5; } 5>&1); echo "$v"
+
 2026-11-22:
 
 - Fixed a bug on NetBSD where libcmd's tail(1) pathbound builtin command

@@ -146,6 +146,12 @@ void	sh_subtmpfile(void)
 			sh.fdstatus[1] = sh.fdstatus[fd];
 			sh.fdstatus[fd] = IOCLOSE;
 		}
+		/*
+		 * The output file is also written by child processes, each using
+		 * their own buffering. Make every write append atomically to the
+		 * current end of file, so that no output overwrites other output.
+		 */
+		fcntl(1,F_SETFL,fcntl(1,F_GETFL)|O_APPEND);
 		sh_iostream(1,0);
 		sfset(sfstdout,SFIO_SHARE|SFIO_PUBLIC,1);
 		sfpool(sfstdout,sh.outpool,SFIO_WRITE);
@@ -445,6 +451,34 @@ static inline void comsubpipeclose(struct subshell *sp)
 
 /**** End of functions for a blocking pipe mechanism for command substitutions ****/
 
+
+/*
+ * Return nonzero if <path> refers to the command substitution's output
+ * temp file. This can happen via a path such as /dev/stderr, which is a
+ * symlink to /proc/self/fd/2 (see also sh_redirect()).
+ */
+int sh_is_subtmpfile(const char *path)
+{
+	struct subshell *sp = comsubdata();
+	struct stat st;
+	int fd, r;
+	if (!sp || !sp->comsubtmp)
+		return 0;
+	if (stat(path,&st) < 0 || st.st_ino != sp->comsubino)
+		return 0;
+	if (st.st_dev == sp->comsubdev)
+		return 1;
+	/*
+	 * On macOS, stat() of a /dev/fd/N path reports the target file's inode
+	 * number but devfs's own device number. So we have to open the path to
+	 * find out which file a redirection to it would really write to.
+	 */
+	if (!S_ISREG(st.st_mode) || (fd = open(path,O_WRONLY|O_APPEND)) < 0)
+		return 0;
+	r = fstat(fd,&st)==0 && st.st_dev==sp->comsubdev && st.st_ino==sp->comsubino;
+	close(fd);
+	return r;
+}
 
 /*
  * This routine creates a temp file if necessary, then forks a virtual subshell into a real subshell.

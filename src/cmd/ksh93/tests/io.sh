@@ -83,6 +83,11 @@ then	read -u3 got
 fi
 
 # 2004-11-25 ancient /dev/fd/N redirection bug fix
+#
+# The comsub output file is always appended to (see sh_subtmpfile()), so a
+# redirection to it via a path must not truncate it. This means that the
+# second redirection below must not lose the output written before it, even
+# where the OS gives 'open' semantics to /dev/fd/N paths.
 got=$(
 	set +x
 	{
@@ -92,13 +97,8 @@ got=$(
 		print -n 4 > ${FDFS[fdfs].dir}/2
 	}  2>&1
 )
-exp='1234|4'
-case $got in
-1234)	semantics='dup' ;;
-4)	semantics='open' ;;
-*)	semantics='failed' ;;
-esac
-[[ $semantics == @(${FDFS[fdfs].semantics}) ]] || err_exit "${FDFS[fdfs].dir}/N $semantics semantics instead of ${FDFS[fdfs].semantics} -- expected '$exp', got '$got'"
+exp='1234'
+[[ $got == "$exp" ]] || err_exit "${FDFS[fdfs].dir}/N redirection in comsub loses output -- expected '$exp', got '$got'"
 
 cat > close0 <<\!
 exec 0<&-
@@ -1232,6 +1232,45 @@ do
 done
 ((fails == 0)) || err_exit "bug 975 stress test: $fails/$n iterations produced wrong output"
 unset i fails n explen
+
+# Redirecting to a path that refers to the comsub output file (such as
+# /dev/stderr, a symlink to /proc/self/fd/2) used to truncate that file, which
+# lost all output that had already been written to it. It is now appended to.
+typeset -i i failed=0
+exp=$'foobar\nfoobar\nabcdefghijk'
+exp2=$'foobar\nabcdefghijk\nfoobar'
+for ((i=0; i<20; i++))
+do	got=$(
+		{
+			{
+				print foobar > ${FDFS[fdfs].dir}/2
+				print abcdefghijk
+				print foobar > ${FDFS[fdfs].dir}/2
+			} | cat
+		} 2>&1
+	)
+	[[ $got == "$exp" || $got == "$exp2" ]] || ((failed++))
+done
+((failed == 0)) || err_exit "bug 975, redirect to ${FDFS[fdfs].dir}/N in comsub" \
+	"lost output in $failed/20 iterations"
+# without a pipe, the output order is fixed
+unset failed
+got=$(
+	{
+		print foobar > ${FDFS[fdfs].dir}/2
+		print abcdefghijk
+		print foobar > ${FDFS[fdfs].dir}/2
+	} 2>&1
+)
+exp=$'foobar\nabcdefghijk\nfoobar'
+[[ $got == "$exp" ]] || err_exit "bug 975, redirect to ${FDFS[fdfs].dir}/N in comsub" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+# the comsub output file is not a user file: no noclobber error for it
+got=$(set -C; { print -n ok > ${FDFS[fdfs].dir}/2; } 2>&1)
+exp=ok
+[[ $got == "$exp" ]] || err_exit "bug 975, redirect to ${FDFS[fdfs].dir}/N with noclobber" \
+	"(expected '$exp', got '$got')"
+unset i
 
 # ======
 # The <#pattern redirection must not make the shell lose the matching line from standard input
