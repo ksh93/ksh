@@ -221,6 +221,14 @@
 #define S_ISCHR(m)	(((m)&S_IFMT) == S_IFCHR)
 #endif
 
+#ifndef S_ISBLK
+#	if S_IFBLK
+#		define S_ISBLK(m)	(((m)&S_IFMT) == S_IFBLK)
+#	else
+#		define S_ISBLK(m)	(0)
+#	endif
+#endif
+
 #ifndef S_ISFIFO
 #	if S_IFIFO
 #		define S_ISFIFO(m)	(((m)&S_IFMT) == S_IFIFO)
