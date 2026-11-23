@@ -137,6 +137,7 @@ extern Dt_t		*sh_subfuntree(int);
 extern void		sh_subjobcheck(pid_t);
 extern int		sh_subsavefd(int);
 extern void		sh_subtmpfile(void);
+extern int		sh_is_subtmpfile(const char*);
 extern int		sh_comsubpiperead(int);
 extern int		sh_comsubpipe(int[2]);
 extern int		sh_comsubpipestdout(int,int);

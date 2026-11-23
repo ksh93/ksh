@@ -1785,6 +1785,15 @@ int	sh_redirect(struct ionod *iop, int flag)
 					if(tname = io_usename(fname,&perm,fn,0))
 						o_mode |= O_EXCL;
 				}
+				else if(fname && sh_is_subtmpfile(fname))
+				{	/*
+					 * This is the current command substitution's temp capture file. Other processes
+					 * may already have written to it, so append instead of truncating to avoid losing
+					 * their output. This also prevents processes from overwriting each other's data
+					 * if two or more of them write to the capture file at the same time.
+					 */
+					o_mode |= O_APPEND;
+				}
 				else
 				{
 					o_mode |= O_TRUNC;
