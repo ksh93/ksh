@@ -19,7 +19,7 @@
 
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
 
-binecho=$(whence -p echo)
+binecho=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p echo)
 
 if	[[ 'hi there' != "hi there" ]]
 then	err_exit "single quotes not the same as double quotes"

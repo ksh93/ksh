@@ -454,8 +454,8 @@ static inline void comsubpipeclose(struct subshell *sp)
 
 /*
  * Return nonzero if <path> refers to the command substitution's output
- * temp file. This can happen via a path such as /dev/stderr, which is a
- * symlink to /proc/self/fd/2 (see also sh_redirect()).
+ * temp file. This can happen via a path such as /dev/stderr when standard
+ * error is redirected to standard output within the command substitution.
  */
 int sh_is_subtmpfile(const char *path)
 {

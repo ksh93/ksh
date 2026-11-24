@@ -25,9 +25,9 @@ read -n4 c < $0 2> /dev/null
 
 ulimit -c 0
 
-bin_echo=$(whence -p echo)
-bin_sleep=$(whence -p sleep)
-bin_kill=$(whence -p kill)
+binecho=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p echo)
+binsleep=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p sleep)
+binkill=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p kill)
 
 # ======
 # In ksh93v- and ksh2020 eval'ing a function definition may dump the function body to stdout.
@@ -144,7 +144,7 @@ fi
 if	[[ $PWD != "$dir" ]]
 then	err_exit 'cd inside nested subshell changes $PWD'
 fi
-fun() "$bin_echo" hello
+fun() "$binecho" hello
 if	[[ $(fun) != hello ]]
 then	err_exit "'fun() simple_command' not working"
 fi

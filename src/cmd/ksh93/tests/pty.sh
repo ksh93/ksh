@@ -88,11 +88,11 @@ esac
 
 enum -i bool=(false true)
 typeset -i bgtests=0 fgtests=0 i
-bintrue=$(whence -p true)
+bintrue=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p true)
 
 x=$( "$SHELL" 2>&1 <<- \EOF
 		trap 'exit 0' EXIT
-		bintrue=$(whence -p true)
+		bintrue=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p true)
 		set -o monitor
 		{
 			eval $'command set -o vi 2>/dev/null\npty $bintrue'

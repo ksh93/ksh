@@ -24,7 +24,7 @@ then	warning 'Cygwin detected - coprocess tests disabled - enable at the risk of
 	exit 0
 fi
 
-bintrue=$(whence -p true)
+bintrue=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p true)
 
 # ======
 # basics
@@ -67,7 +67,7 @@ function ping # ID
 	done
 }
 
-bincat=$(whence -p cat)
+bincat=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p cat)
 builtin cat 2> /dev/null && builtincat=cat
 
 for cat in $builtincat $bincat
@@ -373,10 +373,10 @@ fi
 kill $pid 2>/dev/null
 wait
 
-tee=$(whence -p tee)
+bintee=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p tee)
 ls -l |&
 pid=$!
-$tee -a /dev/null <&p > /dev/null
+"$bintee" -a /dev/null <&p > /dev/null
 wait $pid
 x=$?
 [[ $x == 0 ]] || err_exit "coprocess exitval should be 0, not $x"

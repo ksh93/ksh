@@ -30,7 +30,8 @@ export LC_ALL=C ENV=/./dev/null
 
 ulimit -c 0
 
-bincat=$(whence -p cat)
+bincat=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p cat)
+binecho=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p echo)
 
 if	[[ $( ${SHELL-ksh} -s hello<<-\!
 		print $1
@@ -375,10 +376,9 @@ then	exp=10
 	[[ $got == $exp ]] || err_exit "--pipefail -c '(sleep 0.1;false)|true|true' fails with exit status 0 (after $got/$exp iterations)"
 fi
 
-echo=$(whence -p echo)
 for ((i=0; i < 20; i++))
-do	if	! x=$(true | $echo 123)
-	then	err_exit 'command substitution with wrong exit status with pipefai'
+do	if	! x=$(true | "$binecho" 123)
+	then	err_exit 'command substitution with wrong exit status with pipefail'
 		break
 	fi
 done

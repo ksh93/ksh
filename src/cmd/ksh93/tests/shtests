@@ -28,7 +28,7 @@ valgrindflags='--xml=yes --log-file=/dev/null --track-origins=yes --read-var-inf
 
 USAGE=$'
 [-s8?
-@(#)$Id: shtests (ksh 93u+m) 2026-10-03 $
+@(#)$Id: shtests (ksh 93u+m) 2026-11-24 $
 ]
 [-author?David Korn <dgk@research.att.com>]
 [-author?Glenn Fowler <gsf@research.att.com>]
@@ -212,6 +212,7 @@ do	case $OPT in
 	t)	time=$OPTARG
 		;;
 	u)	utf8=$OPTARG
+		setslocale=''  # do not skip locale.sh for 'shtests -u'
 		;;
 	V)	valgrind="${VALGRIND:-valgrind} ${VALGRINDFLAGS:-$valgrindflags}"
 		;;

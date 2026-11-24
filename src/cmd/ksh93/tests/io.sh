@@ -496,7 +496,7 @@ print hello there world > $tmp/foobar
 $SHELL -c "sed  -e 's/there //' $tmp/foobar  >; $tmp/foobar"
 [[ $(<$tmp/foobar) == 'hello world' ]] || err_exit '>; redirection not working with -c on a simple command'
 
-binfalse=$(whence -p false)
+binfalse=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p false)
 for	(( i=1; i < 50; i++ ))
 do	out=$("$binfalse" 2>/dev/null)
 	if	(( $? == 0 ))
