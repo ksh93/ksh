@@ -18,7 +18,8 @@
 
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
 
-binecho=$(whence -p echo)
+binecho=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p echo)
+bintrue=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p true)
 
 # test restricted shell
 pwd=$PWD
@@ -71,7 +72,7 @@ done
 # The restricted option cannot be unset
 check_restricted 'set +r' || err_exit "'set +r' unsets the restricted option"
 check_restricted 'set +o restricted' || err_exit "'set +o restricted' unsets the restricted option"
-check_restricted 'set --default; $(whence -p true)' || err_exit "'set --default' unsets the restricted option"
+check_restricted "set --default; $bintrue" || err_exit "'set --default' unsets the restricted option"
 
 # ======
 exit $((Errors<125?Errors:125))

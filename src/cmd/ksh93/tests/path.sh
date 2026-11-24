@@ -442,7 +442,8 @@ mkdir -p $tmp/new/bin
 mkdir $tmp/new/fun
 print FPATH=../fun > $tmp/new/bin/.paths
 print FPATH=../xxfun > $tmp/bin/.paths
-cp "$(whence -p echo)" $tmp/new/bin
+printf '#!%s\n%s\n' "$SHELL" 'echo "$@"' > "$tmp/new/bin/echo"
+chmod +x "$tmp/new/bin/echo"
 PATH=$tmp/bin:$tmp/new/bin:$PATH
 x=$(whence -p echo 2> /dev/null)
 [[ $x == "$tmp/new/bin/echo" ]] ||  err_exit 'nonexistent FPATH directory in .paths file causes path search to fail'
@@ -520,7 +521,7 @@ then
 	got=$(PATH=$tmp; command -Vx echo 2>&1)
 	[[ $got == "$exp" ]] || err_exit "'command -V -x' failed to look up external command in \$PATH" \
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
-	exp=$(PATH=${ getconf PATH 2>/dev/null; }; whence -p echo)
+	exp=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p echo)
 	got=$(PATH=$tmp; command -pvx echo 2>&1)
 	[[ $got == "$exp" ]] || err_exit "'command -p -v -x' failed to look up external command in default path" \
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"

@@ -22,10 +22,11 @@
 
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
 
-bincat=$(whence -p cat)
+bincat=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p cat)
 
 # ======
 # The following tests are run in parallel because they are slow; they are checked at the end
+# note: Errors is known to be 0 upon invoking these
 
 # ALRM signal causes sleep to terminate prematurely
 (
@@ -36,10 +37,11 @@ bincat=$(whence -p cat)
 	(( sec = SECONDS - sec ))
 	redirect 2>&3-
 	if	(( exitval ))
-	then	exit 14   # sleep doesn't exit 0 with ALRM interrupt
+	then	err_exit "sleep doesn't exit 0 with ALRM interrupt"
 	elif	(( sec <= (del - 1) ))
-	then	exit 15   # ALRM signal causes sleep to terminate prematurely
+	then	err_exit "ALRM signal causes sleep to terminate prematurely"
 	fi
+	exit "$Errors"
 ) &
 parallel_1=$!
 
@@ -52,12 +54,73 @@ parallel_1=$!
 	done
 	(( total_t = SECONDS - start_x ))
 	if	(( total_t > leeway * reps * delay ))
-	then	exit 14   # read -t in pipe taking too long
+	then	err_exit "read -t in pipe taking too long"
 	elif	(( total_t < reps * delay ))
-	then	exit 15   # err_exit "read -t in pipe not taking long enough"
+	then	err_exit "read -t in pipe not taking long enough"
 	fi
+	exit "$Errors"
 ) &
 parallel_2=$!
+
+(
+	exp=$'usr1\ndone'
+	got=$( "$SHELL" -c '
+		trap '\''print "usr1"'\'' USR1
+		sleep 1 && {
+			kill -s USR1 $$ && sleep 2
+			kill -s KILL $$ 2>/dev/null
+		} &
+		sleep 2 | read
+		echo done
+	' )
+	[[ $got == "$exp" ]] || err_exit 'read not terminating when receiving USR1 signal' \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	exit "$Errors"
+) &
+parallel_3=$!
+
+(
+	exp=abc
+	(print -n a;sleep 1; print -n bcde) | { read -N3 a; read -N1 b;}
+	[[ $a == $exp ]] || err_exit "read -N3 from pipe failed -- expected '$exp', got '$a'"
+	exp=d
+	[[ $b == $exp ]] || err_exit "read -N1 from pipe failed -- expected '$exp', got '$b'"
+	(print -n a;sleep 1; print -n bcde) | read -n3 a
+	exp=a
+	[[ $a == $exp ]] || err_exit "read -n3 from pipe failed -- expected '$exp', got '$a'"
+	myfifo=$tmp/fifo.$$
+	if	! mkfifo "$myfifo" 2> /dev/null
+	then	warning "mkfifo failed -- cannot test read -n/-N from fifo"
+	else	(print -n a; sleep 1;print -n bcde)  > "$myfifo" &
+		{
+		read -u5 -n3 -t2 a || err_exit 'read -n3 from fifo timed out'
+		read -u5 -n1 -t2 b || err_exit 'read -n1 from fifo timed out'
+		} 5< "$myfifo"
+		exp=a
+		[[ $a == $exp ]] || err_exit "read -n3 from fifo failed -- expected '$exp', got '$a'"
+		rm -f "$myfifo"
+		mkfifo "$myfifo"
+		(print -n a; sleep 1;print -n bcde) > "$myfifo" &
+		{
+		read -u5 -N3 -t2 a || err_exit 'read -N3 from fifo timed out'
+		read -u5 -N1 -t2 b || err_exit 'read -N1 from fifo timed out'
+		} 5< "$myfifo"
+		exp=abc
+		[[ $a == $exp ]] || err_exit "read -N3 from fifo failed -- expected '$exp', got '$a'"
+		exp=d
+		[[ $b == $exp ]] || err_exit "read -N1 from fifo failed -- expected '$exp', got '$b'"
+	fi
+	rm -f "$myfifo"
+	exit "$Errors"
+) &
+parallel_4=$!
+
+(
+	got=$("$SHELL" -c 'sleep $(printf "%a" .95)' 2>&1) || err_exit "sleep doesn't accept %a format constants" \
+		"(got $(printf %q "$got"))"
+	exit "$Errors"
+) &
+parallel_5=$!
 
 # ======
 # Test shell builtin commands
@@ -509,35 +572,6 @@ abcdefg
 !
 exp=abc
 [[ $a == $exp ]] || err_exit "read -n3 here-document failed -- expected '$exp', got '$a'"
-#(print -n a;sleep 1; print -n bcde) | { read -N3 a; read -N1 b;}
-#[[ $a == $exp ]] || err_exit "read -N3 from pipe failed -- expected '$exp', got '$a'"
-#exp=d
-#[[ $b == $exp ]] || err_exit "read -N1 from pipe failed -- expected '$exp', got '$b'"
-#(print -n a;sleep 1; print -n bcde) | read -n3 a
-#exp=a
-#[[ $a == $exp ]] || err_exit "read -n3 from pipe failed -- expected '$exp', got '$a'"
-#rm -f $tmp/fifo
-#if	mkfifo $tmp/fifo 2> /dev/null
-#then	(print -n a; sleep 1;print -n bcde)  > $tmp/fifo &
-#	{
-#	read -u5 -n3 -t2 a || err_exit 'read -n3 from fifo timedout'
-#	read -u5 -n1 -t2 b || err_exit 'read -n1 from fifo timedout'
-#	} 5< $tmp/fifo
-#	exp=a
-#	[[ $a == $exp ]] || err_exit "read -n3 from fifo failed -- expected '$exp', got '$a'"
-#	rm -f $tmp/fifo
-#	mkfifo $tmp/fifo 2> /dev/null
-#	(print -n a; sleep 1;print -n bcde) > $tmp/fifo &
-#	{
-#	read -u5 -N3 -t2 a || err_exit 'read -N3 from fifo timed out'
-#	read -u5 -N1 -t2 b || err_exit 'read -N1 from fifo timedout'
-#	} 5< $tmp/fifo
-#	exp=abc
-#	[[ $a == $exp ]] || err_exit "read -N3 from fifo failed -- expected '$exp', got '$a'"
-#	exp=d
-#	[[ $b == $exp ]] || err_exit "read -N1 from fifo failed -- expected '$exp', got '$b'"
-#fi
-#rm -f $tmp/fifo
 
 function longline
 {
@@ -599,7 +633,6 @@ if ((!SHOPT_ECHOPRINT)) && builtin getconf 2> /dev/null; then
 	getconf UNIVERSE - ucb
 	[[ $($SHELL -c 'echo -3') == -3 ]] || err_exit "echo -3 not working in ucb universe"
 fi
-$SHELL -c 'sleep $(printf "%a" .95)' 2> /dev/null || err_exit "sleep doesn't accept %a format constants"
 [[ $(ulimit 2>/dev/null) == "$(ulimit -fS 2>/dev/null)" ]] || err_exit 'ulimit is not the same as ulimit -fS'
 tmpfile=$tmp/file.2
 print $'\nprint -r -- "${.sh.file} ${LINENO} ${.sh.lineno}"' > $tmpfile
@@ -637,20 +670,6 @@ if builtin cat 2> /dev/null; then
 fi
 
 [[ $($SHELL -c '{ printf %R "["; print ok;}' 2> /dev/null) == ok ]] || err_exit $'\'printf %R "["\' causes shell to abort'
-
-exp=$'usr1\ndone'
-got=$( $SHELL -c $'
-	trap \'print "usr1"\' USR1
-	trap exit USR2
-	sleep 1 && {
-		kill -USR1 $$ && sleep 1
-		kill -0 $$ 2>/dev/null && kill -USR2 $$
-	} &
-	sleep 2 | read
-	echo done
-' )
-[[ $got == $exp ]] || err_exit 'read not terminating when receiving USR1 signal' \
-	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 mkdir $tmp/tmpdir1
 cd $tmp/tmpdir1
@@ -842,7 +861,7 @@ type -qf foo_bar && err_exit "'type -qf' doesn't ignore functions"
 
 # Test the exit status of 'whence -q'
 mkdir "$tmp/fakepath"
-ln -s "${ whence -p cat ;}" "$tmp/fakepath/"
+ln -s "$bincat" "$tmp/fakepath/"
 ln -s "${ whence -p ls ;}" "$tmp/fakepath/"
 save_PATH=$PATH
 PATH=$tmp/fakepath
@@ -1352,6 +1371,7 @@ function fn
 }
 exp='/dev'
 got=$(fn)
+cd "$tmp"
 [[ $got == "$exp" ]] ||
 	err_exit "PWD isn't set after cd if already set in function scope" \
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
@@ -1664,6 +1684,7 @@ function fn
 fn
 unset -f fn
 [[ $PWD == /dev ]] || err_exit "'cd' does not chdir to \$HOME (local assignment)"
+cd "$tmp"
 
 # ======
 # Double evaluation of arithmetic expression passed to float conversion operators in printf
@@ -1895,19 +1916,11 @@ ret=$?
 
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
-wait "$parallel_1"
-case $? in
-0)	;;
-14)	err_exit "sleep doesn't exit 0 with ALRM interrupt" ;;
-15)	err_exit "ALRM signal causes sleep to terminate prematurely" ;;
-*)	err_exit "broken test" ;;
-esac
-wait "$parallel_2"
-case $? in
-0)	;;
-14)	err_exit "read -t in pipe taking too long" ;;
-15)	err_exit "read -t in pipe not taking long enough" ;;
-*)	err_exit "broken test" ;;
-esac
+cd "$tmp"
+wait "$parallel_1" || ((Errors += $?))
+wait "$parallel_2" || ((Errors += $?))
+wait "$parallel_3" || ((Errors += $?))
+wait "$parallel_4" || ((Errors += $?))
+wait "$parallel_5" || ((Errors += $?))
 
 exit $((Errors<125?Errors:125))

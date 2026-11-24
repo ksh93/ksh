@@ -175,7 +175,8 @@ done
 (false >/dev/null/nonexistent; true) 2>/dev/null \
 || err_exit 'Redirection error with regular built-in utility causes shell to exit'
 
-("$(whence -p false)" >/dev/null/nonexistent; true) 2>/dev/null \
+binfalse=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p false)
+("$binfalse" >/dev/null/nonexistent; true) 2>/dev/null \
 || err_exit 'Redirection error with external command causes shell to exit'
 
 (/dev/null/nonexistent >/dev/null/nonexistent; true) 2>/dev/null \

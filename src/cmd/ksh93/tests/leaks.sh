@@ -439,7 +439,7 @@ DONE
 # ======
 # Possible memory leak when using the += operator on variables
 # in an invocation-local scope.
-bintrue=$(whence -p true)
+bintrue=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p true)
 testfunc() { true; }
 alias testalias=testfunc
 TEST title='+= operator used before command'

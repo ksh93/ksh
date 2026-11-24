@@ -26,7 +26,7 @@
  */
 
 static const char usage[] =
-"+[-?\n@(#)$Id: tail (ksh 93u+m) 2024-11-22 $\n]"
+"+[-?\n@(#)$Id: tail (ksh 93u+m) 2026-11-22 $\n]"
 "[--catalog?" ERROR_CATALOG "]"
 "[+NAME?tail - output trailing portion of one or more files ]"
 "[+DESCRIPTION?\btail\b copies one or more input files to standard output "

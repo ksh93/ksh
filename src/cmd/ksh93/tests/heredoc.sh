@@ -18,7 +18,7 @@
 
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
 
-bincat=$(whence -p cat)
+bincat=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p cat)
 
 f=$tmp/here1
 g=$tmp/here2

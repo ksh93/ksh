@@ -20,9 +20,10 @@
 
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
 
-bincat=$(whence -p cat)
-binecho=$(whence -p echo)
-binfalse=$(whence -p false)
+bincat=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p cat)
+binecho=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p echo)
+binfalse=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p false)
+bintrue=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p true)
 # make an external 'sleep' command that supports fractional seconds
 binsleep=$tmp/.sleep.sh  # hide to exclude from simple wildcard expansion
 cat >"$binsleep" <<EOF
@@ -546,7 +547,6 @@ got=$(
 
 ( $SHELL -c 'trap : DEBUG; x=( $foo); exit 0') 2> /dev/null  || err_exit 'trap DEBUG fails'
 
-bintrue=$(whence -p true)
 set -o pipefail
 float start=$SECONDS end
 for ((i=0; i < 2; i++))
