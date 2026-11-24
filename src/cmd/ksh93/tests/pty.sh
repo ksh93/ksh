@@ -2087,6 +2087,18 @@ r CORRECT\r?\n$
 p :test-7:
 !
 
+tst $LINENO <<"!"
+L pipeline with builtin command in block redirected to standard error
+
+p :test-1:
+w { echo x | read; } 2>/dev/null
+r ^:test-1: \{ echo x | read; \} 2>/dev/null\r?\n$
+p :test-2:
+w echo still live
+r ^:test-2: echo still live\r?\n$
+r ^still live\r?\n$
+!
+
 # ^^^^^^ ADD NEW TESTS ABOVE THIS LINE ^^^^^^
 
 # Check results of parallel tests
