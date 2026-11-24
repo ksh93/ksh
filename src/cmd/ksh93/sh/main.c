@@ -345,14 +345,14 @@ noreturn void sh_main(int ac, char *av[], Shinit_f userinit)
  * iop is not null when the input is a string
  * fdin is the input file descriptor
  */
-static void	exfile(Sfio_t *_iop, int _fno)
+static void	exfile(Sfio_t *iop, int fno)
 {
 	time_t curtime;
 	Shnode_t *t;
 	int states, jmpval, execflags;
 	struct checkpt buff;
-	Sfio_t *volatile iop = _iop;
-	volatile int fno = _fno, maxtry=IOMAXTRY, tdone=0;
+	volatile int maxtry=IOMAXTRY;
+	int tdone=0;
 	/* open input stream */
 	nv_putval(SH_PATHNAMENOD, sh.st.filename, NV_NOFREE);
 	if(!iop)
