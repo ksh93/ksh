@@ -40,7 +40,12 @@ typedef struct _timer
 #define SIGALRM_CALL	8
 
 static Timer_t *tptop, *tpmin, *tpfree;
-static char time_state;
+/*
+ * State flags shared with sigalrm(). Must be volatile: sh_timeradd() relies
+ * on the handler seeing IN_ADDTIMEOUT so that it defers, and the handler's
+ * DEFER_SIGALRM must not be lost when sh_timeradd() clears its own bit.
+ */
+static volatile sig_atomic_t time_state;
 
 static Sfdouble_t getnow(void)
 {

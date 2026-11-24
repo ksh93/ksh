@@ -69,7 +69,9 @@ struct jobs
 	pid_t		mytgid;		/* terminal group ID of shell */
 	int		curjobid;
 	atomic_uint	in_critical;	/* >0 => in critical region */
-	int		savesig;	/* active signal */
+	volatile sig_atomic_t
+			savesig,	/* active signal */
+			waitsafe;	/* wait will not block */
 	int		numpost;	/* number of posted jobs */
 #if SHOPT_BGX
 	int		numbjob;	/* number of background jobs */
@@ -78,7 +80,6 @@ struct jobs
 	cc_t		suspend;	/* suspend character */
 	char		inited;		/* set when tty job control is fully initialized */
 	char		jobcontrol;	/* turned on for shell with control of terminal */
-	char		waitsafe;	/* wait will not block */
 	char		waitall;	/* wait for all jobs in pipe */
 	char		toclear;	/* job table needs clearing */
 };
