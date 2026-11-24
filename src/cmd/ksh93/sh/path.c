@@ -547,7 +547,7 @@ static void funload(int fno, const char *name)
 	char		oldload = sh.funload;
 	Sfio_t		*volatile iop = NULL;
 	char		*volatile errorname = NULL;
-	volatile int	jmpval;
+	int		jmpval;
 	struct checkpt	checkpoint;
 	pname = path_fullname(stkptr(sh.stk,PATH_OFFSET));
 	if(sh.fpathdict && (rp = dtmatch(sh.fpathdict,pname)))

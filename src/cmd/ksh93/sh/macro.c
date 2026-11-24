@@ -99,7 +99,7 @@ typedef struct  _mac_
 static noreturn void	mac_error(void);
 static ssize_t substring(const char*, size_t, const char*, ssize_t[], regflags_t);
 static void	copyto(Mac_t*, int, char);
-static void	comsubst(Mac_t*, Shnode_t*, volatile char);
+static void	comsubst(Mac_t*, Shnode_t*, char);
 static int	varsub(Mac_t*);
 static void	mac_copy(Mac_t*,const char*, ptrdiff_t);
 static void	tilde_expand2(ptrdiff_t);
@@ -212,7 +212,7 @@ int sh_macexpand(struct argnod *argp, struct argnod **arghead,int flag)
 {
 	struct checkpt	checkpoint;
 	int		jmpval;
-	volatile int	flags = argp->argflag;
+	int		flags = argp->argflag;
 	char		*str = argp->argval;
 	Mac_t		*mp = (Mac_t*)sh.mac_context;
 	char		**saveoptimize = nv_getoptimize();
@@ -2307,7 +2307,7 @@ nosub:
  * <type> is 0 for older `...` version
  * 1 for $(...) or 2 for ${ subshare; }
  */
-static void comsubst(Mac_t *mp,Shnode_t* t, volatile char type)
+static void comsubst(Mac_t *mp,Shnode_t* t, char type)
 {
 	Sfdouble_t		num;
 	int			c;

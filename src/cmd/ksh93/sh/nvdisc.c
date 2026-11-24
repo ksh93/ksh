@@ -238,17 +238,16 @@ static void chktfree(Namval_t *np, struct vardisc *vp)
 /*
  * This function performs an assignment disc on the given node <np>
  */
-static void	assign(Namval_t *np,const char* val,nvflag_t nvflags,Namfun_t *handle)
+static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
 {
-	volatile nvflag_t	flags = nvflags;
-	volatile int		type = (flags&NV_APPEND)?APPEND:ASSIGN;
+	int			type = (flags&NV_APPEND)?APPEND:ASSIGN;
 	struct vardisc		*vp = (struct vardisc*)handle;
-	Namval_t		*volatile nq = vp->disc[type];
+	Namval_t		*nq =  vp->disc[type];
 	struct blocked		block, *bp;
 	Namval_t		node;
 	void			*saveval = np->nvalue;
 	Namval_t		*tp, *nr;  /* for 'typeset -T' types */
-	volatile int		jmpval = 0;
+	int			jmpval = 0;
 	/* No unset discipline during virtual subshell cleanup or shell reinit */
 	if(!val && (sh.nv_restore || sh_isstate(SH_INIT)))
 	{
@@ -305,7 +304,7 @@ static void	assign(Namval_t *np,const char* val,nvflag_t nvflags,Namfun_t *handl
 		int		jv;
 		int		savexit = sh.savexit;
 		Lex_t		*lexp = (Lex_t*)sh.lex_context, savelex;
-		volatile int	bflag;
+		int		bflag;
 		/* disciplines like PS2 may run at parse time; save, reinit and restore the lexer state */
 		savelex = *lexp;
 		sh_lexopen(lexp, 0);   /* needs full init (0), not what it calls reinit (1) */
@@ -339,7 +338,7 @@ static void	assign(Namval_t *np,const char* val,nvflag_t nvflags,Namfun_t *handl
 		np->nvalue = saveval;
 	if(val)
 	{
-		char *volatile cp;
+		char *cp;
 		Sfdouble_t d;
 		int jv = 0;
 		if(nv_isnull(SH_VALNOD))

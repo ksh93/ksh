@@ -853,7 +853,7 @@ static Shnode_t *funct(Lex_t *lexp)
 	int flag;
 	struct slnod *volatile slp = NULL;
 	Stk_t *volatile savstak = NULL;
-	struct functnod *volatile fp;
+	struct functnod *fp;
 	Sfio_t *iop;
 #if SHOPT_KIA
 	unsigned long current = kia.current;

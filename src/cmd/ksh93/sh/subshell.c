@@ -1102,18 +1102,19 @@ void sh_clear_subshell_pwdfd(void)
  * If comsub is not null, the return value will be a stream consisting of
  * output of command <t>.  Otherwise, NULL will be returned.
  */
-Sfio_t *sh_subshell(Shnode_t *t, volatile int flags, char comsub)
+Sfio_t *sh_subshell(Shnode_t *t, int flags, char comsub)
 {
 	struct subshell sub_data;
 	struct subshell *sp = &sub_data;
 	int n, jmpval;
-	volatile int fatalerror = 0, saveerrno = 0, argcnt;
+	volatile int fatalerror = 0, saveerrno = 0;
+	int argcnt;
 	unsigned int savecurenv = sh.curenv;
 	int savejobpgid = job.curpgid;
 	int *saveexitval = job.exitval;
-	char **volatile savsig = NULL;
-	volatile size_t nsig = 0;
-	struct funtrap *volatile save_funtrap = sh.funtrap;
+	char **savsig = NULL;
+	size_t nsig = 0;
+	struct funtrap *save_funtrap = sh.funtrap;
 	struct funtrap sub_trap;
 	Sfio_t *volatile iop = NULL;
 	struct checkpt checkpoint;
