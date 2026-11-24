@@ -25,6 +25,8 @@
 #ifndef _SHCMD_H
 #define _SHCMD_H	1
 
+#include <signal.h>	/* sig_atomic_t */
+
 #ifndef AST_PLUGIN_VERSION
 #define AST_PLUGIN_VERSION(v)	(v)
 #endif
@@ -49,21 +51,22 @@ struct Shbltin_s
 {
 	Shell_t*	shp;
 	void*		ptr;
-	int		version;
 	int		(*shrun)(int, char**);
 	int		(*shtrap)(const char*, int);
 	void		(*shexit)(int);
 	Namval_t*	(*shbltin)(const char*, Shbltin_f, void*);
-	unsigned char	notify;
-	unsigned char	sigset;
-	unsigned char	nosfio;
 	Namval_t*	bnode;
 	Namval_t*	vnode;
 	char*		data;
-	int		flags;
 	char*		(*shgetenv)(const char*);
 	char*		(*shsetenv)(const char*);
+	int		version;
+	int		flags;
 	int		invariant;
+	volatile sig_atomic_t
+			sigset;	/* set from the signal handler, polled via sh_checksig() */
+	unsigned char	notify;
+	unsigned char	nosfio;
 };
 
 #if defined(_SHELL_H) || defined(_DEFS_H)
