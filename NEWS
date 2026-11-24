@@ -2,6 +2,13 @@ This documents significant changes in the dev branch of ksh 93u+m.
 For full details, see the git log at: https://github.com/ksh93/ksh
 Uppercase BUG_* IDs are shell bug IDs as used by the Modernish shell library.
 
+2026-11-24:
+
+- Fixed a longstanding bug where an interactive shell could exit silently,
+  without an error message, after running a command sequence that redirected
+  its standard error and ended in a pipeline whose last command was a
+  built-in. Example reproducer: { echo x | read; } 2>/dev/null
+
 2026-11-23:
 
 - Fixed: the captured output of a command substitution could be truncated or

@@ -462,14 +462,14 @@ int job_reap(int sig)
 		/* only top-level process in job should have notify set */
 		if(px && pw != px)
 			pw->p_flag &= ~P_NOTIFY;
-		if(job.jobcontrol && pid==pw->p_fgrp && pid==tcgetpgrp(JOBTTY))
+		if(job.jobcontrol && pid==pw->p_fgrp && pid==tcgetpgrp(job.fd))
 		{
 			px = job_byjid(pw->p_job);
 			for(; px && (px->p_flag&P_DONE); px=px->p_nxtproc);
 			if(!px)
 			{
 				/* Reset terminal process group to ksh's own. */
-				tcsetpgrp(JOBTTY,job.mypid);
+				tcsetpgrp(job.fd,job.mypid);
 				/*
 				 * Since SIGWINCH is sent to the current process group, ksh will not have
 				 * received it if the window size changed while waiting for the job.
@@ -533,6 +533,14 @@ static void job_waitsafe(int sig)
 	else
 		job_reap(sig);
 }
+
+/*
+ * The JOBTTY macro should only be used during job control init.
+ * If standard error (2) is redirected, it is duplicated and the
+ * duplicate saved in job.fd so ksh can keep controlling the
+ * terminal, so job.fd should always be used outside of init.
+ */
+#define JOBTTY	2
 
 /*
  * initialize job control if possible
@@ -629,6 +637,7 @@ void job_init_tty(void)
 	return;
 }
 
+#undef JOBTTY
 
 /*
  * see if there are any stopped jobs
@@ -1436,7 +1445,7 @@ int	job_wait(pid_t pid)
 					if( pw->p_exit!=SIGTTIN && pw->p_exit!=SIGTTOU)
 						break;
 
-					tcsetpgrp(JOBTTY,pw->p_pgrp);
+					tcsetpgrp(job.fd,pw->p_pgrp);
 					killpg(pw->p_pgrp,SIGCONT);
 				}
 				else /* ignore stop when non-interactive */
@@ -1512,7 +1521,7 @@ int	job_wait(pid_t pid)
 	}
 	else
 	{
-		if(job.jobcontrol && pw->p_pid == tcgetpgrp(JOBTTY))
+		if(job.jobcontrol && pw->p_pid == tcgetpgrp(job.fd))
 		{
 			if(pw->p_pgrp==0)
 				pw->p_pgrp = pw->p_pid;

@@ -1969,7 +1969,7 @@ int sh_exec(const Shnode_t *_t, int exec_flags)
 			}
 			sh.exitval = e, sh.chldexitsig = c;
 			if(!pipejob && sh_isstate(SH_MONITOR) && job.jobcontrol)
-				tcsetpgrp(JOBTTY,sh.pid);
+				tcsetpgrp(job.fd,sh.pid);
 			job.curpgid = savepgid;
 			job.exitval = saveexitval;
 			job.waitall = savewaitall;

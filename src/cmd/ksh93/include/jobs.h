@@ -25,8 +25,6 @@
  *
  */
 
-#define JOBTTY	2
-
 #include	<ast.h>
 #include	<sfio.h>
 #ifndef SIGINT
