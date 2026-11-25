@@ -1892,6 +1892,13 @@ got=$(set +x; { "$SHELL" -c '
 	"(expected status 0 and output $(printf %q "$exp")," \
 	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e") and output $(printf %q "$got"))"
 
+# ======
+# PWD should be verified on init
+got=$(PWD=/dev/null/some/nonsense "$SHELL" -c 'print -r -- "$PWD"')
+exp=$(pwd -P)
+[[ $got == "$exp" ]] || err_exit "PWD not verified on init" \
+	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
 # checks for tests run in parallel (see top)
 wait "$parallel_1" || err_exit 'setting TMOUT in a virtual subshell removes its special meaning'
