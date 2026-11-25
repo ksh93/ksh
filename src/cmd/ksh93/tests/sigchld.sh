@@ -19,95 +19,127 @@
 
 . "${SHTESTS_COMMON:-${0%/*}/_common}"
 
-float DELAY=${1:-0.2}
-integer FOREGROUND=10 BACKGROUND=2
+# ======
+# The following tests are run in parallel because they are slow; they are checked at the end
+# note: Errors is known to be 0 upon invoking these
 
-s=$($SHELL -c '
-integer i foreground=0 background=0
-float delay='$DELAY' d=0 s=0
+typeset -a parallel=( )  # array of PIDs
 
-set --errexit
+(
+	float DELAY=${1:-0.2}
+	integer FOREGROUND=10 BACKGROUND=2
 
-trap "(( background++ ))" CHLD
+	s=$("$SHELL" -c '
+	integer i foreground=0 background=0
+	float delay='$DELAY' d=0 s=0
 
-(( d = delay ))
-for ((i = 0; i < '$BACKGROUND'; i++))
-do	sleep $d &
-	(( d *= 4 ))
-	(( s += d ))
-done
-for ((i = 0; i < '$FOREGROUND'; i++))
-do	(( foreground++ ))
-	sleep $delay
-	(( s -= delay ))
-	$SHELL -c : > /dev/null # foreground does not generate SIGCHLD
-done
-if	(( (s += delay) < 1 ))
-then	(( s = 1 ))
+	set --errexit
+
+	trap "(( background++ ))" CHLD
+
+	(( d = delay ))
+	for ((i = 0; i < '$BACKGROUND'; i++))
+	do	sleep $d &
+		(( d *= 4 ))
+		(( s += d ))
+	done
+	for ((i = 0; i < '$FOREGROUND'; i++))
+	do	(( foreground++ ))
+		sleep $delay
+		(( s -= delay ))
+		$SHELL -c : > /dev/null # foreground does not generate SIGCHLD
+	done
+	if	(( (s += delay) < 1 ))
+	then	(( s = 1 ))
+	fi
+	sleep $s
+	wait
+	print foreground=$foreground background=$background
+	') || err_exit "test loop failed"
+
+	eval $s
+
+	(( foreground == FOREGROUND )) || err_exit "expected '$FOREGROUND foreground' -- got '$foreground' (DELAY=$DELAY)"
+	(( background == BACKGROUND )) || err_exit "expected '$BACKGROUND background' -- got '$background' (DELAY=$DELAY)"
+	exit "$Errors"
+) &
+parallel+=( $! )
+
+(
+	if	((!SHOPT_SCRIPTONLY))
+	then	x=$("$SHELL" 2>/dev/null -ic '/dev/null/notfound; sleep .5 & sleep 1; jobs')
+		[[ $x == *Done* ]] || err_exit 'SIGCHLD blocked after notfound' \
+			"(got $(printf %q "$x"))"
+		x=$("$SHELL" 2>/dev/null -ic 'kill -0 12345678901234567876; sleep .5 & sleep 1; jobs')
+		[[ $x == *Done* ]] || err_exit 'SIGCHLD blocked after error message' \
+			"(got $(printf %q "$x"))"
+	fi
+	print 'set -o monitor; sleep .5 & sleep 1; jobs' > $tmp/foobar
+	chmod +x $tmp/foobar
+	x=$("$SHELL" -c "echo | $tmp/foobar")
+	[[ $x == *Done* ]] || err_exit 'SIGCHLD blocked for script at end of pipeline'
+	exit "$Errors"
+) &
+parallel+=( $! )
+
+if	((SHOPT_BGX))
+then	(
+		jobmax=4
+		got=$("$SHELL" -c '
+			JOBMAX='$jobmax' JOBCOUNT=$(('$jobmax'*2))
+			integer running=0 maxrunning=0
+			trap "((running--))" CHLD
+			for ((i=0; i<JOBCOUNT; i++))
+			do	sleep 1 &
+				if	((++running > maxrunning))
+				then	((maxrunning=running))
+				fi
+			done
+			wait
+			# The completion of "wait" does not necessarily mean that
+			# the trap has finished handling the SIGCHLD signal.
+			integer tries=0 maxtries=25
+			while ((running > 0 && tries < maxtries))
+			do	sleep 0.1
+				((tries++))
+			done
+			print running=$running maxrunning=$maxrunning
+		')
+		exp='running=0 maxrunning='$jobmax
+		[[ $got == "$exp" ]] || err_exit "SIGCHLD trap queueing failed --" \
+			"expected '$exp', got '$got'"
+
+		got=$("$SHELL" -c '
+			typeset -A proc
+
+			trap "
+				print \${proc[\$!].name} \${proc[\$!].status} \$?
+				unset proc[\$!]
+			" CHLD
+
+			{ sleep 3; print a; exit 1; } &
+			proc[$!]=( name=a status=1 )
+
+			{ sleep 2; print b; exit 2; } &
+			proc[$!]=( name=b status=2 )
+
+			{ sleep 1; print c; exit 3; } &
+			proc[$!]=( name=c status=3 )
+
+			while	(( ${#proc[@]} ))
+			do	sleep -s
+			done
+		')
+		exp=$'c\nc 3 3\nb\nb 2 2\na\na 1 1'
+		[[ $got == "$exp" ]] || err_exit "SIGCHLD trap queueing failed --" \
+			"expected $(printf %q "$exp"), got $(printf %q "$got")"
+
+		exit "$Errors"
+	) &
+	parallel+=( $! )
 fi
-sleep $s
-wait
-print foreground=$foreground background=$background
-') || err_exit "test loop failed"
 
-eval $s
-
-(( foreground == FOREGROUND )) || err_exit "expected '$FOREGROUND foreground' -- got '$foreground' (DELAY=$DELAY)"
-(( background == BACKGROUND )) || err_exit "expected '$BACKGROUND background' -- got '$background' (DELAY=$DELAY)"
-
-set --noerrexit
-
-if	[[ ${.sh.version} == Version?*([[:upper:]])J* ]]
-then
-
-	jobmax=4
-	got=$($SHELL -c '
-		JOBMAX='$jobmax' JOBCOUNT=$(('$jobmax'*2))
-		integer running=0 maxrunning=0
-		trap "((running--))" CHLD
-		for ((i=0; i<JOBCOUNT; i++))
-		do	sleep 1 &
-			if	((++running > maxrunning))
-			then	((maxrunning=running))
-			fi
-		done
-		wait
-		integer tries=0, maxtries=10
-		while ((running > 0 && tries < maxtries))
-		do
-			sleep 0.1
-			((tries++))
-		done
-		print running=$running maxrunning=$maxrunning
-	')
-	exp='running=0 maxrunning='$jobmax
-	[[ $got == $exp ]] || err_exit "SIGCHLD trap queueing failed -- expected '$exp', got '$got'"
-
-	got=$($SHELL -c '
-		typeset -A proc
-
-		trap "
-			print \${proc[\$!].name} \${proc[\$!].status} \$?
-			unset proc[\$!]
-		" CHLD
-
-		{ sleep .6; print a; exit 1; } &
-		proc[$!]=( name=a status=1 )
-
-		{ sleep .4; print b; exit 2; } &
-		proc[$!]=( name=b status=2 )
-
-		{ sleep .2; print c; exit 3; } &
-		proc[$!]=( name=c status=3 )
-
-		while	(( ${#proc[@]} ))
-		do	sleep -s
-		done
-	')
-	exp='c\nc 3 3\nb\nb 2 2\na\na 1 1'
-	[[ $got == $exp ]] || err_exit "SIGCHLD trap queueing failed -- expected $(printf %q "$exp"), got $(printf %q "$got")"
-
-fi
+# ======
 
 {
 got=$( ( sleep .1;print $'\n') | $SHELL -c 'function handler { : ;}
@@ -117,11 +149,11 @@ got=$( ( sleep .1;print $'\n') | $SHELL -c 'function handler { : ;}
 
 set -- $(
 	(
-	$SHELL -xc $'
-		trap \'wait $!; print $! $?\' CHLD
-		{ sleep 0.01; exit 9; } &
+	$SHELL -xc '
+		trap '\''wait $!; print $! $?'\'' CHLD
+		{ sleep 0.1; exit 9; } &
 		print $!
-		sleep 0.05
+		sleep 0.5
 	'
 	) 2>/dev/null; print $?
 )
@@ -145,19 +177,10 @@ done
 (( d==2000 )) ||  err_exit "trap '' CHLD causes side effects d=$d"
 trap - CHLD
 
-if((!SHOPT_SCRIPTONLY));then
-x=$($SHELL 2> /dev/null -ic '/dev/null/notfound; sleep .2 & sleep .4;jobs')
-[[ $x == *Done* ]] || err_exit 'SIGCHLD blocked after notfound' \
-	"(got $(printf %q "$x"))"
-x=$($SHELL 2> /dev/null  -ic 'kill -0 12345678901234567876; sleep .2 & sleep .4;jobs')
-[[ $x == *Done* ]] || err_exit 'SIGCHLD blocked after error message' \
-	"(got $(printf %q "$x"))"
-fi # !SHOPT_SCRIPTONLY
+# ====== ADD NEW TESTS ABOVE THIS LINE ======
+# checks tests run in parallel (see top)
+for pid in "${parallel[@]}"
+do	wait "$pid" || ((Errors += $?))
+done
 
-print 'set -o monitor;sleep .05 & sleep .1;jobs' > $tmp/foobar
-chmod +x $tmp/foobar
-x=$($SHELL  -c "echo | $tmp/foobar")
-[[ $x == *Done* ]] || err_exit 'SIGCHLD blocked for script at end of pipeline'
-
-# ======
 exit $((Errors<125?Errors:125))

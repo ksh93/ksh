@@ -24,7 +24,7 @@ jobs:
         ulimit -n 1024
         : default regression tests &&
         bin/package test &&
-        : regression tests with OS-provided multibyte locales &&
+        : regression tests with OS-provided UTF-8 locale &&
         LANG=en_US.utf8 bin/shtests --locale --nocompile &&
         : disable most SHOPTs, rebuild ksh &&
         sed --regexp-extended --in-place=.orig \
@@ -35,6 +35,38 @@ jobs:
         bin/shtests &&
         : enable SHOPT_SCRIPTONLY, rebuild ksh &&
         sed --regexp-extended --in-place=.orig \
+          '/^SHOPT SCRIPTONLY=/ s/=0?/=1/' \
+          src/cmd/ksh93/SHOPT.sh &&
+        bin/package make -j5 &&
+        : default regression tests with SHOPT_SCRIPTONLY enabled &&
+        bin/shtests
+  MacOS:
+    name: macOS
+    runs-on: macos-26-intel
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@main
+    - name: Build
+      run: bin/package make -j5
+    - name: Regression tests
+      run: |
+        PS4="$PS4[ci.yml] "
+        set -o xtrace
+        export TZ=UTC
+        ulimit -n 1024
+        : default regression tests &&
+        bin/package test &&
+        : regression tests with OS-provided UTF-8 locale &&
+        LANG=ja_JP.UTF-8 bin/shtests --locale --nocompile &&
+        : disable most SHOPTs, rebuild ksh &&
+        sed -E -i.orig \
+          '/^SHOPT (AUDIT|BGX|BRACEPAT|ESH|FIXEDARRAY|HISTEXPAND|MULTIBYTE|NAMESPACE|OPTIMIZE|SPAWN|STATS|VSH)=/ s/=1?/=0/' \
+          src/cmd/ksh93/SHOPT.sh &&
+        bin/package make -j5 &&
+        : default regression tests with SHOPTs disabled &&
+        bin/shtests &&
+        : enable SHOPT_SCRIPTONLY, rebuild ksh &&
+        sed -E -i.orig \
           '/^SHOPT SCRIPTONLY=/ s/=0?/=1/' \
           src/cmd/ksh93/SHOPT.sh &&
         bin/package make -j5 &&

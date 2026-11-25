@@ -28,6 +28,8 @@ bincat=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p cat)
 # The following tests are run in parallel because they are slow; they are checked at the end
 # note: Errors is known to be 0 upon invoking these
 
+typeset -a parallel=( )  # array of PIDs
+
 # ALRM signal causes sleep to terminate prematurely
 (
 	float sec=$SECONDS del=4
@@ -43,10 +45,10 @@ bincat=$(PATH=${DEFPATH:-$(getconf PATH)}; whence -p cat)
 	fi
 	exit "$Errors"
 ) &
-parallel_1=$!
+parallel+=( $! )
 
 (
-	typeset -F3 start_x=SECONDS total_t delay=0.02
+	typeset -F3 start_x=SECONDS total_t delay=0.1
 	typeset reps=50 leeway=5
 	sleep $(( 2 * leeway * reps * delay )) |
 	for (( i=0 ; i < reps ; i++ ))
@@ -60,7 +62,7 @@ parallel_1=$!
 	fi
 	exit "$Errors"
 ) &
-parallel_2=$!
+parallel+=( $! )
 
 (
 	exp=$'usr1\ndone'
@@ -77,7 +79,7 @@ parallel_2=$!
 		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 	exit "$Errors"
 ) &
-parallel_3=$!
+parallel+=( $! )
 
 (
 	exp=abc
@@ -113,14 +115,14 @@ parallel_3=$!
 	rm -f "$myfifo"
 	exit "$Errors"
 ) &
-parallel_4=$!
+parallel+=( $! )
 
 (
 	got=$("$SHELL" -c 'sleep $(printf "%a" .95)' 2>&1) || err_exit "sleep doesn't accept %a format constants" \
 		"(got $(printf %q "$got"))"
 	exit "$Errors"
 ) &
-parallel_5=$!
+parallel+=( $! )
 
 # ======
 # Test shell builtin commands
@@ -1861,12 +1863,9 @@ ret=$?
 	"(got exit status $ret, output $(printf %q "$got"))"
 
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
-# checks for tests run in parallel (see top)
-cd "$tmp"
-wait "$parallel_1" || ((Errors += $?))
-wait "$parallel_2" || ((Errors += $?))
-wait "$parallel_3" || ((Errors += $?))
-wait "$parallel_4" || ((Errors += $?))
-wait "$parallel_5" || ((Errors += $?))
+# check tests run in parallel (see top)
+for pid in "${parallel[@]}"
+do	wait "$pid" || ((Errors += $?))
+done
 
 exit $((Errors<125?Errors:125))

@@ -20,6 +20,9 @@
 
 # ======
 # The following tests are run in parallel because they are slow; they are checked at the end
+# note: Errors is known to be 0 upon invoking these
+
+typeset -a parallel=( )  # array of PIDs
 
 (
 	# begin standalone SIGINT test generation
@@ -218,76 +221,93 @@
 	exp[zt-]="3-intr 2-intr 1-intr 1-0000"
 	exp[ztd]="3-intr 2-intr 1-intr 1-0000"
 	while	read ops out
-	do	[[ $out == "${exp[$ops]}" ]] || print "\\err_exit $LINENO 'interrupt $ops test failed --" \
-			"expected '\''${exp[$ops]}'\'', got '\''$out'\'"
-	done < SIGINT_tst.out > parallel_1.err
-	unset exp
+	do	[[ $out == "${exp[$ops]}" ]] || err_exit "interrupt $ops test failed --" \
+			"expected '${exp[$ops]}', got '$out'"
+	done < SIGINT_tst.out
+	exit "$Errors"
 ) &
-parallel_1=$!
+parallel+=( $! )
 
 # Test for 'trap - INT' backported from ksh93v- 2013-07-27
 (
-	float s=SECONDS
+	SECONDS=0
 	(trap - INT; exec sleep 2) & sleep .5; kill -sINT $!
 	wait $!
-	(( (SECONDS - s) >= 1.8))
+	(( SECONDS >= 1.8)) || err_exit "'trap - INT' causing trap to not be ignored"
+	exit "$Errors"
 ) &
-parallel_2=$!
+parallel+=( $! )
 
 # Exit status, output and timing tests
 (
-	float s
-	redirect > parallel_3.err
-
-	s=SECONDS
-	"$SHELL" 2>/dev/null -c 'sleep .2 && kill $$ & trap "print done; exit 3" EXIT; (sleep .5); print finished' > $tmp/sig
+	tmpf=$tmp/$sig${.sh.pid}
+	SECONDS=0
+	"$SHELL" 2>/dev/null -c 'sleep 2 && kill $$ & trap "print done; exit 3" EXIT; (sleep 5); print finished' > $tmpf
 	e=$?
-	[[ $e == 3 ]] || print "\\err_exit $LINENO 'exit status failed -- expected 3, got $e'"
-	x=$(<$tmp/sig)
-	[[ $x == done ]] || print "\\err_exit $LINENO 'output failed -- expected '\\''done'\\'', got '\\''$x'\\'"
-	(( (SECONDS - s) > .35 )) && print "\\err_exit $LINENO 'took $SECONDS seconds, expected around .2'"
-
-	s=SECONDS
-	"$SHELL" 2>/dev/null -c 'sleep .2 && kill $$ & trap "print done; exit 3" EXIT; sleep .5; print finished' > $tmp/sig
-	e=$?
-	[[ $e == 3 ]] || print "\\err_exit $LINENO 'exit status failed -- expected 3, got $e'"
-	x=$(<$tmp/sig)
-	[[ $x == done ]] || print "\\err_exit $LINENO 'output failed -- expected '\\''done'\\'', got '\\''$x'\\'"
-	(( (SECONDS - s) > .35 )) && print "\\err_exit $LINENO 'took $SECONDS seconds, expected around .2'"
-
-	s=SECONDS
-	{ "$SHELL" 2>/dev/null -c 'sleep .2 && kill $$ & trap "print done; exit 3" EXIT; (sleep .5); print finished' > $tmp/sig ;} 2>/dev/null
-	e=$?
-	[[ $e == 3 ]] || print "\\err_exit $LINENO 'exit status failed -- expected 3, got $e'"
-	x=$(<$tmp/sig)
-	[[ $x == done ]] || print "\\err_exit $LINENO 'output failed -- expected '\\''done'\\'', got '\\''$x'\\'"
-	(( (SECONDS - s) > .35 )) && print "\\err_exit $LINENO 'took $SECONDS seconds, expected around .2'"
-
-	s=SECONDS
-	{ "$SHELL" 2>/dev/null -c 'sleep .2 && kill $$ & trap "print done; exit 3" EXIT; sleep .5; print finished' > $tmp/sig ;} 2>/dev/null
-	e=$?
-	[[ $e == 3 ]] || print "\\err_exit $LINENO 'exit status failed -- expected 3, got $e'"
-	x=$(<$tmp/sig)
-	[[ $x == done ]] || print "\\err_exit $LINENO 'output failed -- expected '\\''done'\\'', got '\\''$x'\\'"
-	(( (SECONDS - s) > .35 )) && print "\\err_exit $LINENO 'took $SECONDS seconds, expected around .2'"
-
-	s=SECONDS
-	x=$("$SHELL" 2>/dev/null -c 'sleep .2 && kill $$ & trap "print done; exit 3" EXIT; (sleep .5); print finished')
-	e=$?
-	[[ $e == 3 ]] || print "\\err_exit $LINENO 'exit status failed -- expected 3, got $e'"
-	[[ $x == done ]] || print "\\err_exit $LINENO 'output failed -- expected '\\''done'\\'', got '\\''$x'\\'"
-	(( (SECONDS - s) > .35 )) && print "\\err_exit $LINENO 'took $SECONDS seconds, expected around .2'"
-
-	s=SECONDS
-	x=$("$SHELL" 2>/dev/null -c 'sleep .2 && kill $$ & trap "print done; exit 3" EXIT; sleep .5; print finished')
-	e=$?
-	[[ $e == 3 ]] || print "\\err_exit $LINENO 'exit status failed -- expected 3, got $e'"
-	[[ $x == done ]] || print "\\err_exit $LINENO 'output failed -- expected '\\''done'\\'', got '\\''$x'\\'"
-	(( (SECONDS - s) > .35 )) && print "\\err_exit $LINENO 'took $SECONDS seconds, expected around .2'"
+	[[ $e == 3 ]] || err_exit "exit status failed -- expected 3, got $e"
+	x=$(<$tmpf)
+	[[ $x == done ]] || err_exit "output failed -- expected 'done', got '$x'"
+	(( SECONDS > 3.5 )) && err_exit "took $SECONDS seconds, expected around 2"
+	exit "$Errors"
 ) &
-parallel_3=$!
+parallel+=( $! )
+(
+	tmpf=$tmp/$sig${.sh.pid}
+	SECONDS=0
+	"$SHELL" 2>/dev/null -c 'sleep 2 && kill $$ & trap "print done; exit 3" EXIT; sleep 5; print finished' > $tmpf
+	e=$?
+	[[ $e == 3 ]] || err_exit "exit status failed -- expected 3, got $e"
+	x=$(<$tmpf)
+	[[ $x == done ]] || err_exit "output failed -- expected 'done', got '$x'"
+	(( SECONDS > 3.5 )) && err_exit "took $SECONDS seconds, expected around 2"
+	exit "$Errors"
+) &
+parallel+=( $! )
+(
+	tmpf=$tmp/$sig${.sh.pid}
+	SECONDS=0
+	{ "$SHELL" 2>/dev/null -c 'sleep 2 && kill $$ & trap "print done; exit 3" EXIT; (sleep 5); print finished' > $tmpf ;} 2>/dev/null
+	e=$?
+	[[ $e == 3 ]] || err_exit "exit status failed -- expected 3, got $e"
+	x=$(<$tmpf)
+	[[ $x == done ]] || err_exit "output failed -- expected 'done', got '$x'"
+	(( SECONDS > 3.5 )) && err_exit "took $SECONDS seconds, expected around 2"
+	exit "$Errors"
+) &
+parallel+=( $! )
+(
+	tmpf=$tmp/$sig${.sh.pid}
+	SECONDS=0
+	{ "$SHELL" 2>/dev/null -c 'sleep 2 && kill $$ & trap "print done; exit 3" EXIT; sleep 5; print finished' > $tmpf ;} 2>/dev/null
+	e=$?
+	[[ $e == 3 ]] || err_exit "exit status failed -- expected 3, got $e"
+	x=$(<$tmpf)
+	[[ $x == done ]] || err_exit "output failed -- expected 'done', got '$x'"
+	(( (SECONDS - s) > 3.5 )) && err_exit "took $SECONDS seconds, expected around 2"
+	exit "$Errors"
+) &
+parallel+=( $! )
+(
+	SECONDS=0
+	x=$("$SHELL" 2>/dev/null -c 'sleep 2 && kill $$ & trap "print done; exit 3" EXIT; (sleep 5); print finished')
+	e=$?
+	[[ $e == 3 ]] || err_exit "exit status failed -- expected 3, got $e"
+	[[ $x == done ]] || err_exit "output failed -- expected 'done', got '$x'"
+	(( SECONDS > 3.5 )) && err_exit "took $SECONDS seconds, expected around 2"
+	exit "$Errors"
+) &
+parallel+=( $! )
+(
+	SECONDS=0
+	x=$("$SHELL" 2>/dev/null -c 'sleep 2 && kill $$ & trap "print done; exit 3" EXIT; sleep 5; print finished')
+	e=$?
+	[[ $e == 3 ]] || err_exit "exit status failed -- expected 3, got $e"
+	[[ $x == done ]] || err_exit "output failed -- expected 'done', got '$x'"
+	(( SECONDS > 3.5 )) && err_exit "took $SECONDS seconds, expected around 2"
+	exit "$Errors"
+) &
+parallel+=( $! )
 
-# ======
 # regular builtins such as sleep(1) should defer trapped signals like their external command equivalents do
 (
 	typeset -F3 s=SECONDS
@@ -299,9 +319,10 @@ parallel_3=$!
 		) &
 		sleep 1
 	)
-	(( SECONDS - s >= 1.0 ))
+	(( SECONDS - s >= 1.0 )) || err_exit "sleep builtin fails to defer trapped signal"
+	exit "$Errors"
 ) &
-parallel_4=$!
+parallel+=( $! )
 
 # ...but of course the -s option (stop sleeping if a signal is received) should continue to work
 (
@@ -314,9 +335,27 @@ parallel_4=$!
 		) &
 		sleep -s 1
 	)
-	(( SECONDS - s < 1.0 ))
+	(( SECONDS - s < 1.0 )) || err_exit "'sleep -s' incorrectly defers trapped signal"
+	exit "$Errors"
 ) &
-parallel_5=$!
+parallel+=( $! )
+
+# SIGCHLD
+(
+	got=$(
+		trap 'print -n got_child' CHLD
+		sleep 2 &
+		for	((i=0; i < 4; i++))
+		do 	sleep .75
+			print -n "$i"
+		done
+	)
+	exp='01got_child23'
+	[[ $got == "$exp" ]] || err_exit 'SIGCHLD not working' \
+		"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+	exit "$Errors"
+) &
+parallel+=( $! )
 
 # ======
 unset n s t
@@ -369,16 +408,6 @@ exp=$'PIPED\nPIPED'
 [[ $(<out2) == "$exp" ]] || err_exit 'SIGPIPE output on standard error is not correct' \
 	"(expected $(printf %q "$exp"), got $(printf %q "$(<out2)"))"
 rm -f out2
-
-actual=$( trap 'print -n got_child' SIGCHLD
-	sleep .4 &
-	for	((i=0; i < 4; i++))
-	do 	sleep .15
-		print -n $i
-	done)
-expect=01got_child23
-[[ $actual == "$expect" ]] || err_exit 'SIGCHLD not working' \
-	"(expected $(printf %q "$expect"), got $(printf %q "$actual"))"
 
 # ======
 
@@ -815,11 +844,9 @@ n=1'
 	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
 
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
-# checks for tests run in parallel (see top)
-wait "$parallel_1"; r=$(< parallel_1.err) || exit 125; eval "$r"
-wait "$parallel_2" || err_exit "'trap - INT' causing trap to not be ignored"
-wait "$parallel_3"; r=$(< parallel_3.err) || exit 125; eval "$r"
-wait "$parallel_4" || err_exit "sleep builtin fails to defer trapped signal"
-wait "$parallel_5" || err_exit "'sleep -s' incorrectly defers trapped signal"
+# checks tests run in parallel (see top)
+for pid in "${parallel[@]}"
+do	wait "$pid" || ((Errors += $?))
+done
 
 exit $((Errors<125?Errors:125))
