@@ -1279,8 +1279,6 @@ Shell_t *sh_init(int argc,char *argv[], Shinit_f userinit)
 	}
 	/* read the environment; don't import attributes yet, but save pointer to them */
 	save_envmarker = env_init();
-	/* read the environment */
-	env_init();
 	/* increase SHLVL */
 	sh.shlvl++;
 	nv_putval(IFSNOD,(char*)e_sptbnl,NV_RDONLY);
