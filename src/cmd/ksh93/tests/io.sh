@@ -654,14 +654,17 @@ redirect 3>&-
 # On unpatched ksh on macOS, 'read' used to block when reading from a FIFO and there was no final newline.
 # Same symptom on NetBSD, different cause: https://github.com/ksh93/ksh/issues/961
 if	mkfifo "$tmp/fifo_no_lf"
-then	trap 'sleep_pid=0; kill "$ksh_pid"; err_exit "'\''read'\'' hangs on EOF without final linefeed when reading from FIFO"' TERM
-	(sleep 1; kill "$$") &
+then	trap 'sleep_pid=0; kill "$ksh_pid"' TERM
+	(sleep 4; kill "$$") &
 	sleep_pid=$!
 	"$SHELL" -c 'print -n foo >$0 & while read f; do :; done <$0' "$tmp/fifo_no_lf" &
 	ksh_pid=$!
 	wait "$ksh_pid"
 	trap - TERM
-	((sleep_pid)) && kill "$sleep_pid"
+	if	((sleep_pid))
+	then	kill "$sleep_pid"
+	else	err_exit "'read' hangs on EOF without final linefeed when reading from FIFO"
+	fi
 else	warning "mkfifo failed; cannot test reading from FIFO"
 fi
 
