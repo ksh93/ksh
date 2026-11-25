@@ -1089,9 +1089,9 @@ if builtin tail 2> /dev/null; then
 	{ got=$("$SHELL" -c '
 		builtin tail || exit
 		trap "print TRAPPED" USR1
-		( print one; sleep .2; print two ) > "$1" &
-		( sleep .1; kill -s USR1 $$ ) &
-		( sleep 1; kill -s KILL $$ ) & guard=$!
+		( print one; sleep .5; print two ) > "$1" &
+		( sleep .25; kill -s USR1 $$ ) &
+		( sleep 2; kill -s KILL $$ ) & guard=$!
 		tail < "$1"
 		kill "$guard" 2> /dev/null
 	' ksh "$tmp/tail_fifo" 2>&1); } 2> /dev/null

@@ -68,76 +68,119 @@ fi
 # ======
 # The following tests are run in parallel because they are slow; they are checked at the end
 
+typeset -a parallel=( )  # array of PIDs
+
 # $( < $tmp/parallel_1) is not foobar
 {
-	( sleep .2; cat <<-!
+	Errors=0
+	( sleep 2; cat <<-!
 	foobar
 	!
 	) | cat > $tmp/parallel_1 &
-	wait $!
-	[[ $( < $tmp/parallel_1) == foobar ]]
+	wait "$!"
+	foobar=$( < $tmp/parallel_1)
+	[[ $foobar == foobar ]] || err_exit "$foobar is not foobar"
+	exit "$Errors"
 } &
-parallel_1=$!
+parallel+=( $! )
 
 # ALRM signal not working
-[[ $( (trap 'print alarm' ALRM; sleep .4) & sleep .2; kill -ALRM $!; sleep .2; wait) == alarm ]] &
-parallel_2=$!
+(
+	Errors=0
+	[[ $( (trap 'print alarm' ALRM; sleep 4) & sleep 2; kill -s ALRM "$!"; sleep 2; wait) == alarm ]] \
+		|| err_exit 'ALRM signal not working'
+	exit "$Errors"
+) &
+parallel+=( $! )
 
 # ignored traps not being ignored
-[[ $("$SHELL" -c 'trap "" HUP; "$SHELL" -c "(sleep .2; kill -HUP $$) & sleep .4; print done"') == done ]] &
-parallel_3=$!
+(
+	Errors=0
+	[[ $("$SHELL" -c 'trap "" HUP; "$SHELL" -c "(sleep 2; kill -s HUP $$) & sleep 4; print done"') == done ]] \
+		|| err_exit 'ignored traps not being ignored'
+	exit "$Errors"
+) &
+parallel+=( $! )
 
 # output from pipe is lost with pipe to builtin
-if builtin cat 2> /dev/null; then
-	typeset -i n
-	file=$tmp/parallel_4
-	: not tracing 1000 loop iterations :
-	set +x
-	for ((n=0; n < 1000; n++))
-	do
-		> $file
-		{ sleep .001;echo $? >$file;} | cat > /dev/null
-		[[ -s $file ]] || exit
-	done
-fi &
-parallel_4=$!
+(
+	Errors=0
+	if	builtin cat 2>/dev/null
+	then	typeset -i n
+		file=$tmp/parallel_4
+		: not tracing 1000 loop iterations :
+		set +x
+		for ((n=0; n < 1000; n++))
+		do
+			> $file
+			{ sleep .001;echo $? >$file;} | cat > /dev/null
+			if	[[ ! -s $file ]]
+			then	err_exit 'output from pipe is lost with pipe to builtin'
+				break
+			fi
+		done
+	fi
+	exit "$Errors"
+) &
+parallel+=( $! )
 
 # command substitution causes pipefail option to hang
 {
+	Errors=0
 	exec 3> /dev/null
 	file=$tmp/parallel_5
 	cat > $file <<- \EOF
 		myfilter() { x=$(print ok | cat); print  -r -- "$SECONDS"; }
 		set -o pipefail
-		sleep .3 | myfilter
+		sleep 3 | myfilter
 	EOF
-	(( $("$SHELL" $file) <= .2 ))
+	(( $("$SHELL" "$file") <= 2.0 )) || err_exit 'command substitution causes pipefail option to hang'
+	exit "$Errors"
 } &
-parallel_5=$!
+parallel+=( $! )
 
 # command | while read...done" finishing too fast
 {
+	Errors=0
 	"$binsleep" 0  # avoid OS caching delay on first launch
 	float s=SECONDS
-	for i in .1 .2
+	for i in .5 1
 	do	print $i
 	done | while read sec; do ( "$binsleep" "$sec"; "$binsleep" "$sec") done
-	(( (SECONDS - s) >= .4 ))
+	(( (SECONDS - s) >= 2 )) || err_exit '"command | while read...done" finishing too fast'
+	exit "$Errors"
 } &
-parallel_6=$!
+parallel+=( $! )
 
 # early termination not causing broken pipe
 {
+	Errors=0
 	"$binsleep" 0  # avoid OS caching delay on first launch
 	float s=SECONDS
 	set -o pipefail
 	for ((i=0; i < 30; i++))
 	do	print hello
-		sleep .02
-	done | "$binsleep" .2
-	(( (SECONDS - s) < .4 ))
+		sleep .1
+	done | "$binsleep" 1
+	(( (SECONDS - s) < 2 )) || err_exit 'early termination not causing broken pipe'
+	exit "$Errors"
 } &
-parallel_7=$!
+parallel+=( $! )
+
+{
+	Errors=0
+	set -o pipefail
+	float start=$SECONDS end
+	for ((i=0; i < 2; i++))
+	do	print foo
+		sleep 1.5
+	done | { read; "$bintrue"; end=$SECONDS ;}
+	(( (SECONDS-start) < 1 )) && err_exit "pipefail not waiting for pipe to finish"
+	set +o pipefail
+	(( (SECONDS-end) > 2 )) && err_exit "pipefail causing $bintrue to wait for other end of pipe"
+	exit "$Errors"
+} &
+parallel+=( $! )
 
 # ======
 # test basic file operations like redirection, pipes, file expansion
@@ -546,16 +589,6 @@ got=$(
 [[ $got == $exp ]] || err_exit "pipe to ( ... ) with conditional fails -- expected '$exp', got '$got'"
 
 ( $SHELL -c 'trap : DEBUG; x=( $foo); exit 0') 2> /dev/null  || err_exit 'trap DEBUG fails'
-
-set -o pipefail
-float start=$SECONDS end
-for ((i=0; i < 2; i++))
-do	print foo
-	sleep .15
-done | { read; $bintrue; end=$SECONDS ;}
-(( (SECONDS-start) < .1 )) && err_exit "pipefail not waiting for pipe to finish"
-set +o pipefail
-(( (SECONDS-end) > .2 )) &&  err_exit "pipefail causing $bintrue to wait for other end of pipe"
 
 if [[ $bintrue ]]
 then	float t0=SECONDS
@@ -1332,13 +1365,9 @@ got=$("$SHELL" -c $'true $(\\\n(1)) $(\\\n(2)) $((\\\n3)) $((4\\\n)) $((5)\\\n) 
 	"(got status $e$( ((e>128)) && print -n /SIG && kill -l "$e" ) and output $(printf %q "$got"))"
 
 # ====== ADD NEW TESTS ABOVE THIS LINE ======
-# checks for tests run in parallel (see near the top)
-wait "$parallel_1" || err_exit "$( < $tmp/parallel_1) is not foobar"
-wait "$parallel_2" || err_exit 'ALRM signal not working'
-wait "$parallel_3" || err_exit 'ignored traps not being ignored'
-wait "$parallel_4" || err_exit 'output from pipe is lost with pipe to builtin'
-wait "$parallel_5" || err_exit 'command substitution causes pipefail option to hang'
-wait "$parallel_6" || err_exit '"command | while read...done" finishing too fast'
-wait "$parallel_7" || err_exit 'early termination not causing broken pipe'
+# check tests run in parallel (see near the top)
+for pid in "${parallel[@]}"
+do	wait "$pid" || ((Errors += $?))
+done
 
 exit $((Errors<125?Errors:125))
