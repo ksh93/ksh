@@ -173,11 +173,11 @@ parallel+=( $! )
 	float start=$SECONDS end
 	for ((i=0; i < 2; i++))
 	do	print foo
-		sleep 6
+		sleep 1.5
 	done | { read; "$bintrue"; end=$SECONDS ;}
-	(( (SECONDS-start) < 4 )) && err_exit "pipefail not waiting for pipe to finish"
+	(( (SECONDS-start) < 1 )) && err_exit "pipefail not waiting for pipe to finish"
 	set +o pipefail
-	(( (SECONDS-end) > 8 )) && err_exit "pipefail causing $bintrue to wait for other end of pipe"
+	(( (SECONDS-end) > 2 )) && err_exit "pipefail causing $bintrue to wait for other end of pipe"
 	exit "$Errors"
 } &
 parallel+=( $! )
