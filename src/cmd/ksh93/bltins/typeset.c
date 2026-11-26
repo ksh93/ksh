@@ -1366,9 +1366,16 @@ static int unall(int argc, char **argv, Dt_t *troot)
 	{
 		if(dtfirst(troot))
 		{
+			Namval_t *np, *next_np;
 			if(troot==sh.alias_tree && sh.subshell && !sh.subshare)
 				sh_subfork();	/* avoid affecting the parent shell's alias table */
-			dtclear(troot);
+			/* dtclear() would only unlink the nodes, leaking them; free them instead */
+			for(np = (Namval_t*)dtfirst(troot); np; np = next_np)
+			{
+				next_np = (Namval_t*)dtnext(troot,np);
+				nv_unset(np,nv_isattr(np,NV_NOFREE));
+				nv_delete(np,troot,0);
+			}
 		}
 		return r;
 	}
