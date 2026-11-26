@@ -578,10 +578,13 @@ static void put_seconds(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp
 	Tv_t tp;
 	if(!val)
 	{
+		nvflag_t nofree = nv_isattr(np,NV_NOFREE);
 		nv_putv(np, val, flags, fp);
 		fp = nv_stack(np, NULL);
 		if(fp && !(fp->namflags & NAMFUN_NOFREE))
 			free(fp);
+		if(nofree)
+			free(dp);	/* nv_putv() will not free an NV_NOFREE value */
 		return;
 	}
 	if(!dp)
@@ -1441,6 +1444,16 @@ int nv_ispredef(Namval_t *np)
 	return np >= sh.bltin_nodes && np < &sh.bltin_nodes[nvars];
 }
 
+#if SHOPT_STATS
+static Namval_t *create_stat(Namval_t *, const char *, nvflag_t, Namfun_t *);
+static Namval_t *next_stat(Namval_t *, Dt_t *, Namfun_t *);
+static const Namdisc_t stat_disc =
+{
+	.createf = create_stat,
+	.nextf = next_stat
+};
+#endif
+
 /*
  * Reinitialize before executing a script without a #! path.
  * This is done in a fork of the shell.
@@ -1450,6 +1463,9 @@ void sh_reinit(void)
 	Shopt_t opt = { 0 };
 	Namval_t *np,*npnext;
 	Dt_t	*dp;
+#if SHOPT_STATS
+	Namfun_t *statfp = NULL;
+#endif
 	sh_onstate(SH_INIT);
 	sh_offstate(SH_FORKED);
 	/* Reset shell options; inherit some */
@@ -1475,6 +1491,9 @@ void sh_reinit(void)
 	/* Reset arguments */
 	if(sh.arglist)
 		sh_argreset(sh.arglist,NULL);
+	/* Do not free the old shname if sh.readscript still uses it */
+	if(sh.shname != sh.readscript)
+		free(sh.shname);
 	sh.shname = error_info.id = sh_strdup(sh.st.dolv[0]);
 	/* Reset traps and signals */
 	memset(sh.st.trapcom,0,(sh.st.trapmax+1)*sizeof(char*));
@@ -1524,12 +1543,21 @@ void sh_reinit(void)
 		npnext = (Namval_t*)dtnext(sh.typedict,np);
 		nv_delete(np,dp,0);
 	}
+	/* .sh.match has allocated but empty elements; free its storage before .sh is unset */
+	if(nv_isarray(SH_MATCHNOD))
+		nv_putsub(SH_MATCHNOD,NULL,0,ARRAY_UNDEF);
+#if SHOPT_STATS
+	/* .sh.stats cannot free itself as its discipline is marked NAMFUN_NOFREE; find it for freeing below */
+	for(statfp = SH_STATS->nvfun; statfp; statfp = statfp->next)
+		if(statfp->disc == &stat_disc)
+			break;
+#endif
 	/* Unset all variables (don't delete yet) */
 	for(np = dtfirst(sh.var_tree); np; np = npnext)
 	{
 		nvflag_t nofree;
 		npnext = (Namval_t*)dtnext(sh.var_tree,np);
-		if(np==DOTSHNOD || np==L_ARGNOD)	/* TODO: unset these without crashing */
+		if(np==L_ARGNOD)	/* TODO: unset without crashing */
 			continue;
 		if(nv_isref(np))
 			nv_unref(np);
@@ -1539,6 +1567,7 @@ void sh_reinit(void)
 		nv_unset(np,NV_RDONLY);			/* also clears NV_NOFREE attr, if any */
 		nv_setattr(np,nofree);
 	}
+	sh.typedict = NULL;	/* was closed by unsetting the .sh table */
 	/* Delete functions and built-ins. Note: fun_tree has a viewpath to bltin_tree */
 	for(np = dtfirst(sh.fun_tree); np; np = npnext)
 	{
@@ -1575,7 +1604,6 @@ void sh_reinit(void)
 	freeup_tree(sh.fun_tree); /* includes sh.bltin_tree */
 	freeup_tree(sh.alias_tree);
 	freeup_tree(sh.track_tree);
-	freeup_tree(sh.typedict);
 	freeup_tree(sh.var_tree);
 	if(sh.funload_loopdetect_tree)
 	{
@@ -1584,6 +1612,7 @@ void sh_reinit(void)
 	}
 #if SHOPT_STATS
 	free(sh.stats);
+	free(statfp);
 #endif
 	/* Re-init variables, functions and built-ins */
 	free(sh.bltin_cmds);
@@ -1690,12 +1719,6 @@ found:
 	}
 	return nq;
 }
-
-static const Namdisc_t stat_disc =
-{
-	.createf = create_stat,
-	.nextf = next_stat
-};
 
 static char *name_stat(Namval_t *np, Namfun_t *fp)
 {
