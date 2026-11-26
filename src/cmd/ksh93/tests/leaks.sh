@@ -299,10 +299,26 @@ DONE
 # Check that unsetting an alias frees both the node and its value
 
 TEST	title='unalias'
+	integer i=0
 DO
 	alias "test$i=command$i"
 	unalias "test$i"
+	((i++))
 DONE
+
+# ======
+# Check that 'unalias -a' frees both the nodes and their values.
+# Since 'unalias -a' also removes the aliases used by the test harness, save and restore them.
+
+TEST	title='unalias -a'
+	integer i=0
+	saved_aliases=$(alias -p)
+DO
+	alias "test$i=command$i"
+	unalias -a
+	((i++))
+DONE
+eval "$saved_aliases"
 
 # ======
 # Red Hat bug rhbz#982142: command substitution leaks
