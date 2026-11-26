@@ -759,6 +759,11 @@ DONE
 # A script file without a #! path is executed by reinitialising the shell in a
 # forked child instead of starting a new shell (see sh_reinit()). Check that
 # repeatedly executing such a script does not leak memory.
+#
+# Also assign the result of a command substitution before reinitialising
+# (_ri_dummy=$(true)), as that marks the variable as not owning its value
+# (NV_NOFREE), which previously made sh_reinit() skip freeing the variable
+# node.
 if	[[ -f /proc/$$/stat && $HOSTTYPE == linux.* ]]
 then	cat > reinit_loop.sh <<-'EOF'
 	if	[[ -v _ri_initial_mem ]]
@@ -766,6 +771,7 @@ then	cat > reinit_loop.sh <<-'EOF'
 	else	_ri_initial_mem=$(cut -f 23 -d ' ' </proc/$$/stat)
 		_ri_n=0
 	fi
+	_ri_dummy=$(true)
 	export _ri_initial_mem _ri_n
 	if	(( _ri_n < 1000 ))
 	then	exec "$0"

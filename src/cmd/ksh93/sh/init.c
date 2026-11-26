@@ -1556,7 +1556,6 @@ void sh_reinit(void)
 	/* Unset all variables (don't delete yet) */
 	for(np = dtfirst(sh.var_tree); np; np = npnext)
 	{
-		nvflag_t nofree;
 		npnext = (Namval_t*)dtnext(sh.var_tree,np);
 		if(np==L_ARGNOD)	/* TODO: unset without crashing */
 			continue;
@@ -1564,9 +1563,7 @@ void sh_reinit(void)
 			nv_unref(np);
 		if(nv_isarray(np))
 			nv_putsub(np,NULL,0,ARRAY_UNDEF);
-		nofree = nv_isattr(np,NV_NOFREE);	/* note: returns bitmask, not boolean */
 		nv_unset(np,NV_RDONLY);			/* also clears NV_NOFREE attr, if any */
-		nv_setattr(np,nofree);
 	}
 	sh.typedict = NULL;	/* was closed by unsetting the .sh table */
 	/* Delete functions and built-ins. Note: fun_tree has a viewpath to bltin_tree */
@@ -1593,7 +1590,7 @@ void sh_reinit(void)
 		if((dp = sh.var_tree)->walk)
 			dp = dp->walk;	/* the dictionary in which the item was found */
 		npnext = (Namval_t*)dtnext(sh.var_tree,np);
-		nv_delete(np,dp,nv_isattr(np,NV_NOFREE));
+		nv_delete(np,dp,0);
 	}
 	/* Reset state for subshells, environment, job control, function calls and file descriptors */
 	sh.subshell = sh.realsubshell = sh.comsub = sh.curenv = sh.jobenv = sh.inuse_bits = sh.fn_depth = sh.dot_depth = 0;
