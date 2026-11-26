@@ -786,4 +786,12 @@ then	cat > reinit_loop.sh <<-'EOF'
 fi
 
 # ======
+# An EXIT trap action that calls exit makes sh_trap() longjmp out of the
+# subshell exit code that runs it, which used to skip freeing the action.
+TEST	title='EXIT trap that calls exit in a subshell'
+DO
+	( trap "exit 0" 0; exit 1 )
+DONE
+
+# ======
 exit $((Errors<125?Errors:125))

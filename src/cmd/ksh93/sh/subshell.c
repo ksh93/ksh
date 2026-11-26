@@ -1115,6 +1115,7 @@ Sfio_t *sh_subshell(Shnode_t *t, int flags, char comsub)
 	struct funtrap *save_funtrap = sh.funtrap;
 	struct funtrap sub_trap;
 	Sfio_t *volatile iop = NULL;
+	char *volatile exittrap = NULL;
 	struct checkpt checkpoint;
 	struct sh_scoped savst;
 	struct dolnod   *argsav = NULL;
@@ -1297,11 +1298,16 @@ Sfio_t *sh_subshell(Shnode_t *t, int flags, char comsub)
 	if(comsub!=2 && jmpval!=SH_JMPSUB && sh.st.trapcom[0] && sh.subshell)
 	{
 		/* trap on EXIT not handled by child */
-		char *trap=sh.st.trapcom[0];
+		exittrap = sh.st.trapcom[0];
 		sh.st.trapcom[0] = NULL;	/* prevent recursion */
-		sh_trap(trap,0);
+		sh_trap(exittrap,0);
 		sh.sigcritical |= SH_SIGDEFER;
-		free(trap);
+	}
+	/* free the EXIT trap action outside of the block above; sh_trap() may longjmp back to the sigsetjmp further up */
+	if(exittrap)
+	{
+		free(exittrap);
+		exittrap = NULL;
 	}
 	if(sh.subshell==0)	/* we must have forked with sh_subfork(); this is the child process */
 	{
