@@ -1683,50 +1683,6 @@ void path_newdir(Pathcomp_t *first)
 	}
 }
 
-Pathcomp_t *path_unsetfpath(void)
-{
-	Pathcomp_t	*first = (Pathcomp_t*)sh.pathlist;
-	Pathcomp_t	*pp = first, *old = NULL;
-	if(sh.fpathdict)
-	{
-		struct Ufunction  *rp, *rpnext;
-		for(rp=(struct Ufunction*)dtfirst(sh.fpathdict);rp;rp=rpnext)
-		{
-			rpnext = (struct Ufunction*)dtnext(sh.fpathdict,rp);
-			if(rp->fdict)
-				nv_delete(rp->np,rp->fdict,NV_NOFREE);
-			rp->fdict = NULL;
-		}
-	}
-	while(pp)
-	{
-		if((pp->flags&PATH_FPATH) && !(pp->flags&PATH_BFPATH))
-		{
-			if(pp->flags&PATH_PATH)
-				pp->flags &= ~PATH_FPATH;
-			else
-			{
-				Pathcomp_t *ppsave=pp;
-				if(old)
-					old->next = pp->next;
-				else
-					first = pp->next;
-				pp = pp->next;
-				if(--ppsave->refcount<=0)
-				{
-					if(ppsave->lib)
-						free(ppsave->lib);
-					free(ppsave);
-				}
-				continue;
-			}
-		}
-		old = pp;
-		pp = pp->next;
-	}
-	return first;
-}
-
 Pathcomp_t *path_dirfind(Pathcomp_t *first,const char *name,int c)
 {
 	Pathcomp_t *pp=first;
