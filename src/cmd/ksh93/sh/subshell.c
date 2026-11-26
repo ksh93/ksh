@@ -1431,14 +1431,18 @@ Sfio_t *sh_subshell(Shnode_t *t, int flags, char comsub)
 		if(sp->strack)
 		{
 			Namval_t *np, *next_np;
+			int save_nv_restore = sh.nv_restore;
 			/* Detach this scope from the unified view. */
 			sh.track_tree = dtview(sp->strack,NULL);
 			/* Free all elements of the subshell hash table. */
+			sh.nv_restore = 1;	/* do not create a new scope during cleanup */
 			for(np = (Namval_t*)dtfirst(sp->strack); np; np = next_np)
 			{
 				next_np = (Namval_t*)dtnext(sp->strack,np);
+				nv_unset(np,NV_RDONLY);	/* also decrements the path component's refcount */
 				nv_delete(np,sp->strack,0);
 			}
+			sh.nv_restore = save_nv_restore;
 			/* Close and free the table itself. */
 			dtclose(sp->strack);
 			sp->strack = NULL;

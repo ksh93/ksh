@@ -1498,6 +1498,7 @@ void sh_reinit(void)
 	/* Reset traps and signals */
 	memset(sh.st.trapcom,0,(sh.st.trapmax+1)*sizeof(char*));
 	sh_sigreset(0);
+	free(sh.st.filename);	/* allocated by sh_main() or a previous sh_reinit() */
 	sh.st.filename = sh_strdup(sh.lastarg);
 	nv_delete(NULL, NULL, 0);
 	job.exitval = NULL;

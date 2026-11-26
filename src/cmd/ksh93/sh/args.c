@@ -534,12 +534,25 @@ struct dolnod *sh_argnew(char *argi[], struct dolnod **savargfor)
 void sh_argreset(struct dolnod *blk, struct dolnod *afor)
 {
 	Arg_t *ap = (Arg_t*)sh.arg_context;
+	struct dolnod *dp;
 	while(ap->argfor=sh_argfree(ap->argfor));
 	ap->argfor = afor;
 	if(ap->dolh = blk)
 	{
 		sh.st.dolc = ap->dolh->dolnum-1;
 		sh.st.dolv = ap->dolh->dolval;
+		/*
+		 * Make sure the argument list is linked into the chain
+		 * so that it is freed next time the arguments are reset.
+		 */
+		dp = ap->argfor;
+		while(dp && dp != blk)
+			dp = dp->dolnxt;
+		if(!dp)
+		{
+			blk->dolnxt = ap->argfor;
+			ap->argfor = blk;
+		}
 	}
 }
 
