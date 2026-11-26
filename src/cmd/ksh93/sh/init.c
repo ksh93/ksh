@@ -394,7 +394,20 @@ static void put_restricted(Namval_t* np,const char *val,nvflag_t flags,Namfun_t 
 	if(val && !(flags&NV_RDONLY) && np->nvalue && strcmp(val,np->nvalue)==0)
 		 return;
 	if(np==FPATHNOD	|| (fpath_scoped=(strcmp(name,FPATHNOD->nvname)==0)))
-		sh.pathlist = path_unsetfpath();
+	{
+		/* Discard the cached definitions of functions that were autoloaded from the old $FPATH */
+		if(sh.fpathdict)
+		{
+			struct Ufunction *rp, *rpnext;
+			for(rp = (struct Ufunction*)dtfirst(sh.fpathdict); rp; rp = rpnext)
+			{
+				rpnext = (struct Ufunction*)dtnext(sh.fpathdict,rp);
+				if(rp->fdict)
+					nv_delete(rp->np,rp->fdict,NV_NOFREE);
+				rp->fdict = NULL;
+			}
+		}
+	}
 	nv_putv(np, val, flags, fp);
 	/* A scoped copy of $PATH inherits the value of $PATH when it is unset */
 	if(path_scoped && !val)
@@ -405,8 +418,15 @@ static void put_restricted(Namval_t* np,const char *val,nvflag_t flags,Namfun_t 
 		val = np->nvalue;
 		if(np==PATHNOD || path_scoped)
 			sh.pathlist = path_addpath((Pathcomp_t*)sh.pathlist,val,PATH_PATH);
-		else if(val && (np==FPATHNOD || fpath_scoped))
-			sh.pathlist = path_addpath((Pathcomp_t*)sh.pathlist,val,PATH_FPATH);
+		else if(np==FPATHNOD || fpath_scoped)
+		{	/*
+			 * Rebuild the path search list from $PATH. This drops the old
+			 * $FPATH components, and path_addpath() adds the current ones.
+			 */
+			sh.pathlist = path_addpath((Pathcomp_t*)sh.pathlist,sh_scoped(PATHNOD)->nvalue,PATH_PATH);
+			if(!val)
+				return;
+		}
 		else
 			return;
 		if(!val && (flags&NV_NOSCOPE))

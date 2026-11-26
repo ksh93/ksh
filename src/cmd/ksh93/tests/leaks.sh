@@ -417,6 +417,14 @@ DO
 	(unset PATH)
 DONE
 
+TEST	title='set FPATH value in subshell'
+DO
+	unset FPATH
+	FPATH=$PWD
+	(unset FPATH; FPATH=$PWD; :)
+DONE
+unset FPATH
+
 # ======
 # Test for a memory leak after 'cd' (in relation to $PWD and $OLDPWD)
 TEST	title='PWD and/or OLDPWD changed by cd'
