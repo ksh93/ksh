@@ -1583,7 +1583,7 @@ do	got=$(unset -f "$b"; PATH=/dev/null; "$b" --version 2>&1)
 done
 
 # ======
-# test autoloading a function from within a command substitutino
+# test autoloading a function from within a command substitution
 # https://github.com/ksh93/ksh/issues/971
 
 print -r >test_program \
@@ -1613,16 +1613,24 @@ print -r >third_function \
         print "Third function got called."
 }'
 
-got=$(FPATH=$PWD; set +x; . ./test_program 2>&1)
+# A compound array element makes the exit-time array scan walk a variable
+# tree; set an array to ensure that a stale name lookup root left by the
+# virtual subshell's function tree doesn't crash it.
+typeset -A crasharr
+crasharr[sub]=(x=1)
+
 exp='typeset -fu my_function
 Third function got called.
 my_function was called.
 typeset -fu my_function
 Third function got called.
 my_function was called.'
+got=$(FPATH=$PWD; set +x; . ./test_program 2>&1)
+[[ e=$? -eq 0 && $got == "$exp" ]] || err_exit "autoloading a function from a command substitution" \
+	"(expected status 0 and output $(printf %q "$exp")," \
+	"got status $e$( ((e>128)) && print -n /SIG && kill -l "$e") and output $(printf %q "$got"))"
 
-[[ $got == "$exp" ]] || err_exit "autoloading a function from a command substitution" \
-	"(expected $(printf %q "$exp"), got $(printf %q "$got"))"
+unset crasharr
 
 # ======
 exit $((Errors<125?Errors:125))

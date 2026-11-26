@@ -1484,6 +1484,8 @@ Sfio_t *sh_subshell(Shnode_t *t, int flags, char comsub)
 					nv_delete(np,sp->sfun,NV_FUNCTION);
 				}
 			}
+			if(sh.last_root==sp->sfun)
+				sh.last_root = NULL;
 			dtclose(sp->sfun);
 			sp->sfun = NULL;
 		}
