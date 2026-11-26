@@ -417,6 +417,13 @@ DO
 	(unset PATH)
 DONE
 
+TEST	title='hash in command substitution followed by PATH reset'
+DO
+	x=$(hash cut)
+	PATH=/dev/null
+	PATH=$save_PATH
+DONE
+
 TEST	title='set FPATH value in subshell'
 DO
 	unset FPATH
@@ -760,7 +767,7 @@ then	cat > reinit_loop.sh <<-'EOF'
 		_ri_n=0
 	fi
 	export _ri_initial_mem _ri_n
-	if	(( _ri_n < 100 ))
+	if	(( _ri_n < 1000 ))
 	then	exec "$0"
 	fi
 	_ri_mem=$(cut -f 23 -d ' ' </proc/$$/stat)
@@ -768,7 +775,7 @@ then	cat > reinit_loop.sh <<-'EOF'
 	EOF
 	chmod +x reinit_loop.sh
 	got=$(./reinit_loop.sh) || err_exit 'executing a script without a #! path failed'
-	(( got <= 64 )) || err_exit "executing a script without a #! path leaked approx $got KiB"
+	(( got <= 32 )) || err_exit "executing a script without a #! path leaked approx $got KiB"
 	rm -f reinit_loop.sh
 fi
 
