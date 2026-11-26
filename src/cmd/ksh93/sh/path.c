@@ -1385,6 +1385,9 @@ static noreturn void exscript(char *path,char *argv[])
 	}
 	sh.infd = sh_iomovefd(sh.infd,10);
 	sh.arglist = sh_argcreate(argv);
+	if(sh.lastarg && !nv_isattr(L_ARGNOD,NV_NOFREE))
+		free(sh.lastarg);
+	nv_offattr(L_ARGNOD,NV_NOFREE);
 	sh.lastarg = sh_strdup(path);
 	/* save name of calling command */
 	sh.readscript = error_info.id;

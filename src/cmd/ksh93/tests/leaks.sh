@@ -749,4 +749,28 @@ DO
 DONE
 
 # ======
+# A script file without a #! path is executed by reinitialising the shell in a
+# forked child instead of starting a new shell (see sh_reinit()). Check that
+# repeatedly executing such a script does not leak memory.
+if	[[ -f /proc/$$/stat && $HOSTTYPE == linux.* ]]
+then	cat > reinit_loop.sh <<-'EOF'
+	if	[[ -v _ri_initial_mem ]]
+	then	_ri_n=$((_ri_n + 1))
+	else	_ri_initial_mem=$(cut -f 23 -d ' ' </proc/$$/stat)
+		_ri_n=0
+	fi
+	export _ri_initial_mem _ri_n
+	if	(( _ri_n < 100 ))
+	then	exec "$0"
+	fi
+	_ri_mem=$(cut -f 23 -d ' ' </proc/$$/stat)
+	print $(( (_ri_mem - _ri_initial_mem) / 1024 ))
+	EOF
+	chmod +x reinit_loop.sh
+	got=$(./reinit_loop.sh) || err_exit 'executing a script without a #! path failed'
+	(( got <= 64 )) || err_exit "executing a script without a #! path leaked approx $got KiB"
+	rm -f reinit_loop.sh
+fi
+
+# ======
 exit $((Errors<125?Errors:125))
