@@ -1747,6 +1747,10 @@ void *nv_associative(Namval_t *np,const char *sp,nvflag_t mode)
 		}
 		else
 		{
+			/* Delete any remaining elements; dtclose() below does not free them. */
+			if(ap->header.table)
+				while(nv_associative(np,NULL,NV_ANEXT))
+					nv_associative(np,NULL,NV_ADELETE);
 			if(ap->header.nelem==0 && (ap->cur=nv_search("0",ap->header.table,0)))
 				nv_associative(np,NULL,NV_ADELETE);
 			dtclose(ap->header.table);
