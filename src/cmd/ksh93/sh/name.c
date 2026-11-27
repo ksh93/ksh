@@ -3119,7 +3119,12 @@ void nv_newattr(Namval_t *np, nvflag_t newatts, ssize_t size)
 			free(cp);
 			cp = NULL;
 		}
-		if(sh.subshell && !sh.subshare && nv_isattr(np,NV_ARRAY|NV_RDONLY)==NV_ARRAY && sp && sp!=Empty && sp!=AltEmpty && array_assoc(ap))
+		/*
+		 * In a virtual subshell, nv_getval() returns a heap copy of the current
+		 * associative array element's value. Free it, unless the element is
+		 * itself an array (the recursive nv_newattr() call handles that value).
+		 */
+		if(sh.subshell && !sh.subshare && sp && sp!=Empty && sp!=AltEmpty && ap && array_assoc(ap) && !(mp && nv_isarray(mp)))
 			free(sp);
 	}
 	while(ap && nv_nextsub(np));
