@@ -817,4 +817,12 @@ DO
 DONE; unset -f .sh.math.add
 
 # ======
+# A readonly integer associative array created in a command substitution used
+# to lose (leak) its element values when the subshell exited.
+TEST	title='readonly integer associative array in command substitution'
+DO
+	got=$(typeset -r -A -i arr=([a]=10 [b]=20 [c]=30 [d]=40 [e]=50))
+DONE
+
+# ======
 exit $((Errors<125?Errors:125))
