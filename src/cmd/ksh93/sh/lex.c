@@ -1487,6 +1487,14 @@ breakloop:
 		}
 	}
 	c = 0;
+	/*
+	 * bug-666: Phi:
+	 * 
+	 */
+	if(lp->lexd.funcalias==1)
+	{ goto check_alias;
+	}
+
 	if(!lp->lex.skipword)
 	{
 		if(n>1 && lp->lex.reservok==1 && mode==ST_NAME &&
@@ -1525,6 +1533,8 @@ breakloop:
 		{
 			/* check for aliases */
 			Namval_t* np;
+
+		check_alias: /* bug-666: Phi: */
 			if(!lp->lex.incase && !assignment && fcpeek(0)!=LPAREN &&
 				(np=nv_search(state,sh.alias_tree,0))
 				&& !nv_isattr(np,NV_NOEXPAND)
@@ -1532,11 +1542,35 @@ breakloop:
 				&& (!sh_isstate(SH_NOALIAS) || nv_isattr(np,NV_NOFREE))
 				&& (state=nv_getval(np)))
 			{
+				int t; /* bug-666: Phi: */
 				setupalias(lp,state,np);
 				nv_onattr(np,NV_NOEXPAND);
 				lp->lex.reservok = 1;
 				lp->assignok |= lp->lex.reservok;
-				return sh_lex(lp);
+				/*
+				 * bug-666: Phi: Check if we just expanded
+				 * "function " (i.e trailig space), if so we
+				 * got to set lp->lexd.funcalias=1;
+				 * so that next funct() will have a chance to
+				 * expand next word. The original return
+				 * below is replaced with the funcalias
+				 * setup
+				 */
+				/* return sh_lex(lp);  */
+				if(lp->lexd.funcalias==1)
+				{
+					lp->lexd.funcalias++;
+				}
+				t=sh_lex(lp);
+				if(strcmp(state,"function ")==0)
+				{
+					lp->lexd.funcalias=1;
+				}
+				else
+				{
+					lp->lexd.funcalias=0;
+				}
+				return t;
 			}
 		}
 		lp->lex.reservok = 0;
