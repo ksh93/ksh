@@ -539,7 +539,11 @@ void	sh_freeup(void)
 
 /*
  * increase reference count for each stack in function list when flag>0
- * decrease reference count for each stack in function list when flag<=0
+ *
+ * decrease reference count for each stack in function list when flag<=0;
+ * flag==-1 releases the parse list's reference only (at most once per stack),
+ * flag<-1 releases a function's or execution's reference
+ *
  * stack is freed when reference count is zero
  */
 void sh_funstaks(struct slnod *slp,int flag)
@@ -552,21 +556,23 @@ void sh_funstaks(struct slnod *slp,int flag)
 		slp = slp->slnext;
 		if(slpold->slptr)
 		{
-			if(flag<=0)
+			if(flag>0)
+				stklink(slpold->slptr);
+			else if(flag==-1)
 			{
 				/*
-				 * Since we're dealing with a linked list of stacks, slpold may be inside the allocated region
-				 * pointed to by slpold->slptr, meaning the stkclose() call may invalidate slpold as well as
-				 * slpold->slptr. So if we do 'stkclose(slpold->slptr); slpold->slptr = NULL' as may
-				 * seem obvious, the assignment may be a use-after-free of slpold. Therefore, save the pointer
-				 * value and reset the pointer before closing/freeing the stack.
+				 * Release the parse list's reference, but only once: the same
+				 * list may be traversed again after a scope switch. A function
+				 * node may still hold a reference of its own.
 				 */
-				Stk_t *sp = slpold->slptr;
-				slpold->slptr = NULL;
-				stkclose(sp);
+				if(!slpold->slreleased)
+				{
+					slpold->slreleased = 1;
+					stkclose(slpold->slptr);
+				}
 			}
 			else
-				stklink(slpold->slptr);
+				stkclose(slpold->slptr);
 		}
 	}
 }
@@ -950,6 +956,7 @@ static Shnode_t *funct(Lex_t *lexp)
 		slp = stkalloc(sh.stk,sizeof(struct slnod)+sizeof(struct functnod));
 		slp->slchild = NULL;
 		slp->slnext = sh.st.staklist;
+		slp->slreleased = 0;
 		sh.st.staklist = NULL;
 		t->funct.functstak = (struct slnod*)slp;
 		/*

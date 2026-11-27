@@ -1407,13 +1407,10 @@ int sh_exec(const Shnode_t *t, int exec_flags)
 						sh.invoc_local--;
 					if(nq)
 						unset_instance(nodep,nrp,mode);
-					sh_funstaks(slp->slchild,-1);
+					/* release the execution-time references; keep slptr for the function */
+					sh_funstaks(slp->slchild,-2);
 					if(slp->slptr)
-					{
-						Stk_t *sp = slp->slptr;
-						slp->slptr = NULL;
-						stkclose(sp);
-					}
+						stkclose(slp->slptr);
 					if(jmpval > SH_JMPFUN || (io && jmpval > SH_JMPIO))
 						siglongjmp(*sh.jmplist,jmpval);
 					goto setexit;
@@ -2446,13 +2443,10 @@ int sh_exec(const Shnode_t *t, int exec_flags)
 			{
 				struct Ufunction *rp = np->nvalue;
 				slp = np->nvmeta;
-				sh_funstaks(slp->slchild,-1);
+				/* release the old definition's references; the parse list frees its own */
+				sh_funstaks(slp->slchild,-2);
 				if(slp->slptr)
-				{
-					Stk_t *sp = slp->slptr;
-					slp->slptr = NULL;
-					stkclose(sp);
-				}
+					stkclose(slp->slptr);
 				if(rp->sdict)
 				{
 					Namval_t *mp, *nq;

@@ -139,6 +139,7 @@ static Shnode_t *r_tree(void)
 			slp = stkalloc(sh.stk,sizeof(struct slnod)+sizeof(struct functnod));
 			slp->slchild = NULL;
 			slp->slnext = sh.st.staklist;
+			slp->slreleased = 0;
 			sh.st.staklist = NULL;
 			fp = (struct functnod*)(slp+1);
 			fp->functtyp = TFUN|FAMP;

@@ -501,7 +501,7 @@ TEST	title='assign to zero-filled and right-justified variables'
 DO
 	(( zfill++ ))
 	(( rjust++ ))
-DONE
+DONE; unset zfill rjust
 
 # ======
 TEST	title='running external command by default path'
@@ -840,6 +840,34 @@ DO
 	float x
 	x.getn() { .sh.value=1; }
 	unset x
+DONE
+
+# ======
+# Function stacks leaked when defining and unsetting shell functions
+
+# The stack on which a function body was compiled was leaked when the
+# function was defined in a command substitution.
+TEST	title='function definition in command substitution'
+DO
+	got=$(function f { :; })
+DONE
+
+# Redefining a function in a command substitution leaked the old body stack.
+TEST	title='function redefinition in command substitution'
+DO
+	got=$(function f { :; }; function f { :; })
+DONE
+
+# A nested function definition leaked its body stack when its parent was freed.
+TEST	title='nested function definition in command substitution'
+DO
+	got=$(function f { function g { :; }; })
+DONE
+
+# A function that was called before being unset leaked its body stack.
+TEST	title='function call before unset'
+DO
+	eval 'function f { :; }; f; unset -f f'
 DONE
 
 # ======

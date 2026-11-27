@@ -1437,7 +1437,7 @@ Sfio_t *sh_subshell(Shnode_t *t, int flags, char comsub)
 		if(sp->strack)
 		{
 			Namval_t *np, *next_np;
-			int save_nv_restore = sh.nv_restore;
+			char save_nv_restore = sh.nv_restore;
 			/* Detach this scope from the unified view. */
 			sh.track_tree = dtview(sp->strack,NULL);
 			/* Free all elements of the subshell hash table. */
