@@ -833,4 +833,14 @@ DO
 DONE
 
 # ======
+# Unsetting a variable with a discipline function leaked the discipline
+# handle and the function definition node.
+TEST	title='unset variable with discipline function'
+DO
+	float x
+	x.getn() { .sh.value=1; }
+	unset x
+DONE
+
+# ======
 exit $((Errors<125?Errors:125))
