@@ -492,6 +492,18 @@ DO
 DONE
 
 # ======
+# Assigning to a zero-filled or right-justified variable used to leak the
+# previous value because nv_putval() allocated a fresh buffer instead of
+# reusing or freeing the old one.
+TEST	title='assign to zero-filled and right-justified variables'
+	typeset -Z8 zfill=0
+	typeset -R5 rjust=0
+DO
+	(( zfill++ ))
+	(( rjust++ ))
+DONE
+
+# ======
 TEST	title='running external command by default path'
 DO
 	command -px true

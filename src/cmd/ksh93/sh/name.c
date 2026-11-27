@@ -1735,6 +1735,7 @@ void nv_putval(Namval_t *np, const char *sp, nvflag_t flags)
 	void		**vpp;	/* pointer to value pointer */
 	size_t		size = 0;
 	int		was_local = nv_local;
+	int		noreuse = 0;	/* do not reuse (realloc) the old value buffer */
 #if SHOPT_FIXEDARRAY
 	Namarr_t	*ap;
 #endif /* SHOPT_FIXEDARRAY */
@@ -2017,7 +2018,7 @@ void nv_putval(Namval_t *np, const char *sp, nvflag_t flags)
 		if(nv_isattr(np,NV_BINARY) && !(flags&NV_RAW))
 			tofree = NULL;
 		if(nv_isattr(np,NV_LJUST|NV_RJUST) && nv_isattr(np,NV_LJUST|NV_RJUST)!=(NV_LJUST|NV_RJUST))
-			tofree = NULL;
+			noreuse = 1;
 		if(!sp)
 			*vpp = NULL;
 		else
@@ -2105,7 +2106,7 @@ void nv_putval(Namval_t *np, const char *sp, nvflag_t flags)
 				}
 				else
 				{
-					if(tofree && tofree!=Empty && tofree!=AltEmpty)
+					if(!noreuse && tofree && tofree!=Empty && tofree!=AltEmpty)
 					{
 						cp = (char*)sh_realloc((void*)tofree, dot+append+1);
 						tofree = NULL;
