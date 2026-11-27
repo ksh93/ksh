@@ -3170,6 +3170,7 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 			{
 				char		**arg = sh.st.real_fun->argv;
 				Namval_t	*np, *nq, **nref;
+				int		i;
 				if(nref=fp->nref)
 				{
 					sh.last_root = NULL;
@@ -3185,6 +3186,24 @@ int sh_funscope(int argn, char *argv[],int(*fun)(void*),void *arg,int execflg)
 					}
 				}
 				sh_exec((Shnode_t*)(nv_funtree((fp->node))),execflg|SH_ERREXIT);
+				if(fp->nref)
+				{
+					/* Free the temporary parameter namerefs created above */
+					nref = fp->nref;
+					for(i=0; arg[i]; i++)
+					{
+						np = nv_search(arg[i],sh.var_tree,NV_NOSCOPE);
+						if(np && (nq=*nref++) && nv_isref(np) && np->nvalue && ((struct Namref*)np->nvalue)->np==nq)
+						{
+							struct Namref *nrp = np->nvalue;
+							if(nrp->sub)
+								free(nrp->sub);
+							free(nrp);
+							np->nvalue = NULL;
+							nv_offattr(np,NV_REF|NV_NOFREE);
+						}
+					}
+				}
 			}
 			r = sh.exitval;
 		}

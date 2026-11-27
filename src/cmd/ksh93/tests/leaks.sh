@@ -806,4 +806,15 @@ DO
 DONE
 
 # ======
+# Calling a .sh.math.* function in a command substitution creates temporary
+# namerefs for its parameters; these used to be leaked when the subshell
+# exited because the parameter nodes were moved to the subshell scope before
+# they could be unset and freed.
+TEST	title='math function call in command substitution'
+	function .sh.math.add x y { .sh.value=x+y; }
+DO
+	got=$(typeset -i z; z='add(2,3)')
+DONE; unset -f .sh.math.add
+
+# ======
 exit $((Errors<125?Errors:125))
