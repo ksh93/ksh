@@ -125,7 +125,7 @@ command=${0##*/}
 case $(getopts '[-][123:xyz]' opt --xyz 2>/dev/null; echo 0$opt) in
 0123)	USAGE=$'
 [-?
-@(#)$Id: '$command$' (ksh 93u+m) 2026-10-07 $
+@(#)$Id: '$command$' (ksh 93u+m) 2026-11-27 $
 ]
 [-author?Glenn Fowler <gsf@research.att.com>]
 [-author?Contributors to https://github.com/ksh93/ksh]
@@ -536,7 +536,7 @@ SEE ALSO
   pkgadd(1), pkgmk(1), rpm(1), sh(1), tar(1), optget(3)
 
 IMPLEMENTATION
-  version         package (ksh 93u+m) 2026-10-07
+  version         package (ksh 93u+m) 2026-11-27
   author          Glenn Fowler <gsf@research.att.com>
   author          Contributors to https://github.com/ksh93/ksh
   copyright       (c) 1994-2012 AT&T Intellectual Property
@@ -758,15 +758,17 @@ hostinfo() # attribute ...
 	for info
 	do
 	case $info in
-	cpu)	cpu=$(sysctl -n hw.ncpu)
+	cpu)	cpu=$(
+			# BSD, macOS
+			sysctl -n hw.ncpu ||
+			# GNU
+			gnproc || nproc ||
+			# Linux
+			grep -ic '^processor[ 	][ 	]*:[ 	]*[0123456789]' /proc/cpuinfo
+		)
 		case $cpu in
-		[123456789]*)
-			_hostinfo_="$_hostinfo_ $cpu"
-			continue
+		*[!0123456789]*)
 			;;
-		esac
-		cpu=$(grep -ic '^processor[ 	][ 	]*:[ 	]*[0123456789]' /proc/cpuinfo)
-		case $cpu in
 		[123456789]*)
 			_hostinfo_="$_hostinfo_ $cpu"
 			continue
@@ -786,6 +788,8 @@ hostinfo() # attribute ...
 			esac
 			i=$($1 2>/dev/null | grep -c "$2")
 			case $i in
+			*[!0123456789]*)
+				;;
 			[123456789]*)
 				cpu=$i
 				break
@@ -829,6 +833,8 @@ hostinfo() # attribute ...
 
 ' | grep -c "^$2")
 				case $i in
+				*[!0123456789]*)
+					;;
 				[123456789]*)
 					cpu=$i
 					break
@@ -856,6 +862,8 @@ hostinfo() # attribute ...
 				esac
 				i=$($1 2>/dev/null | sed -e "${2}!d" -e "s${3}")
 				case $i in
+				*[!0123456789]*)
+					;;
 				[123456789]*)
 					cpu=$i
 					break
@@ -888,6 +896,8 @@ int main(void)
 			done
 			)
 			case $cpu in
+			*[!0123456789]*)
+				;;
 			[0123456789]*)	;;
 			*)	cpu=1 ;;
 			esac
