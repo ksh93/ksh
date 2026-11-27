@@ -1720,7 +1720,13 @@ static void talias_put(Namval_t* np,const char *val,nvflag_t flags,Namfun_t *fp)
 	{
 		Pathcomp_t *pp = np->nvalue;
 		if(--pp->refcount<=0)
+		{
+			if(pp->lib)
+				free(pp->lib);
+			if(pp->bbuf)
+				free(pp->bbuf);
 			free(pp);
+		}
 	}
 	nv_putv(np,val,flags,fp);
 }

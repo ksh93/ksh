@@ -825,4 +825,12 @@ DO
 DONE
 
 # ======
+# A tracked alias to a path-bound builtin (in SH_CMDLIB_DIR) leaked the path
+# component's builtin-lib buffer when the alias was removed.
+TEST	title='tracked alias to a path-bound builtin'
+DO
+	got=$(PATH=/opt/ast/bin:$PATH; command -v getconf)
+DONE
+
+# ======
 exit $((Errors<125?Errors:125))
