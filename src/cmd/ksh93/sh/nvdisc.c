@@ -389,7 +389,12 @@ static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
 			pp = np->nvmeta;
 		nv_putv(np, val, flags, handle);
 		if(sh.subshell)
-			goto done;  /* nv_restore() may still refer to <handle> */
+		{
+			/* <handle> was popped off <np>'s list above and is no longer reachable from it */
+			if(!(handle->namflags & NAMFUN_NOFREE))
+				free(handle);
+			goto done;  /* nv_restore() may still refer to the discipline functions */
+		}
 		if(!(pp && nv_isarray(pp)) && !(nv_isarray(np) && (ap=nv_arrayptr(np)) && ap->nelem>0))
 		{
 			for(n=0; n < sizeof(vp->disc)/sizeof(*vp->disc); n++)
@@ -397,7 +402,8 @@ static void	assign(Namval_t *np,const char* val,nvflag_t flags,Namfun_t *handle)
 				if((nq=vp->disc[n]) && !nv_isattr(nq,NV_NOFREE))
 				{
 					nv_unset(nq,0);
-					dtdelete(root,nq);
+					nv_delete(nq,root,0);
+					nq = NULL;  /* do not use the freed node at done: */
 				}
 			}
 			unblock(bp,type);
