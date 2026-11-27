@@ -2540,12 +2540,10 @@ void nv_unset(Namval_t *np, nvflag_t flags)
 				}
 				dtclose(rp->sdict);
 			}
+			/* release the function's references to its body and nested stacks */
+			sh_funstaks(slp->slchild,-2);
 			if(slp->slptr)
-			{
-				Stk_t *sp = slp->slptr;
-				slp->slptr = NULL;
-				stkclose(sp);
-			}
+				stkclose(slp->slptr);
 			free(np->nvalue);
 			np->nvalue = NULL;
 		}
@@ -3557,8 +3555,10 @@ Shscope_t *sh_getscope(int index, int whence)
 Shscope_t *sh_setscope(Shscope_t *scope)
 {
 	Shscope_t *old = (Shscope_t*)sh.st.self;
+	struct slnod *staklist = sh.st.staklist;
 	*sh.st.self = sh.st;
 	sh.st = *((struct sh_scoped*)scope);
+	sh.st.staklist = staklist;	/* parse state, not scope state */
 	sh.var_tree = scope->var_tree;
 	SH_PATHNAMENOD->nvalue = sh.st.filename;
 	SH_FUNNAMENOD->nvalue = sh.st.funname;
