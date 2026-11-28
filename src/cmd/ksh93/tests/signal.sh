@@ -459,17 +459,17 @@ do	if	[[ ${SIG[$exp]} ]]
 			trap foo EXIT
 			{
 				typeset -i t=0
-				while	[[ ! -e \$parentready && t++ -lt 200 ]]
-				do	sleep .01
+				while	[[ ! -e \$parentready && t++ -lt 30 ]]
+				do	sleep .1
 				done
 				[[ -e \$parentready ]] || exit
 				kill -$exp \$\$
-				sleep 3
-				kill -0 \$\$ && kill -KILL \$\$
+				sleep 4
+				kill -KILL \$\$ 2>/dev/nll
 			} &
 			yes |
 			while read yes
-			do	("\$bindate"; sleep .01)
+			do	("\$bindate"; sleep .1)
 				: >\$parentready
 			done > /dev/null
 		EOF
