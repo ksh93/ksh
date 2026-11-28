@@ -789,7 +789,7 @@ then	cat > reinit_loop.sh <<-'EOF'
 	then	exec "$0"
 	fi
 	_ri_mem=$(cut -f 23 -d ' ' </proc/$$/stat)
-	print $(( (_ri_mem - _ri_initial_mem) / 1024 ))
+	print -- $(( (_ri_mem - _ri_initial_mem) / 1024 ))
 	EOF
 	chmod +x reinit_loop.sh
 	got=$(./reinit_loop.sh) || err_exit 'executing a script without a #! path failed'
