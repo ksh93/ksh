@@ -40,6 +40,8 @@
 
 #define HERE_MEM	SFIO_BUFSIZE	/* size of here-docs kept in memory */
 
+static Sfio_t *fun_iop;	/* temporary function definition source code stream when parsing from a string */
+
 /* These routines are local to this module */
 
 static Shnode_t	*makeparent(Lex_t*, int, Shnode_t*);
@@ -491,7 +493,9 @@ Shnode_t *sh_dolparen(Lex_t* lp)
 {
 	Shnode_t *t = NULL;
 	Sfio_t *sp = fcfile();
+	Sfio_t *savefun = fun_iop;
 	int line = sh.inlineno;
+	fun_iop = NULL;
 	sh.inlineno = error_info.line+sh.st.firstline;
 	sh_lexopen(lp,1);
 	lp->comsub = 1;
@@ -522,7 +526,16 @@ Shnode_t *sh_dolparen(Lex_t* lp)
 		fcclose();
 		fcsopen(cp);
 		sfclose(sp);
+		if(fun_iop==sp)
+			fun_iop = NULL;
 	}
+	if(fun_iop)
+	{
+		/* stream opened by funct() for storing a function's source code in a string buffer: no longer needed */
+		sfclose(fun_iop);
+		fun_iop = NULL;
+	}
+	fun_iop = savefun;
 	sh.inlineno = line;
 	return t;
 }
@@ -881,6 +894,7 @@ static Shnode_t *funct(Lex_t *lexp)
 	if(!(iop=fcfile()))
 	{
 		iop = sfopen(NULL,fcseek(0),"s");
+		fun_iop = iop;
 		fcclose();
 		fcfopen(iop);
 	}
